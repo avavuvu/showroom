@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Newsletter from '#models/newsletter';
+import type Newsletter from '#models/newsletter';
 import { Link } from '@inertiajs/vue3'
 
 const { newsletters } = defineProps<{

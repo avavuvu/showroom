@@ -1,18 +1,16 @@
 import { DateTime } from 'luxon'
 import { BaseModel, beforeCreate, belongsTo, column } from '@adonisjs/lucid/orm'
-import User from "#models/user"
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
-import { randomUUID } from 'node:crypto'
+import { randomUUID } from 'crypto'
+import User from "#models/user"
 
 export default class Scrap extends BaseModel {
-  public static selfAssignPrimaryKey = true
-
   @column({ isPrimary: true })
   declare id: string
 
   @beforeCreate()
-  static assignUuid(newsletter: Scrap) {
-    newsletter.id = randomUUID()
+  static assignUuid(scrap: Scrap) {
+    scrap.id = randomUUID()
   }
 
   @column()
@@ -22,13 +20,10 @@ export default class Scrap extends BaseModel {
   declare user: BelongsTo<typeof User>
 
   @column()
-  declare title: string
+  declare isSuccessful: boolean
 
   @column()
   declare content: string
-
-  @column()
-  declare sent: boolean
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

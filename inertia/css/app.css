@@ -1,12 +1,15 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
-* {
-  margin: 0;
-  padding: 0;
+@theme {
+  --default-font-family: "Times", "Times New Roman", serif;
+  --font-serif: "Times", "Times New Roman", serif;
 }
 
 html,
 body {
   height: 100%;
   width: 100%;
+  margin: 0;
+  padding: 0;
 }

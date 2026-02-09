@@ -3,10 +3,13 @@ import type User from '#models/user'
 import type Newsletter from '#models/newsletter'
 import { Deferred } from '@inertiajs/vue3'
 import Display from '~/components/Newsletters.vue/Display.vue';
+import type Scrap from '#models/scrap';
+import ScrapDisplay from '~/components/Scrap/ScrapDisplay.vue';
 
 defineProps<{
   user: User,
-  newsletters: Newsletter[]
+  newsletters?: Newsletter[],
+  scraps?: Scrap[]
 }>()
 
 
@@ -20,7 +23,15 @@ defineProps<{
       <div>Loading...</div>
     </template>
 
-    <Display :newsletters="newsletters" />
+    <Display :newsletters="newsletters!" />
+  </Deferred>
+
+  <Deferred data="scraps">
+    <template #fallback>
+      <div>Loading...</div>
+    </template>
+
+    <ScrapDisplay :scraps="scraps!" />
   </Deferred>
 
 </template>

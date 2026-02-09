@@ -1,0 +1,25 @@
+import Newsletter from '#models/newsletter'
+import Scrap from '#models/scrap'
+import type { HttpContext } from '@adonisjs/core/http'
+
+export default class DashboardController {
+    async show(context: HttpContext) {
+        return context.inertia.render("user/dashboard", {
+            user: context.auth.user,
+            newsletters: context.inertia.defer(async () => {
+                const newsletters = await Newsletter.query()
+                    .where('userId', context.auth.user!.id)
+                    .orderBy('createdAt', 'desc')
+
+                return newsletters
+            }),
+            scraps: context.inertia.defer(async () => {
+                const scraps = await Scrap.query()
+                    .where('userId', context.auth.user!.id)
+                    .orderBy('updatedAt', 'desc')
+
+                return scraps
+            })
+        })
+    }
+}

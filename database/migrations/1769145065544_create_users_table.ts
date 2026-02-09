@@ -11,6 +11,14 @@ export default class extends BaseSchema {
       table.string('email', 254).notNullable().unique()
       table.string('password').notNullable()
 
+      table.enum('account_status', ['active', 'inactive', 'suspended'])
+        .notNullable()
+        .defaultTo('active')
+
+      table.integer('daily_limit').notNullable().defaultTo(100)
+      table.integer('bounce_rate').notNullable().defaultTo(0)
+      table.integer('complaint_rate').notNullable().defaultTo(0)
+
       table.timestamp('created_at').notNullable()
       table.timestamp('updated_at').nullable()
     })
