@@ -4,14 +4,14 @@ import User from "#models/user"
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import { randomUUID } from 'node:crypto'
 
-export default class Scrap extends BaseModel {
+export default class Newsletter extends BaseModel {
   public static selfAssignPrimaryKey = true
 
   @column({ isPrimary: true })
   declare id: string
 
   @beforeCreate()
-  static assignUuid(newsletter: Scrap) {
+  static assignUuid(newsletter: Newsletter) {
     newsletter.id = randomUUID()
   }
 

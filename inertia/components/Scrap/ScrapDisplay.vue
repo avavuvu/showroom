@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type Scrap from '#models/scrap';
 import { Link } from '@inertiajs/vue3'
+import Card from '../blocks/Card.vue';
+import Button from '../blocks/Button.vue';
 
 const { scraps } = defineProps<{
     scraps: Scrap[]
@@ -8,29 +10,35 @@ const { scraps } = defineProps<{
 
 const formattedScraps = scraps.filter(scrap => scrap.isSuccessful).map(scrap => ({
     ...scrap,
-    content: scrap.content.split(" ").slice(0, 50).join(" ") + "...",
+    content: scrap.content.replace(/<[^>]*>/g, '') + "...",
 }))
 
 </script>
 
 <template>
     <h2>Scraps</h2>
-    <div class="grid gap-4 grid-cols-4">
-        <div v-for="scrap in formattedScraps" :key="scrap.id" class="p-4 max-w-3xl aspect-square">
-            <Link :href="`/scrap/${scrap.id}`" class="text-xl font-bold hover:underline">
-                {{ scrap.content }}
-            </Link>
-            <div class="text-gray-500 text-sm">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <Card class="w-48 aspect-square" v-for="scrap in formattedScraps" :key="scrap.id">
+            <template #title>
+                <Link :href="`/scrap/${scrap.id}`" class="line-clamp-4 hover:underline">
+                    {{ scrap.content }}
+                </Link>
+            </template>
+
+            <div class="text-gray-500 text-sm text-right">
                 {{ new Date(scrap.createdAt.toString()).toLocaleDateString() }}
             </div>
-        </div>
-
-        <Link href="/scrap" method="post" as="button" class="border cursor-pointer ">
+        </Card>
+        <Button href="/scrap" method="post" as="link" color="secondary"
+            class="w-48 aspect-square text-subdued underline">
+            <span v-if="formattedScraps.length === 0" class="">
+                You haven't written on any scrap paper yet.
+            </span>
             Start a new Scrap
-        </Link>
+        </Button>
 
-        <div v-if="formattedScraps.length === 0" class="">
-            You haven't written on any scrap paper yet.
-        </div>
+
+
+
     </div>
 </template>

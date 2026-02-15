@@ -9,6 +9,7 @@ export default class ScrapsController {
         const scrap = await Scrap.create({
             userId: user.id,
             content: '',
+            isSuccessful: false,
         })
 
         return response.redirect().toRoute('scrap.edit', { id: scrap.id })
@@ -21,7 +22,7 @@ export default class ScrapsController {
             .where('user_id', user.id)
             .firstOrFail()
 
-        return inertia.render('user/scrap', {
+        return inertia.render('scraps/edit', {
             scrap
         })
     }
@@ -36,6 +37,7 @@ export default class ScrapsController {
         const validator = vine.compile(
             vine.object({
                 content: vine.string(),
+                isSuccessful: vine.boolean()
             })
         )
 
@@ -43,6 +45,7 @@ export default class ScrapsController {
 
         scrap.merge({
             content: payload.content,
+            isSuccessful: payload.isSuccessful
         })
 
         await scrap.save()

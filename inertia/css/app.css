@@ -1,9 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
 @import "tailwindcss";
-@plugin "@tailwindcss/typography";
 
 @theme {
   --default-font-family: "Times", "Times New Roman", serif;
   --font-serif: "Times", "Times New Roman", serif;
+  --font-title: "Playfair Display", "Georgia", serif;
+  --color-error: var(--color-red-800);
+  --color-subdued: var(--color-gray-500);
+  --color-primary: var(--color-green-700);
+  --color-border: var(--color-black);
+  --color-surface-hover: var(--color-gray-100);
+  --color-surface-subtle: var(--color-gray-50);
 }
 
 html,

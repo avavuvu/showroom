@@ -27,6 +27,8 @@ const sessionConfig = defineConfig({
     httpOnly: true,
     secure: app.inProduction,
     sameSite: 'lax',
+    domain: app.inProduction ? '.showroom.you' : '.localtest.me',
+    // domain: app.inProduction ? '.showroom.you' : 'localhost',
   },
 
   /**

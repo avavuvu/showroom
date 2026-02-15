@@ -1,6 +1,8 @@
 import { DateTime } from 'luxon'
-import { BaseModel, beforeCreate, column } from '@adonisjs/lucid/orm'
+import User from '#models/user'
+import { BaseModel, beforeCreate, belongsTo, column } from '@adonisjs/lucid/orm'
 import { randomUUID } from 'crypto'
+import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 
 export default class Subscriber extends BaseModel {
   @column({ isPrimary: true })
@@ -10,7 +12,13 @@ export default class Subscriber extends BaseModel {
   declare email: string
 
   @column()
+  declare name: string | null
+
+  @column()
   declare userId: number
+
+  @belongsTo(() => User)
+  declare user: BelongsTo<typeof User>
 
   @beforeCreate()
   static assignUuid(subscriber: Subscriber) {

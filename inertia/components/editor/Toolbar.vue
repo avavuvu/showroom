@@ -1,172 +1,165 @@
 <script setup lang="ts">
 import { Editor } from '@tiptap/vue-3';
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
+import ToolbarItem from './ToolbarItem.vue';
+import ToolbarDropdown, { type ToolbarDropdownItem } from './ToolbarDropdown.vue';
+import {
+    Bold, Italic, Strikethrough, Underline, Link as LinkIcon, Image as ImageIcon,
+    List, ListOrdered, Undo, Redo, Heading1, Heading2, Heading3, Pilcrow, Quote, TextQuote
+} from 'lucide-vue-next';
 
+const props = defineProps<{ editor: Editor }>();
 
-const { editor } = defineProps<{ editor: Editor }>()
-
-const setLink = () => {
-    const previousUrl = editor.getAttributes('link').href
-    const url = window.prompt('URL', previousUrl)
-
-    if (url === null) {
-        return
-    }
-
-    if (url === '') {
-        editor.chain().focus().extendMarkRange('link').unsetLink().run()
-
-        return
-    }
-
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
-}
-
-const toggleBold = () => {
-    editor.chain().focus().toggleBold().run()
-}
-const toggleItalic = () => {
-    editor.chain().focus().toggleItalic().run()
-}
-const toggleStrike = () => {
-    editor.chain().focus().toggleStrike().run()
-}
-
-const toggleBulletList = () => {
-    editor.chain().focus().toggleBulletList().run()
-}
-const toggleOrderedList = () => {
-    editor.chain().focus().toggleOrderedList().run()
-}
-
-
-
-const setHeading = (event: Event) => {
-    const target = event.target as HTMLSelectElement
-    const value = target.value
-
-    if (value === 'paragraph') {
-        editor.chain().focus().setParagraph().run()
-    } else if (value) {
-        editor.chain().focus().toggleHeading({ level: parseInt(value) as 1 | 2 | 3 }).run()
-    }
-}
-
-const isBold = computed(() => editor?.isActive('bold') ?? false)
-const isItalic = computed(() => editor?.isActive('italic') ?? false)
-const isStrike = computed(() => editor?.isActive('strike') ?? false)
-const isLink = computed(() => editor?.isActive('link') ?? false)
+const isBold = computed(() => props.editor?.isActive('bold') ?? false);
+const isItalic = computed(() => props.editor?.isActive('italic') ?? false);
+const isStrike = computed(() => props.editor?.isActive('strike') ?? false);
+const isUnderline = computed(() => props.editor?.isActive('underline') ?? false);
+const isLink = computed(() => props.editor?.isActive('link') ?? false);
+const isBulletList = computed(() => props.editor?.isActive('bulletList') ?? false);
+const isOrderedList = computed(() => props.editor?.isActive('orderedList') ?? false);
 
 const activeHeading = computed(() => {
-    if (!editor) return 'paragraph'
-    return editor.isActive('heading')
-        ? String(editor.getAttributes('heading').level)
-        : 'paragraph'
-})
+    if (props.editor?.isActive('heading', { level: 1 })) return 'Heading 1';
+    if (props.editor?.isActive('heading', { level: 2 })) return 'Heading 2';
+    if (props.editor?.isActive('heading', { level: 3 })) return 'Heading 3';
+    return 'Normal';
+});
 
-const activeList = computed(() => {
-    if (!editor) return false
-    return editor.isActive("listItem")
-})
+const activeQuote = computed(() => {
+    if (props.editor?.isActive('blockquote', { class: 'pullquote' })) return 'Pull Quote';
+    if (props.editor?.isActive('blockquote', { class: 'stdquote' })) return 'Block Quote';
+    return null;
+});
 
-const currentListType = ref("ol")
+const headingItems = computed<ToolbarDropdownItem[]>(() => [
+    {
+        id: 'paragraph',
+        label: 'Normal Text',
+        icon: Pilcrow,
+        action: () => props.editor.chain().focus().setParagraph().run(),
+        isActive: props.editor.isActive('paragraph')
+    },
+    {
+        id: 'h1',
+        label: 'Heading 1',
+        icon: Heading1,
+        action: () => props.editor.chain().focus().toggleHeading({ level: 1 }).run(),
+        isActive: props.editor.isActive('heading', { level: 1 })
+    },
+    {
+        id: 'h2',
+        label: 'Heading 2',
+        icon: Heading2,
+        action: () => props.editor.chain().focus().toggleHeading({ level: 2 }).run(),
+        isActive: props.editor.isActive('heading', { level: 2 })
+    },
+    {
+        id: 'h3',
+        label: 'Heading 3',
+        icon: Heading3,
+        action: () => props.editor.chain().focus().toggleHeading({ level: 3 }).run(),
+        isActive: props.editor.isActive('heading', { level: 3 })
+    },
+]);
 
-const toggleList = () => {
-    editor.chain().focus().toggleList(
-        currentListType.value === "ul" ? "bulletList" : "orderedList",
-        'listItem').run()
-}
+const quoteItems = computed<ToolbarDropdownItem[]>(() => [
+    {
+        id: 'blockquote',
+        label: 'Block Quote',
+        icon: Quote,
+        action: () => {
+            const isActive = props.editor.isActive('blockquote', { class: 'stdquote' });
+            if (isActive) {
+                return props.editor.chain().focus().unsetBlockquote().run();
+            }
+            if (props.editor.isActive('blockquote')) {
+                return props.editor.chain().focus().updateAttributes('blockquote', { class: 'stdquote' }).run();
+            }
+            return props.editor.chain().focus().setBlockquote().updateAttributes('blockquote', { class: 'stdquote' }).run();
+        },
+        isActive: props.editor.isActive('blockquote', { class: 'stdquote' })
+    },
+    {
+        id: 'pullquote',
+        label: 'Pull Quote',
+        icon: TextQuote,
+        action: () => {
+            const isActive = props.editor.isActive('blockquote', { class: 'pullquote' });
+            if (isActive) {
+                return props.editor.chain().focus().unsetBlockquote().run();
+            }
+            if (props.editor.isActive('blockquote')) {
+                return props.editor.chain().focus().updateAttributes('blockquote', { class: 'pullquote' }).run();
+            }
+            return props.editor.chain().focus().setBlockquote().updateAttributes('blockquote', { class: 'pullquote' }).run();
+        },
+        isActive: props.editor.isActive('blockquote', { class: 'pullquote' })
+    },
+]);
 
-const setList = (event: Event) => {
-    const target = event.target as HTMLSelectElement
-    const value = target.value
+const setLink = () => {
+    const previousUrl = props.editor.getAttributes('link').href;
+    const url = window.prompt('URL', previousUrl);
 
-    currentListType.value = value
+    if (url === null) return;
 
-    if (value === 'ol') {
-        editor.chain().focus().toggleOrderedList().run()
-    } else if (value === 'ul') {
-        editor.chain().focus().toggleBulletList().run()
+    if (url === '') {
+        props.editor.chain().focus().extendMarkRange('link').unsetLink().run();
+        return;
     }
-}
+
+    props.editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+};
 
 const addImage = () => {
-    const url = window.prompt('URL')
-
+    const url = window.prompt('URL');
     if (url) {
-        editor.chain().focus().setImage({ src: url }).run()
+        props.editor.chain().focus().setImage({ src: url }).run();
     }
-}
+};
 
 </script>
 
 <template>
-    <div v-if="editor" class="toolbar">
-        <div :class="{ 'is-active': activeList }" class="border flex gap-4">
-            <button @click="toggleList">
-                List
-            </button>
-            <select @change="setList" :value="currentListType">
-                <option value="ol">OL</option>
-                <option value="ul">UL</option>
-            </select>
+    <div v-if="editor" class="flex items-center gap-1 px-2 bg-white sticky top-0 z-10">
+        <!-- Undo / Redo -->
+        <div class="flex items-center gap-0.5 pr-2 border-r border-border">
+            <ToolbarItem :icon="Undo" @click="editor.chain().focus().undo().run()" :disabled="!editor.can().undo()"
+                title="Undo" />
+            <ToolbarItem :icon="Redo" @click="editor.chain().focus().redo().run()" :disabled="!editor.can().redo()"
+                title="Redo" />
         </div>
 
-        <select @change="setHeading" :value="activeHeading">
-            <option value="paragraph">Normal Text</option>
-            <option value="1">Heading 1</option>
-            <option value="2">Heading 2</option>
-            <option value="3">Heading 3</option>
-        </select>
+        <!-- Headings -->
+        <div class="px-2 border-r border-border flex gap-1">
+            <ToolbarDropdown class="w-24" :items="headingItems" :label="activeHeading" />
+            <ToolbarDropdown :items="quoteItems" :icon="Quote" :is-active="!!activeQuote" />
+        </div>
 
-        <button :class="{ 'is-active': isBold }" class="bold" @click="toggleBold">B</button>
-        <button :class="{ 'is-active': isItalic }" class="italic" @click="toggleItalic">I</button>
-        <button :class="{ 'is-active': isStrike }" class="strike" @click="toggleStrike">S</button>
-        <button :class="{ 'is-active': isLink }" class="link" @click="setLink">L</button>
+        <!-- Formatting -->
+        <div class="flex items-center gap-0.5 px-2 border-r border-border">
+            <ToolbarItem :icon="Bold" @click="editor.chain().focus().toggleBold().run()" :is-active="isBold"
+                title="Bold" />
+            <ToolbarItem :icon="Strikethrough" @click="editor.chain().focus().toggleStrike().run()"
+                :is-active="isStrike" title="Strike" />
+            <ToolbarItem :icon="Underline" @click="editor.chain().focus().toggleUnderline().run()"
+                :is-active="isUnderline" title="Underline" />
+            <ToolbarItem :icon="Italic" @click="editor.chain().focus().toggleItalic().run()" :is-active="isItalic"
+                title="Italic" />
+        </div>
 
-        <button @click="addImage">Set image</button>
+        <!-- Inserts -->
+        <div class="flex items-center gap-0.5 px-2 border-r border-border">
+            <ToolbarItem :icon="LinkIcon" @click="setLink" :is-active="isLink" title="Link" />
+            <ToolbarItem :icon="ImageIcon" @click="addImage" title="Image" />
+        </div>
+
+        <!-- Lists -->
+        <div class="flex items-center gap-0.5 pl-2">
+            <ToolbarItem :icon="List" @click="editor.chain().focus().toggleBulletList().run()" :is-active="isBulletList"
+                title="Bullet List" />
+            <ToolbarItem :icon="ListOrdered" @click="editor.chain().focus().toggleOrderedList().run()"
+                :is-active="isOrderedList" title="Ordered List" />
+        </div>
     </div>
 </template>
-
-<style>
-@reference "tailwindcss";
-
-ul {
-    @apply list-disc;
-}
-
-ol {
-    @apply list-decimal;
-}
-
-.is-active {
-    @apply bg-gray-200;
-}
-
-.toolbar {
-    @apply grid grid-cols-5 gap-2;
-}
-
-
-u,
-.toolbar .underline {
-    text-decoration: underline;
-}
-
-em,
-.toolbar .italic {
-    font-style: italic;
-}
-
-strong,
-.toolbar .bold {
-    font-weight: bold;
-}
-
-.tiptap a,
-.toolbar .link {
-    text-decoration: underline;
-    color: blue;
-
-}
-</style>

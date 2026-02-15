@@ -1,47 +1,40 @@
 <script setup lang="ts">
 import { useForm, usePage } from '@inertiajs/vue3'
+import Input from '~/components/blocks/Input.vue'
+import Form from '~/components/blocks/Form.vue'
+import Card from '~/components/blocks/Card.vue'
 
 const page = usePage()
 
 const form = useForm({
-  email: '',
+  emailOrUsername: '',
   password: '',
-  rememberMe: false,
 })
 
-const onsubmit = (event: Event) => {
+const onSubmit = (event: Event) => {
   event.preventDefault()
   form.post('login')
 }
+
+
+
+
 </script>
 
 <template>
-  <h1>Login</h1>
+  <div class="flex flex-col items-center">
+    <Card title="Sign in to Showroom">
+      <Form :error="page.props.errors?.['E_INVALID_CREDENTIALS']" :onSubmit="onSubmit">
+        <Input :error="page.props.errors?.['emailOrUsername']" type="text" placeholder="Your email or username"
+          name="emailOrUsername" v-model="form.emailOrUsername" />
 
-  <ul v-if="page.props.errors">
-    <li v-for="(error, name) in page.props.errors" :key="name">
-      {{ name }}: {{ error }}
-    </li>
-  </ul>
+        <Input :error="page.props.errors?.['password']" type="password" placeholder="Your password" name="password"
+          v-model="form.password" />
 
-  <form method="POST" @submit="onsubmit">
-    <label>
-      Email
-      <input type="email" name="email" v-model="form.email">
-    </label>
-
-    <label>
-      Password
-      <input type="password" name="password" v-model="form.password">
-    </label>
-
-    <label>
-      Remember Me?
-      <input type="checkbox" name="remember-me" v-model="form.rememberMe">
-    </label>
-
-    <button type="submit" :disabled="form.processing">Login</button>
-  </form>
+        <button type="submit" :disabled="form.processing">Login</button>
+      </form>
+    </Card>
+  </div>
 </template>
 
 <style scoped>

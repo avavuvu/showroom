@@ -26,6 +26,7 @@ export default defineConfig({
   server: {
     allowedHosts: [
       ".localtest.me",
-    ]
+      // "localhost"
+    ],
   }
 })

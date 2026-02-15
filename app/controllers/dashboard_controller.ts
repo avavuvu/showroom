@@ -7,17 +7,19 @@ export default class DashboardController {
         return context.inertia.render("user/dashboard", {
             user: context.auth.user,
             newsletters: context.inertia.defer(async () => {
-                const newsletters = await Newsletter.query()
+                const allNewsletters = await Newsletter.query()
                     .where('userId', context.auth.user!.id)
-                    .orderBy('createdAt', 'desc')
+                    .orderBy('updatedAt', 'desc')
 
-                return newsletters
+                return {
+                    sent: allNewsletters.filter(n => n.sent),
+                    unsent: allNewsletters.filter(n => !n.sent)
+                }
             }),
             scraps: context.inertia.defer(async () => {
                 const scraps = await Scrap.query()
                     .where('userId', context.auth.user!.id)
                     .orderBy('updatedAt', 'desc')
-
                 return scraps
             })
         })

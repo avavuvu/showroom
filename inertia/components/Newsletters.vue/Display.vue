@@ -1,37 +1,50 @@
 <script setup lang="ts">
 import type Newsletter from '#models/newsletter';
 import { Link } from '@inertiajs/vue3'
+import Card from '../blocks/Card.vue';
+import Button from '../blocks/Button.vue';
+import { DateTime } from 'luxon';
 
 const { newsletters } = defineProps<{
-    newsletters: Newsletter[]
-}>()
-
-const [sentNewsletters, unsentNewsletters] = newsletters.reduce((accumulator, newsletter) => {
-    if (newsletter.sent) {
-        accumulator[0].push(newsletter)
-    } else {
-        accumulator[1].push(newsletter)
+    newsletters: {
+        sent: Newsletter[],
+        unsent: Newsletter[],
     }
-    return accumulator
-}, [[], []] as [Newsletter[], Newsletter[]])
-
+}>()
 
 </script>
 
 <template>
-    <Link href="/newsletters" method="post" as="button" class="block mb-4">create new newsletter</Link>
+
 
     <h2>Edit Drafts</h2>
-    <div class="grid gap-4">
-        <div v-for="newsletter in unsentNewsletters" :key="newsletter.id" class="p-4">
-            <Link :href="`/publish/${newsletter.id}`" class="text-xl font-bold hover:underline">
-                {{ newsletter.title || 'Untitled Newsletter' }}
-            </Link>
-            <div class="text-gray-500 text-sm">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <Card class="w-48 aspect-square" v-for="newsletter in newsletters.unsent" :key="newsletter.id">
+            <template #title>
+                <Link :href="`/publish/${newsletter.id}`" class=" hover:underline">
+                    <h3 class="font-bold">
+                        {{ newsletter.title || 'Untitled Newsletter' }}
+                    </h3>
+                </Link>
+            </template>
+
+            <div class="text-gray-500 text-sm text-right">
                 {{ new Date(newsletter.createdAt.toString()).toLocaleDateString() }}
             </div>
+
+            <div class="line-clamp-4">
+                {{ newsletter.content.replace(/<[^>]*>/g, '') }}
+            </div>
+
+        </Card>
+        <Button class="w-48 aspect-square text-subdued underline" as="link" href="/newsletters" method="post"
+            color="secondary">
+            Create new newsletter
+        </Button>
+
+        <div>
         </div>
-        <div v-if="unsentNewsletters.length === 0" class="">
+        <div v-if="newsletters.unsent.length === 0" class="">
             You haven't created any newsletters yet.
         </div>
     </div>

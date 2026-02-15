@@ -15,7 +15,7 @@ export default class extends BaseSchema {
         .inTable("users")
         .notNullable()
 
-      table.boolean("isSuccessful").notNullable().defaultTo(false)
+      table.boolean("is_successful").notNullable().defaultTo(false)
 
       table.text("content")
 

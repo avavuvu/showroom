@@ -1,4 +1,4 @@
-import vine from '@vinejs/vine'
+import vine, { SimpleMessagesProvider } from '@vinejs/vine'
 
 export const registerValidator = vine.compile(
   vine.object({
@@ -20,8 +20,11 @@ export const registerValidator = vine.compile(
 
 export const loginValidator = vine.compile(
   vine.object({
-    email: vine.string().email().normalizeEmail(),
+    emailOrUsername: vine.string(),
     password: vine.string(),
-    rememberMe: vine.accepted().optional()
   })
 )
+
+loginValidator.messagesProvider = new SimpleMessagesProvider({
+  required: "Required",
+})

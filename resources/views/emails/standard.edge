@@ -1,0 +1,46 @@
+@mjml({
+  keepComments: false,
+  fonts: {
+    title: 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap'
+  }
+})
+  <mjml>
+    <mj-head>
+      <mj-preview>{{preview}}</mj-preview>
+      <mj-attributes>
+        <mj-text font-family="Times, Times New Roman, serif" />
+      </mj-attributes>
+      <mj-style>
+        h1, h2, h3 {
+          font-family: "Playfair Display", Georgia, serif;
+          font-weight: bold;
+        }
+
+        a {
+          color: white;
+        }
+      </mj-style>
+    </mj-head>
+    <mj-body>
+      <mj-section>
+        <mj-column>
+          <mj-text align="right">
+            <a href="#">{{username}}.showroom.you</a>  |  <a href="#">Read Online</a>  |  <a href="#">Join the discussion</a> 
+          </mj-text>
+          <mj-divider border-width="1px" padding="0px 10px" border-color="black" />
+          <mj-text>
+            {{{content}}}
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-section align="right" >
+      <mj-column>
+        <mj-text align="right" font-size="14px" >
+          Sent with love using <a href="https://showroom.you">Showroom</a>  |  <a href="https://showroom.you">Unsubscribe</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+    </mj-body>
+  </mjml>
+@end
