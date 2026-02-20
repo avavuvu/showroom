@@ -13,13 +13,13 @@ export default class AuthMiddleware {
   redirectTo = '/login'
 
   async handle(
-    ctx: HttpContext,
+    context: HttpContext,
     next: NextFn,
     options: {
       guards?: (keyof Authenticators)[]
     } = {}
   ) {
-    await ctx.auth.authenticateUsing(options.guards, { loginRoute: this.redirectTo })
+    await context.auth.authenticateUsing(options.guards, { loginRoute: this.redirectTo })
     return next()
   }
 }

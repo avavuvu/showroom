@@ -18,6 +18,20 @@ export const registerValidator = vine.compile(
   })
 )
 
+export const quickRegisterValidator = vine.compile(
+  vine.object({
+    username: vine.string()
+      .maxLength(12)
+      .regex(/^[a-zA-Z][a-zA-Z0-9-]*$/)
+      .uniqueInDatabase({ table: "users", column: "username" }),
+
+    email: vine.string()
+      .email()
+      .normalizeEmail()
+      .uniqueInDatabase({ table: "users", column: "email" }),
+  })
+)
+
 export const loginValidator = vine.compile(
   vine.object({
     emailOrUsername: vine.string(),

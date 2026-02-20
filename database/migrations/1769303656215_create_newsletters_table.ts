@@ -9,6 +9,14 @@ export default class extends BaseSchema {
         .uuid('id')
         .primary()
 
+      table
+        .string('slug')
+        .unique()
+
+      table
+        .string('subtitle')
+        .nullable()
+
 
       table.integer("user_id")
         .unsigned()

@@ -3,11 +3,11 @@ import { Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import Button from '~/components/blocks/Button.vue';
 import Dropdown from '~/components/blocks/Dropdown.vue';
-import logoIcon from "~/icons/logo/img.png";
-import { ChevronDown, Plus, Mail, FileText, User, LayoutDashboard, LogOut } from 'lucide-vue-next';
+import { ChevronDown, Plus, User, LayoutDashboard, LogOut } from 'lucide-vue-next';
 import { Scrap, Envelope } from '~/components/icons';
 import type { SharedProps } from '@adonisjs/inertia/types';
 import type UserType from '#models/user';
+import Logo from '../icons/Logo.vue';
 
 const page = usePage<SharedProps>();
 const user = computed(() => page.props.user as UserType | undefined);
@@ -35,7 +35,7 @@ const profileOptions = [
         <!-- Logo -->
         <div class="p-6">
             <Link href="/" class="block">
-                <img class="h-8 w-auto" :src="logoIcon" alt="Showroom Logo" />
+                <Logo class="h-8 w-auto" size="sm" />
             </Link>
         </div>
 
@@ -57,9 +57,15 @@ const profileOptions = [
         <!-- Navigation -->
         <nav class="flex-1 px-4 space-y-1">
             <Button as="link" href="/dashboard" variant="outline" class="w-full justify-start gap-3"
-                :class="{ 'bg-surface-hover text-black': $page.url.startsWith('/dashboard') }">
+                :class="{ '  bg-surface-hover! font-bold!': $page.url.startsWith('/dashboard') }">
                 <LayoutDashboard class="w-4 h-4 text-subdued" />
                 Dashboard
+            </Button>
+
+            <Button as="link" href="/profile" variant="outline" class="w-full justify-start gap-3"
+                :class="{ ' bg-surface-hover! font-bold!': $page.url.startsWith('/profile') }">
+                <User class="w-4 h-4 text-subdued" />
+                Profile
             </Button>
         </nav>
 
@@ -67,12 +73,13 @@ const profileOptions = [
         <div class="p-4 border-t border-border" v-if="user">
             <Dropdown :items="profileOptions" placement="top-start">
                 <template #trigger>
-                    <Button variant="ghost" class="w-full justify-start gap-3 px-2 h-auto py-2">
-                        <div
-                            class="w-8 h-8 rounded-full bg-surface-hover flex items-center justify-center border border-border shrink-0">
-                            <User class="w-4 h-4 text-subdued" />
+                    <Button variant="ghost" class="w-full justify-start gap-0 h-auto">
+                        <div class="w-8 h-8 flex items-center justify-center shrink-0 ">
+                            <img v-if="user.profileImageUrl" :src="user.profileImageUrl">
+                            <User v-else class="w-4 h-4 text-subdued" />
                         </div>
-                        <div class="flex-1 min-w-0 text-left">
+
+                        <div class="px-2 border-l border-border flex-1 min-w-0 text-left">
                             <p class="text-sm font-medium text-black truncate">{{ user.fullName }}</p>
                             <p class="text-xs text-subdued truncate">{{ user.username }}.showroom.you</p>
                         </div>

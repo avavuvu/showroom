@@ -6,6 +6,7 @@ export default class FindSubdomainUserMiddleware {
     async handle(ctx: HttpContext, next: NextFn) {
         const username = ctx.subdomains.username
 
+        // TODO: this shouldn't redirect to 404
         if (!username) {
             return ctx.response.redirect('/404')
         }

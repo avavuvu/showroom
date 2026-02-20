@@ -8,7 +8,8 @@
   --font-title: "Playfair Display", "Georgia", serif;
   --color-error: var(--color-red-800);
   --color-subdued: var(--color-gray-500);
-  --color-primary: var(--color-green-700);
+  --color-primary: #92ca3a;
+  --color-primary-subdued: #b9ef62;
   --color-border: var(--color-black);
   --color-surface-hover: var(--color-gray-100);
   --color-surface-subtle: var(--color-gray-50);

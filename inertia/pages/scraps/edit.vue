@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Scrap from '#models/scrap';
+import type Scrap from '#models/scrap';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { useEditor, EditorContent } from '@tiptap/vue-3';
 import Document from '@tiptap/extension-document'

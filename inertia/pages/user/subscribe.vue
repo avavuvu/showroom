@@ -4,7 +4,7 @@ import { useForm, usePage } from '@inertiajs/vue3';
 
 const page = usePage()
 
-const { user } = defineProps<{ user: User }>()
+const { subdomainUser } = defineProps<{ subdomainUser: User }>()
 
 const form = useForm({
     name: "",
@@ -26,7 +26,7 @@ const onsubmit = (event: Event) => {
     </ul>
 
     <div>
-        Subscribe to {{ user.username }}.showroom.you
+        Subscribe to {{ subdomainUser.username }}.showroom.you
     </div>
 
     <form method="POST" @submit="onsubmit">

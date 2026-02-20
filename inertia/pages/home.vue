@@ -1,22 +1,19 @@
 <script setup lang="ts">
-import { useForm, usePage, Link } from '@inertiajs/vue3'
+import { usePage } from '@inertiajs/vue3'
 import Login from "~/components/auth/Login.vue"
 import Dialog from '~/components/blocks/Dialog.vue'
-import type User from '#models/user';
 import Button from '~/components/blocks/Button.vue';
 import logoWordmark from "~/icons/logo/bw.svg"
-import logoIcon from "~/icons/logo/img.png"
-// import exampleImage from "~/icons/image/dithering-effect.webp"
+import logoIcon from "~/icons/logo/pear.png"
 import Video from "~/components/ascii/video.vue"
-
-const page = usePage()
-
 import {
-  useScroll,
   useWindowScroll
 } from '@vueuse/core'
 import { computed } from 'vue';
 import Card from '~/components/blocks/Card.vue';
+import Logo from '~/components/icons/Logo.vue';
+
+const page = usePage()
 
 const { y } = useWindowScroll()
 
@@ -37,7 +34,7 @@ const small = computed(() => {
 <template>
   <header class="sticky top-0 z-10 w-full flex justify-between bg-white border-b group " :class="small ? 'small' : ''">
     <div class="px-2 flex items-center">
-      <img class="group-[.small]:h-8 h-24 transition-all duration-300" :src="logoIcon">
+      <Logo class="group-[.small]:h-8 h-24 transition-all duration-300" size="lg" />
 
       <a class="p-4 transition-all">
         <img :src="logoWordmark" class="group-[.small]:h-8 h-24 transition-all duration-300 " alt="Showroom">

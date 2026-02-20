@@ -2,7 +2,7 @@
 import { XIcon, } from 'lucide-vue-next';
 
 const { type, placeholder, name, error } = defineProps<{
-    type: "password" | "text",
+    type: "password" | "text" | "email",
     placeholder: string,
     name: string,
     error?: string | null

@@ -3,7 +3,21 @@ import { Dialog } from '@ark-ui/vue/dialog'
 import { XIcon, CircleQuestionMarkIcon } from 'lucide-vue-next'
 import { ref, onMounted } from 'vue'
 
-const { title, asChild = false, dismissText, alert } = defineProps<{ title: string, asChild?: boolean, dismissText?: string, alert?: boolean }>()
+const {
+    title,
+    asChild = false,
+    dismissText,
+    alert,
+    fullscreen = false,
+    lazy = false,
+} = defineProps<{
+    title?: string,
+    asChild?: boolean,
+    dismissText?: string,
+    alert?: boolean,
+    fullscreen?: boolean,
+    lazy?: boolean,
+}>()
 
 const mounted = ref(false)
 onMounted(() => {
@@ -12,19 +26,20 @@ onMounted(() => {
 </script>
 
 <template>
-    <Dialog.Root :role="alert ? 'alertdialog' : 'dialog'">
+    <Dialog.Root :role="alert ? 'alertdialog' : 'dialog'" :lazy-mount="lazy">
         <Dialog.Trigger :as-child>
             <slot name="trigger" />
         </Dialog.Trigger>
         <Teleport to="body" v-if="mounted">
             <Dialog.Backdrop class="backdrop" />
-            <Dialog.Positioner class="positioner">
-                <Dialog.Content class="content border shadow-2xl flex flex-col p-4 bg-white">
-                    <span class="inline-flex justify-between mb-4 w-full">
-                        <Dialog.Title class="font-bold font-title ">
+            <Dialog.Positioner class="positioner" :class="fullscreen ? 'full-screen' : 'center-screen'">
+                <Dialog.Content class="content flex flex-col p-4 bg-white"
+                    :class="[fullscreen ? 'content-fullscreen' : 'border shadow-2xl']">
+                    <span class="dialog-header inline-flex items-center mb-4 w-full">
+                        <Dialog.Title v-if="title" class="font-bold font-title ">
                             {{ title }}
                         </Dialog.Title>
-                        <Dialog.CloseTrigger class="cursor-pointer ">
+                        <Dialog.CloseTrigger class="cursor-pointer ml-auto">
                             <XIcon />
                         </Dialog.CloseTrigger>
                     </span>
@@ -81,13 +96,45 @@ onMounted(() => {
     }
 }
 
-.positioner {
+.content-fullscreen {
+    width: 100vw;
+    width: 100dvw;
+    height: 100vh;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+    translate: 0 0;
+    justify-content: center;
+    align-items: center;
+}
+
+.content-fullscreen .dialog-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: var(--px);
+}
+
+.full-screen {
+    position: fixed;
+    width: 100vw;
+    width: 100dvw;
+    height: 100vh;
+    height: 100dvh;
+}
+
+.center-screen {
     display: flex;
     align-items: center;
     justify-content: center;
     position: fixed;
+}
+
+.positioner {
+    z-index: 100;
+
     inset: 0;
-    z-index: calc(var(--demo-popover-z-index) + var(--layer-index, 0));
     /* Prevent overscroll bounce on iOS */
     overscroll-behavior-y: none;
     /* Reserve space for scrollbar to prevent layout shift */

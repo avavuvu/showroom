@@ -18,8 +18,6 @@ export const useAutosave = (url: string, form: InertiaForm<any>, ms = 2_000) => 
         save()
     })
 
-
-
     return {
         save,
         debouncedSave,

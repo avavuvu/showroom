@@ -8,21 +8,34 @@ import { Placeholder } from '@tiptap/extensions';
 import Blockquote from '@tiptap/extension-blockquote';
 import Image from '@tiptap/extension-image'; import { useAutosave } from '~/directives/useAutosave';
 import { onKeyStroke } from '@vueuse/core';
-import { onMounted } from 'vue';
+import { onMounted, onUnmounted, watch } from 'vue';
 import { Circle } from 'lucide-vue-next';
 import Button from '~/components/blocks/Button.vue';
 import WritingLayout from '~/layouts/WritingLayout.vue';
+import ImageBlock from "~/components/editor/image-upload"
+import Link from '@tiptap/extension-link';
+import Collapsible from '~/components/blocks/Collapsible.vue';
+import Alert from '~/components/blocks/Alert.vue';
+import { SharedProps } from '@adonisjs/inertia/types';
 
 const { newsletter } = defineProps<{
   newsletter: Newsletter
 }>()
 
+const { user } = usePage<SharedProps>().props
+
 const form = useForm({
   title: newsletter.title || "",
   content: newsletter.content || "",
-}).dontRemember("content", "title")
+  subtitle: newsletter.subtitle || "",
+  slug: newsletter.slug || (newsletter.title || "").toLowerCase().replace(/[^a-z\s]/g, '').replace(/\s+/g, '-')
+}).dontRemember("content", "title", "slug")
 
 const { debouncedSave, save } = useAutosave(`/publish/${newsletter.id}`, form)
+
+watch(() => form.title, (newTitle) => {
+  form.slug = newTitle.toLowerCase().replace(/[^a-z\s]/g, '').replace(/\s+/g, '-')
+})
 
 onKeyStroke('s', (event) => {
   if (event.ctrlKey || event.metaKey) {
@@ -36,6 +49,15 @@ const editor = useEditor({
   extensions: [
     StarterKit.configure({
       blockquote: false,
+      link: false
+    }),
+    ImageBlock.configure({
+      async onUpload(file: File) {
+        const src = URL.createObjectURL(file);
+        return {
+          src,
+        }
+      },
     }),
     Blockquote.extend({
       addAttributes() {
@@ -65,6 +87,12 @@ const editor = useEditor({
       },
       inline: false
     }),
+    Link.extend({
+      inclusive: false,
+    }).configure({
+      openOnClick: false,
+
+    })
   ],
   editorProps: {
     attributes: {
@@ -86,10 +114,24 @@ onMounted(() => {
   editor.value?.commands.setContent(newsletter.content || "");
 });
 
+onUnmounted(() => {
+  editor.value?.destroy()
+})
+
 </script>
 
 <template>
   <WritingLayout>
+    <template #header>
+      <Alert v-if="newsletter.sent">
+        <template #trigger>
+          <span class=" italic">
+            Editing published newsletter
+          </span>
+        </template>
+        You are editing a newsletter that has been sent. It will update on your page, but not in subscriber's inboxes.
+      </Alert>
+    </template>
     <template #right-most>
       <div class="flex ">
         <div class="grid grid-cols-[auto_12px] px-3 py-1.5">
@@ -102,7 +144,14 @@ onMounted(() => {
           </template>
         </div>
 
-        <Button size="sm" as="anchor" :href="`/publish/${newsletter.id}/send`">Publish</Button>
+        <template v-if="newsletter.sent">
+          <Button size="sm" as="anchor"
+            :href="`http://${user?.username}.localtest.me:3333/posts/${newsletter.slug}`">View</Button>
+        </template>
+        <template v-else>
+          <Button size="sm" as="anchor" :href="`/publish/${newsletter.id}/preview`">Publish</Button>
+        </template>
+
       </div>
     </template>
     <div class="relative min-h-screen font-[Times]">
@@ -114,53 +163,84 @@ onMounted(() => {
         </div>
 
         <div class="grid">
-          <input type="text" name="title" class="text-4xl font-title font-bold mt-4 w-full border-black border-b"
-            placeholder="Newsletter Title" v-model="form.title">
+          <Collapsible>
+            <template #trigger-adjacent>
+              <input type="text" name="title" class="text-4xl font-title font-bold w-full border-black border-b"
+                placeholder="Newsletter Title" v-model="form.title">
+            </template>
+            <template #trigger>
+              Slug
+            </template>
+            <span class="inline-flex w-full p-2 my-1 border border-dashed">
+              <span class="text-subdued whitespace-nowrap">
+                https://{{ newsletter?.user?.username || "username" }}.showroom.you/
+              </span>
+              <input placeholder="URL" v-model="form.slug" type="text" class="  w-full">
+            </span>
+          </Collapsible>
+
           <input type="text" name="subtitle"
             class="text-2xl font-title italic w-full border-none focus:ring-0 placeholder:text-gray-300"
-            placeholder="Subtitle" v-model="form.title">
+            placeholder="Subtitle" v-model="form.subtitle">
 
         </div>
 
-
-        <article class="grid grid-cols-[1fr_70ch_1fr]">
-          <editor-content :editor="editor" />
-
-        </article>
-
-
       </div>
+      <editor-content :editor="editor" />
+
     </div>
   </WritingLayout>
 </template>
 
 <style>
 .tiptap {
-  article {
-    height: max(100%, 1200px);
-  }
+  display: grid;
+  grid-template-columns: 1fr 70ch 1fr;
+}
 
-  article>* {
-    grid-column: 2;
+.tiptap {
+  /* height: max(100%, 1200px); */
+}
 
-  }
+.tiptap>* {
+  grid-column: 2;
+}
 
-  .is-editor-empty:first-child::before {
-    color: var(--color-gray-400);
-    content: attr(data-placeholder);
-    float: left;
-    height: 0;
-    pointer-events: none;
-  }
+.tiptap>[data-width="full"] {
+  grid-column: 1;
+  grid-column-start: 1;
+  grid-column-end: 4;
+}
 
+.is-editor-empty:first-child::before {
+  color: var(--color-gray-400);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.tiptap {
   p {
     margin-bottom: 1rem;
+  }
+
+  a {
+    text-decoration: underline;
+    color: var(--color-primary);
   }
 
   ul,
   ol {
     padding: 0 1rem;
+  }
 
+  ul {
+    list-style-type: disc;
+  }
+
+  ol {
+    list-style-type: decimal;
   }
 
   h1,
@@ -168,8 +248,6 @@ onMounted(() => {
   h3 {
     font-family: var(--font-title);
   }
-
-
 
   h1,
   h2,
@@ -205,7 +283,6 @@ onMounted(() => {
 
   blockquote {
     border-left: 3px solid var(--gray-3);
-    margin: 1.5rem 0;
     padding-left: 1rem;
   }
 
@@ -219,11 +296,9 @@ onMounted(() => {
   .pullquote {
     border: none;
     border-left: 4px solid var(--color-black);
-    padding: 2rem;
     font-size: 1.5rem;
     font-style: italic;
     background: var(--color-surface-subtle);
-    margin: 3rem 0;
   }
 }
 </style>

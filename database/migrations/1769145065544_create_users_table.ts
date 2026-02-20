@@ -1,5 +1,7 @@
 import { BaseSchema } from '@adonisjs/lucid/schema'
 
+
+
 export default class extends BaseSchema {
   protected tableName = 'users'
 
@@ -10,6 +12,12 @@ export default class extends BaseSchema {
       table.string('username').notNullable().unique()
       table.string('email', 254).notNullable().unique()
       table.string('password').notNullable()
+
+      table.string("profile_image_url").nullable()
+
+      table.enum("premium_status", ["free", "premium"])
+        .notNullable()
+        .defaultTo("premium")
 
       table.enum('account_status', ['active', 'inactive', 'suspended'])
         .notNullable()

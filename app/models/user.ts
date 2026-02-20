@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import hash from '@adonisjs/core/services/hash'
 import { compose } from '@adonisjs/core/helpers'
-import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
+import { BaseModel, column, hasMany, beforeCreate } from '@adonisjs/lucid/orm'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import { DbRememberMeTokensProvider } from '@adonisjs/auth/session'
 import Subscriber from './subscriber.js'
@@ -22,7 +22,7 @@ export default class User extends compose(BaseModel, AuthFinder) {
   declare fullName: string | null
 
   @column()
-  declare username: string | null
+  declare username: string
 
   @column()
   declare email: string
@@ -40,6 +40,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
   declare accountStatus: "active" | "inactive" | "suspended"
 
   @column()
+  declare premiumStatus: "free" | "premium"
+
+  @column()
   declare dailyLimit: number
 
   @column()
@@ -51,4 +54,27 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @hasMany(() => Subscriber)
   declare subscribers: HasMany<typeof Subscriber>
 
+  @column()
+  declare profileImageUrl: string | null
+
+  @beforeCreate()
+  static async assignDefaultProfileImage(user: User) {
+    if (!user.profileImageUrl) {
+      const defaultProfileImageUrls = [
+        "/profilepics/default1.png",
+        "/profilepics/default2.png",
+        "/profilepics/default3.png",
+        "/profilepics/default4.png",
+        "/profilepics/default5.png",
+        "/profilepics/default6.png",
+        "/profilepics/default7.png",
+        "/profilepics/default8.png",
+        "/profilepics/default9.png",
+        "/profilepics/default10.png",
+      ] as const
+
+      const randomIndex = Math.floor(Math.random() * defaultProfileImageUrls.length)
+      user.profileImageUrl = defaultProfileImageUrls[randomIndex]
+    }
+  }
 }

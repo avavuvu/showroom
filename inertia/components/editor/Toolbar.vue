@@ -1,33 +1,39 @@
 <script setup lang="ts">
 import { Editor } from '@tiptap/vue-3';
-import { computed } from 'vue';
+import { computed, useTemplateRef } from 'vue';
 import ToolbarItem from './ToolbarItem.vue';
 import ToolbarDropdown, { type ToolbarDropdownItem } from './ToolbarDropdown.vue';
 import {
     Bold, Italic, Strikethrough, Underline, Link as LinkIcon, Image as ImageIcon,
     List, ListOrdered, Undo, Redo, Heading1, Heading2, Heading3, Pilcrow, Quote, TextQuote
 } from 'lucide-vue-next';
+import LinkMenu from './link/LinkMenu.vue';
 
-const props = defineProps<{ editor: Editor }>();
+const { editor, variant = "standard" } = defineProps<{
+    editor: Editor
+    variant?: "standard" | "minimal"
+}>();
 
-const isBold = computed(() => props.editor?.isActive('bold') ?? false);
-const isItalic = computed(() => props.editor?.isActive('italic') ?? false);
-const isStrike = computed(() => props.editor?.isActive('strike') ?? false);
-const isUnderline = computed(() => props.editor?.isActive('underline') ?? false);
-const isLink = computed(() => props.editor?.isActive('link') ?? false);
-const isBulletList = computed(() => props.editor?.isActive('bulletList') ?? false);
-const isOrderedList = computed(() => props.editor?.isActive('orderedList') ?? false);
+const linkMenu = useTemplateRef("link-menu")
+
+const isBold = computed(() => editor?.isActive('bold') ?? false);
+const isItalic = computed(() => editor?.isActive('italic') ?? false);
+const isStrike = computed(() => editor?.isActive('strike') ?? false);
+const isUnderline = computed(() => editor?.isActive('underline') ?? false);
+const isLink = computed(() => editor?.isActive('link') ?? false);
+const isBulletList = computed(() => editor?.isActive('bulletList') ?? false);
+const isOrderedList = computed(() => editor?.isActive('orderedList') ?? false);
 
 const activeHeading = computed(() => {
-    if (props.editor?.isActive('heading', { level: 1 })) return 'Heading 1';
-    if (props.editor?.isActive('heading', { level: 2 })) return 'Heading 2';
-    if (props.editor?.isActive('heading', { level: 3 })) return 'Heading 3';
+    if (editor?.isActive('heading', { level: 1 })) return 'Heading 1';
+    if (editor?.isActive('heading', { level: 2 })) return 'Heading 2';
+    if (editor?.isActive('heading', { level: 3 })) return 'Heading 3';
     return 'Normal';
 });
 
 const activeQuote = computed(() => {
-    if (props.editor?.isActive('blockquote', { class: 'pullquote' })) return 'Pull Quote';
-    if (props.editor?.isActive('blockquote', { class: 'stdquote' })) return 'Block Quote';
+    if (editor?.isActive('blockquote', { class: 'pullquote' })) return 'Pull Quote';
+    if (editor?.isActive('blockquote', { class: 'stdquote' })) return 'Block Quote';
     return null;
 });
 
@@ -36,29 +42,29 @@ const headingItems = computed<ToolbarDropdownItem[]>(() => [
         id: 'paragraph',
         label: 'Normal Text',
         icon: Pilcrow,
-        action: () => props.editor.chain().focus().setParagraph().run(),
-        isActive: props.editor.isActive('paragraph')
+        action: () => editor.chain().focus().setParagraph().run(),
+        isActive: editor.isActive('paragraph')
     },
     {
         id: 'h1',
         label: 'Heading 1',
         icon: Heading1,
-        action: () => props.editor.chain().focus().toggleHeading({ level: 1 }).run(),
-        isActive: props.editor.isActive('heading', { level: 1 })
+        action: () => editor.chain().focus().toggleHeading({ level: 1 }).run(),
+        isActive: editor.isActive('heading', { level: 1 })
     },
     {
         id: 'h2',
         label: 'Heading 2',
         icon: Heading2,
-        action: () => props.editor.chain().focus().toggleHeading({ level: 2 }).run(),
-        isActive: props.editor.isActive('heading', { level: 2 })
+        action: () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
+        isActive: editor.isActive('heading', { level: 2 })
     },
     {
         id: 'h3',
         label: 'Heading 3',
         icon: Heading3,
-        action: () => props.editor.chain().focus().toggleHeading({ level: 3 }).run(),
-        isActive: props.editor.isActive('heading', { level: 3 })
+        action: () => editor.chain().focus().toggleHeading({ level: 3 }).run(),
+        isActive: editor.isActive('heading', { level: 3 })
     },
 ]);
 
@@ -68,59 +74,49 @@ const quoteItems = computed<ToolbarDropdownItem[]>(() => [
         label: 'Block Quote',
         icon: Quote,
         action: () => {
-            const isActive = props.editor.isActive('blockquote', { class: 'stdquote' });
+            const isActive = editor.isActive('blockquote', { class: 'stdquote' });
             if (isActive) {
-                return props.editor.chain().focus().unsetBlockquote().run();
+                return editor.chain().focus().unsetBlockquote().run();
             }
-            if (props.editor.isActive('blockquote')) {
-                return props.editor.chain().focus().updateAttributes('blockquote', { class: 'stdquote' }).run();
+            if (editor.isActive('blockquote')) {
+                return editor.chain().focus().updateAttributes('blockquote', { class: 'stdquote' }).run();
             }
-            return props.editor.chain().focus().setBlockquote().updateAttributes('blockquote', { class: 'stdquote' }).run();
+            return editor.chain().focus().setBlockquote().updateAttributes('blockquote', { class: 'stdquote' }).run();
         },
-        isActive: props.editor.isActive('blockquote', { class: 'stdquote' })
+        isActive: editor.isActive('blockquote', { class: 'stdquote' })
     },
     {
         id: 'pullquote',
         label: 'Pull Quote',
         icon: TextQuote,
         action: () => {
-            const isActive = props.editor.isActive('blockquote', { class: 'pullquote' });
+            const isActive = editor.isActive('blockquote', { class: 'pullquote' });
             if (isActive) {
-                return props.editor.chain().focus().unsetBlockquote().run();
+                return editor.chain().focus().unsetBlockquote().run();
             }
-            if (props.editor.isActive('blockquote')) {
-                return props.editor.chain().focus().updateAttributes('blockquote', { class: 'pullquote' }).run();
+            if (editor.isActive('blockquote')) {
+                return editor.chain().focus().updateAttributes('blockquote', { class: 'pullquote' }).run();
             }
-            return props.editor.chain().focus().setBlockquote().updateAttributes('blockquote', { class: 'pullquote' }).run();
+            return editor.chain().focus().setBlockquote().updateAttributes('blockquote', { class: 'pullquote' }).run();
         },
-        isActive: props.editor.isActive('blockquote', { class: 'pullquote' })
+        isActive: editor.isActive('blockquote', { class: 'pullquote' })
     },
 ]);
 
 const setLink = () => {
-    const previousUrl = props.editor.getAttributes('link').href;
-    const url = window.prompt('URL', previousUrl);
-
-    if (url === null) return;
-
-    if (url === '') {
-        props.editor.chain().focus().extendMarkRange('link').unsetLink().run();
-        return;
-    }
-
-    props.editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    linkMenu.value?.setLink()
 };
 
 const addImage = () => {
-    const url = window.prompt('URL');
-    if (url) {
-        props.editor.chain().focus().setImage({ src: url }).run();
-    }
+    // null bc we're adding the placeholder image block
+    editor.chain().insertImageBlock(null).run()
 };
 
 </script>
 
 <template>
+    <LinkMenu :editor ref="link-menu" />
+
     <div v-if="editor" class="flex items-center gap-1 px-2 bg-white sticky top-0 z-10">
         <!-- Undo / Redo -->
         <div class="flex items-center gap-0.5 pr-2 border-r border-border">
@@ -131,7 +127,7 @@ const addImage = () => {
         </div>
 
         <!-- Headings -->
-        <div class="px-2 border-r border-border flex gap-1">
+        <div v-if="variant === 'standard'" class="px-2 border-r border-border flex gap-1">
             <ToolbarDropdown class="w-24" :items="headingItems" :label="activeHeading" />
             <ToolbarDropdown :items="quoteItems" :icon="Quote" :is-active="!!activeQuote" />
         </div>
@@ -149,13 +145,13 @@ const addImage = () => {
         </div>
 
         <!-- Inserts -->
-        <div class="flex items-center gap-0.5 px-2 border-r border-border">
+        <div v-if="variant === 'standard'" class="flex items-center gap-0.5 px-2 border-r border-border">
             <ToolbarItem :icon="LinkIcon" @click="setLink" :is-active="isLink" title="Link" />
             <ToolbarItem :icon="ImageIcon" @click="addImage" title="Image" />
         </div>
 
         <!-- Lists -->
-        <div class="flex items-center gap-0.5 pl-2">
+        <div v-if="variant === 'standard'" class="flex items-center gap-0.5 pl-2">
             <ToolbarItem :icon="List" @click="editor.chain().focus().toggleBulletList().run()" :is-active="isBulletList"
                 title="Bullet List" />
             <ToolbarItem :icon="ListOrdered" @click="editor.chain().focus().toggleOrderedList().run()"

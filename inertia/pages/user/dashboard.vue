@@ -2,15 +2,19 @@
 import type User from '#models/user'
 import type Newsletter from '#models/newsletter'
 import { Deferred } from '@inertiajs/vue3'
-import Display from '~/components/Newsletters.vue/Display.vue';
+import Display from '~/components/newsletters/Display.vue';
 import type Scrap from '#models/scrap';
 import ScrapDisplay from '~/components/Scrap/ScrapDisplay.vue';
 import { Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '~/layouts/AuthenticatedLayout.vue';
 
+// Defferred props are weird, that's why these are optional even though they're not
 defineProps<{
   user: User,
-  newsletters?: Newsletter[],
+  newsletters?: {
+    sent: Newsletter[],
+    unsent: Newsletter[],
+  }
   scraps?: Scrap[]
 }>()
 </script>
@@ -18,7 +22,8 @@ defineProps<{
 <template>
   <AuthenticatedLayout>
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 class="font-title font-bold text-2xl mb-6">{{ user.username }}<span class="font-normal">.showroom.you</span></h1>
+      <h1 class="font-title font-bold text-2xl mb-6">{{ user.username }}<span class="font-normal">.showroom.you</span>
+      </h1>
 
       <Link href="/logout" class="text-sm text-gray-500 hover:text-black mb-8 block">Logout</Link>
 

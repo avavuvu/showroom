@@ -3,7 +3,6 @@ import type Newsletter from '#models/newsletter';
 import { Link } from '@inertiajs/vue3'
 import Card from '../blocks/Card.vue';
 import Button from '../blocks/Button.vue';
-import { DateTime } from 'luxon';
 
 const { newsletters } = defineProps<{
     newsletters: {
@@ -15,6 +14,11 @@ const { newsletters } = defineProps<{
 </script>
 
 <template>
+    <div>
+        <Card class="w-full" v-for="newsletter in newsletters.sent" :key="newsletter.id">
+            <h3>{{ newsletter.title }}</h3>
+        </Card>
+    </div>
 
 
     <h2>Edit Drafts</h2>

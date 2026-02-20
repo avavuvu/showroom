@@ -1,18 +1,19 @@
 <script setup lang="ts">
-import logoIcon from "~/icons/logo/img.png";
 import { Link, usePage } from '@inertiajs/vue3';
 import Button from "~/components/blocks/Button.vue";
 import { ChevronLeft } from 'lucide-vue-next';
+import Logo from "~/components/icons/Logo.vue";
 
 </script>
 
 <template>
     <div class="min-h-screen">
+        <slot name="header" />
         <header class="flex justify-between items-center px-2 h-12 bg-white border-b border-border sticky top-0 z-50">
             <div class="flex">
                 <div class="">
                     <Link href="/" class="block">
-                        <img class="h-8 w-auto" :src="logoIcon" alt="Showroom Logo" />
+                        <Logo class="h-8 w-auto" />
                     </Link>
                 </div>
                 <nav class="">

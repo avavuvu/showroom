@@ -19,6 +19,7 @@ const inertiaConfig = defineConfig({
       }
       : null,
     user: (context) => context.inertia.always(() => context.auth.user),
+    subdomainUser: (context) => context.inertia.always(() => context.subdomainUser),
   },
 
   /**
@@ -32,6 +33,12 @@ const inertiaConfig = defineConfig({
 
 export default inertiaConfig
 
+import type User from '#models/user'
+
 declare module '@adonisjs/inertia/types' {
-  export interface SharedProps extends InferSharedProps<typeof inertiaConfig> {}
+  export interface SharedProps extends InferSharedProps<typeof inertiaConfig> {
+    user: User | undefined
+    subdomainUser: User | undefined
+    [key: string]: any
+  }
 }
