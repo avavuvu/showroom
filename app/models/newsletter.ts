@@ -3,7 +3,7 @@ import { BaseModel, beforeCreate, beforeSave, belongsTo, column, hasMany } from 
 import User from "#models/user"
 import string from '@adonisjs/core/helpers/string'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
-import { randomUUID } from 'node:crypto'
+import { nanoid } from 'nanoid'
 import Comment from "#models/comment"
 
 export default class Newsletter extends BaseModel {
@@ -13,12 +13,12 @@ export default class Newsletter extends BaseModel {
   declare id: string
 
   @beforeCreate()
-  static assignUuid(newsletter: Newsletter) {
-    newsletter.id = randomUUID()
+  static assignId(newsletter: Newsletter) {
+    newsletter.id = nanoid(14)
   }
 
   @column()
-  declare userId: number
+  declare userId: string
 
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>

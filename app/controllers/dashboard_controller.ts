@@ -5,7 +5,6 @@ import type { HttpContext } from '@adonisjs/core/http'
 export default class DashboardController {
     async show(context: HttpContext) {
         return context.inertia.render("user/dashboard", {
-            user: context.auth.user,
             newsletters: context.inertia.defer(async () => {
                 const allNewsletters = await Newsletter.query()
                     .where('userId', context.auth.user!.id)

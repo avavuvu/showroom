@@ -9,8 +9,7 @@ export default class extends BaseSchema {
         .uuid('id')
         .primary()
 
-      table.integer("user_id")
-        .unsigned()
+      table.string("user_id")
         .references("id")
         .inTable("users")
         .notNullable()

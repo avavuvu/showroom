@@ -14,7 +14,7 @@ const user = computed(() => page.props.user as UserType | undefined);
 
 const profileUrl = computed(() => {
     if (!user.value) return '#';
-    // Logic as per user feedback/codebase
+    // TODO: dont do this lol
     return `http://${user.value.username}.localtest.me:3333`;
 });
 

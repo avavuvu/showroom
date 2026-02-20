@@ -9,7 +9,7 @@ import { defineConfig } from '@adonisjs/cors'
 const corsConfig = defineConfig({
   enabled: true,
   origin: (requestOrigin) => {
-    return requestOrigin.endsWith('localtest.me:3333') || requestOrigin.endsWith('showroom.you')
+    return requestOrigin.endsWith('localhost:3333') || requestOrigin.endsWith('localtest.me:3333') || requestOrigin.endsWith('showroom.you')
   },
   methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'],
   headers: true,

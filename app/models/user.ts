@@ -1,10 +1,11 @@
 import { DateTime } from 'luxon'
+import { nanoid } from 'nanoid'
 import hash from '@adonisjs/core/services/hash'
 import { compose } from '@adonisjs/core/helpers'
 import { BaseModel, column, hasMany, beforeCreate } from '@adonisjs/lucid/orm'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import { DbRememberMeTokensProvider } from '@adonisjs/auth/session'
-import Subscriber from './subscriber.js'
+import Subscriber from "#models/subscriber"
 import type { HasMany } from '@adonisjs/lucid/types/relations'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
@@ -15,8 +16,15 @@ const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
 export default class User extends compose(BaseModel, AuthFinder) {
   static rememberMeTokens = DbRememberMeTokensProvider.forModel(User)
 
+  public static selfAssignPrimaryKey = true
+
   @column({ isPrimary: true })
-  declare id: number
+  declare id: string
+
+  @beforeCreate()
+  static assignId(user: User) {
+    user.id = nanoid()
+  }
 
   @column()
   declare fullName: string | null
@@ -57,24 +65,24 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column()
   declare profileImageUrl: string | null
 
+  static defaultProfileImageUrls = [
+    "default_avatars/0.webp",
+    "default_avatars/1.webp",
+    "default_avatars/2.webp",
+    "default_avatars/3.webp",
+    "default_avatars/4.webp",
+    "default_avatars/5.webp",
+    "default_avatars/6.webp",
+    "default_avatars/7.webp",
+    "default_avatars/8.webp",
+    "default_avatars/9.webp",
+  ] as const
+
   @beforeCreate()
   static async assignDefaultProfileImage(user: User) {
     if (!user.profileImageUrl) {
-      const defaultProfileImageUrls = [
-        "/profilepics/default1.png",
-        "/profilepics/default2.png",
-        "/profilepics/default3.png",
-        "/profilepics/default4.png",
-        "/profilepics/default5.png",
-        "/profilepics/default6.png",
-        "/profilepics/default7.png",
-        "/profilepics/default8.png",
-        "/profilepics/default9.png",
-        "/profilepics/default10.png",
-      ] as const
-
-      const randomIndex = Math.floor(Math.random() * defaultProfileImageUrls.length)
-      user.profileImageUrl = defaultProfileImageUrls[randomIndex]
+      const randomIndex = Math.floor(Math.random() * User.defaultProfileImageUrls.length)
+      user.profileImageUrl = User.defaultProfileImageUrls[randomIndex]
     }
   }
 }

@@ -5,21 +5,31 @@ const inertiaConfig = defineConfig({
   /**
    * Path to the Edge view that will be used as the root view for Inertia responses
    */
+  // TODO: move the preview conditional rendering here... https://docs.adonisjs.com/guides/views-and-templates/inertia
   rootView: 'inertia_layout',
 
   /**
    * Data that should be shared with all rendered pages
    */
   sharedData: {
-    auth: (context) => context.auth.user
-      ? {
-        id: context.auth.user.id,
-        fullName: context.auth.user.fullName,
-        email: context.auth.user.email,
+    user: (context) => {
+      const user = context.auth.user
+      if (!user) return null
+      return {
+        ...user.serialize(),
+        profileImageUrl: user.profileImageUrl ? ImageService.getUrl(user.profileImageUrl) : null,
       }
-      : null,
-    user: (context) => context.inertia.always(() => context.auth.user),
-    subdomainUser: (context) => context.inertia.always(() => context.subdomainUser),
+    },
+    subdomainUser: (context) => {
+      const user = context.subdomainUser
+      console.log("test here")
+
+      if (!user) return null
+      return {
+        ...user.serialize(),
+        profileImageUrl: user.profileImageUrl ? ImageService.getUrl(user.profileImageUrl) : null,
+      }
+    },
   },
 
   /**
@@ -34,6 +44,7 @@ const inertiaConfig = defineConfig({
 export default inertiaConfig
 
 import type User from '#models/user'
+import ImageService from '#services/image_service'
 
 declare module '@adonisjs/inertia/types' {
   export interface SharedProps extends InferSharedProps<typeof inertiaConfig> {

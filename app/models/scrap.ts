@@ -14,7 +14,7 @@ export default class Scrap extends BaseModel {
   }
 
   @column()
-  declare userId: number
+  declare userId: string
 
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>

@@ -6,7 +6,7 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable(this.tableName, (table) => {
       table
-        .uuid('id')
+        .string('id')
         .primary()
 
       table
@@ -18,8 +18,7 @@ export default class extends BaseSchema {
         .nullable()
 
 
-      table.integer("user_id")
-        .unsigned()
+      table.string("user_id")
         .references("id")
         .inTable("users")
         .notNullable()

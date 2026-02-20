@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Comment from '#models/comment'
+import type Comment from '#models/comment'
 import CommentItem from './CommentItem.vue'
 
 defineProps<{

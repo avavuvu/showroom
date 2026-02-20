@@ -8,8 +8,8 @@ export default class extends BaseSchema {
       table.increments('id')
       table.text('content').notNullable()
 
-      table.uuid('newsletter_id').references('id').inTable('newsletters').onDelete('CASCADE')
-      table.integer('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE').nullable()
+      table.string('newsletter_id').references('id').inTable('newsletters').onDelete('CASCADE')
+      table.string('user_id').references('id').inTable('users').onDelete('CASCADE').nullable()
       table.integer('parent_id').unsigned().references('id').inTable('comments').onDelete('CASCADE').nullable()
 
       table.timestamp('created_at')

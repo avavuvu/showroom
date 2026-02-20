@@ -40,6 +40,8 @@ router.group(() => {
 
 router.get("/dashboard", [DashboardController, "show"]).as("dashboard").use(middleware.auth())
 router.get("/profile", [ProfilesController, "index"]).as("profile").use(middleware.auth())
+router.put("/profile", [ProfilesController, "update"]).as("profile.update").use(middleware.auth())
+router.post("/profile/image", [ProfilesController, "updateProfileImage"]).as("profile.image").use(middleware.auth())
 
 router.post("/scrap", [ScrapsController, "create"]).as("scrap.create").use(middleware.auth())
 router.get("/scrap/:id", [ScrapsController, "edit"]).as("scrap.edit").use(middleware.auth())

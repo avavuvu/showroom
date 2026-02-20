@@ -9,7 +9,7 @@ export default class extends BaseSchema {
 
       table.unique(['email', 'user_id'])
 
-      table.integer('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE')
+      table.string('user_id').references('id').inTable('users').onDelete('CASCADE')
       table.string('email').notNullable()
       table.string('name')
       table.string('token').nullable()

@@ -5,40 +5,58 @@ import vine, { VineNumber, VineString } from "@vinejs/vine";
 type Options = {
   table: string,
   column: string
+  exclude?: {
+    column: string,
+    value: any
+  }
 }
 
-const uniqueInDatabase = async (value: unknown, options: Options, field: FieldContext) => {
+type OptionsCallback = (field: FieldContext) => Options
+
+const uniqueInDatabase = async (value: unknown, options: Options | OptionsCallback, field: FieldContext) => {
   if (typeof value !== "string" && typeof value !== "number") {
     return
   }
 
-  const result = await db
-    .from(options.table)
-    .select(options.column)
-    .where(options.column, value)
-    .first()
+  let resolvedOptions: Options
+  if (typeof options === 'function') {
+    resolvedOptions = options(field)
+  } else {
+    resolvedOptions = options
+  }
 
-    if(result) {
-      field.report("This {{ field }} is already taken", "uniqueInDatabase", field)
-    }
+  const query = db
+    .from(resolvedOptions.table)
+    .select(resolvedOptions.column)
+    .where(resolvedOptions.column, value)
+
+  if (resolvedOptions.exclude) {
+    query.whereNot(resolvedOptions.exclude.column, resolvedOptions.exclude.value)
+  }
+
+  const result = await query.first()
+
+  if (result) {
+    field.report("This {{ field }} is already taken", "uniqueInDatabase", field)
+  }
 }
 
 const uniqueInDatabaseRule = vine.createRule(uniqueInDatabase)
 
 declare module "@vinejs/vine" {
   interface VineString {
-    uniqueInDatabase(options: Options): this
+    uniqueInDatabase(options: Options | OptionsCallback): this
   }
 
   interface VineNumber {
-    uniqueInDatabase(options: Options): this
+    uniqueInDatabase(options: Options | OptionsCallback): this
   }
 }
 
-VineString.macro("uniqueInDatabase", function (this: VineString, options: Options) {
+VineString.macro("uniqueInDatabase", function (this: VineString, options: Options | OptionsCallback) {
   return this.use(uniqueInDatabaseRule(options))
 })
 
-VineNumber.macro("uniqueInDatabase", function (this: VineNumber, options: Options) {
+VineNumber.macro("uniqueInDatabase", function (this: VineNumber, options: Options | OptionsCallback) {
   return this.use(uniqueInDatabaseRule(options))
 })

@@ -21,7 +21,7 @@ export default class Comment extends BaseModel {
   declare newsletter: BelongsTo<typeof Newsletter>
 
   @column()
-  declare userId: number | null
+  declare userId: string | null
 
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
