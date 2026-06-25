@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "types": ["vite/client"],
+        "strict": true,
+        "jsx": "preserve",
+        "jsxImportSource": "vue",
+    },
+    "include": ["./**/*.ts", "./**/*.vue"],
+}
