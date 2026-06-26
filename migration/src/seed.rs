@@ -1,3 +1,5 @@
+use argon2::{Argon2, PasswordHasher};
+use argon2::password_hash::{rand_core::OsRng, SaltString};
 use chrono::Utc;
 use fake::faker::internet::en::{SafeEmail, Username};
 use fake::faker::lorem::en::Paragraphs;
@@ -30,6 +32,14 @@ fn tiptap_doc(paragraphs: Vec<String>) -> serde_json::Value {
     })
 }
 
+fn hash_password(password: &str) -> String {
+    let salt = SaltString::generate(&mut OsRng);
+    Argon2::default()
+        .hash_password(password.as_bytes(), &salt)
+        .unwrap()
+        .to_string()
+}
+
 #[tokio::main]
 async fn main() {
     dotenvy::dotenv().ok();
@@ -39,18 +49,19 @@ async fn main() {
 
     println!("Seeding database...");
 
+    let password = hash_password("password");
+
     for _ in 0..3 {
         let user_id = nanoid!(14);
         let username: String = Username().fake();
         let email: String = SafeEmail().fake();
-        let password = bcrypt::hash("password", bcrypt::DEFAULT_COST).unwrap();
         let now = Utc::now().fixed_offset();
 
         user::Entity::insert(user::ActiveModel {
             id: Set(user_id.clone()),
-            handle: Set(Some(username.clone())),
+            handle: Set(username.clone()),
             email: Set(email.clone()),
-            password: Set(password),
+            password: Set(password.clone()),
             created_at: Set(now),
             updated_at: Set(Some(now)),
         })
@@ -75,7 +86,7 @@ async fn main() {
                 content: Set(tiptap_doc(paragraphs)),
                 sent: Set(false),
                 created_at: Set(now),
-                updated_at: Set(Some(now)),
+                updated_at: Set(now),
             })
             .exec(&db)
             .await

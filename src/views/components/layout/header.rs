@@ -15,24 +15,24 @@ pub fn header(is_authenticated: bool, urls: &Urls) -> Markup {
                     (button(
                         html!{"Log out"},
                         ButtonElement::Form,
-                        &format!("{}/logout", urls.base))
+                        &format!("{}/logout", urls.base()))
                     )
                     (button(
                         html!{"Dashboard"},
                         ButtonElement::A,
-                        &urls.app)
+                        &urls.app())
                     )
                 }
                 @else {
                     (button(
                         html!{"Get started"},
                         ButtonElement::A,
-                        &format!("{}/signup", urls.base))
+                        &format!("{}/signup", urls.base()))
                     )
                     (button(
                         html!{"Login"},
                         ButtonElement::A,
-                        &format!("{}/login", urls.base))
+                        &format!("{}/login", urls.base()))
                     )
                 }
             }

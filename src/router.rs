@@ -7,20 +7,7 @@ use tower_livereload::LiveReloadLayer;
 use crate::{auth::middleware::base, routers::*, state::{AppState, Urls}, services::subdomain::SubdomainRouter};
 
 pub fn create_service(db: DatabaseConnection, domain: &str, port: &str, jwt_secret: String, is_production: bool) -> axum::Router {
-    let urls = match is_production {
-        false => Urls {
-            base: format!("http://{domain}:{port}"),
-            app: format!("http://app.{domain}:{port}"),
-            cookie: format!(".{domain}"),
-        },
-        true => Urls {
-            base: format!("https://{domain}:{port}"),
-            app: format!("https://app.{domain}:{port}"),
-            cookie: format!(".{domain}"),
-        }
-    };
-
-    let state = AppState { db, urls, jwt_secret };
+    let state = AppState { db, urls: Urls::new(domain, port, is_production), jwt_secret };
 
     let static_service = ServiceBuilder::new()
         .layer(SetResponseHeaderLayer::overriding(

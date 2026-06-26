@@ -85,8 +85,8 @@ pub async fn login(
     new_refresh.insert(&state.db).await.unwrap();
 
     let jar = jar
-        .add(cookies::make("jwt", jwt_token, 1, &state.urls.cookie))
-        .add(cookies::make("refresh", refresh_token_value, 30 * 24, &state.urls.cookie));
+        .add(cookies::make("jwt", jwt_token, 1, &state.urls.cookie()))
+        .add(cookies::make("refresh", refresh_token_value, 30 * 24, &state.urls.cookie()));
 
     (jar, htmx::redirect("/")).into_response()
 }
@@ -130,7 +130,7 @@ pub async fn signup(
     let new_user = user::ActiveModel {
         id: Set(uuid::Uuid::new_v4().to_string()),
         email: Set(form.email.clone()),
-        handle: Set(Some(form.handle.clone())),
+        handle: Set(form.handle.clone()),
         password: Set(hash),
         created_at: Set(chrono::Utc::now().into()),
         ..Default::default()
@@ -154,15 +154,15 @@ pub async fn signup(
     new_refresh.insert(&state.db).await.unwrap();
 
     let jar = jar
-        .add(cookies::make("jwt", jwt_token, 1, &state.urls.cookie))
-        .add(cookies::make("refresh", refresh_token_value, 30 * 24, &state.urls.cookie));
+        .add(cookies::make("jwt", jwt_token, 1, &state.urls.cookie()))
+        .add(cookies::make("refresh", refresh_token_value, 30 * 24, &state.urls.cookie()));
 
     (jar, htmx::redirect("/login")).into_response()
 }
 
 pub async fn logout(State(state): State<AppState>, jar: CookieJar) -> Response {
     let jar = jar
-        .remove(cookies::remove("jwt", &state.urls.cookie))
-        .remove(cookies::remove("refresh", &state.urls.cookie));
-    (jar, Redirect::to(&state.urls.base)).into_response()
+        .remove(cookies::remove("jwt", &state.urls.cookie()))
+        .remove(cookies::remove("refresh", &state.urls.cookie()));
+    (jar, Redirect::to(&state.urls.base())).into_response()
 }

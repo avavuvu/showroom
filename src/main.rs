@@ -6,6 +6,7 @@ mod htmx;
 mod models;
 mod router;
 mod routers;
+mod renderer;
 mod services;
 mod state;
 mod views;
@@ -30,7 +31,7 @@ async fn main() {
 
     let app = router::create_service(db, &domain, &port, jwt_secret, is_produciton);
 
-    let address = format!("0.0.0.0:{port}");
+    let address = format!("localtest.me:{port}");
 
     let listener = tokio::net::TcpListener::bind(&address).await.unwrap();
     println!("listening on http://{address}");

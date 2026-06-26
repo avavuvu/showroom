@@ -26,8 +26,8 @@ pub async fn base(
             Ok(claims) => context.user_id = Some(claims.user_id),
             Err(_) => {
                 jar = jar
-                    .remove(cookies::remove("jwt", &state.urls.cookie))
-                    .remove(cookies::remove("refresh", &state.urls.cookie));
+                    .remove(cookies::remove("jwt", &state.urls.cookie()))
+                    .remove(cookies::remove("refresh", &state.urls.cookie()));
             }
         }
     } else if let Some(refresh_cookie) = jar.get("refresh") {
@@ -44,7 +44,7 @@ pub async fn base(
                 let claims = jwt::Claims::new(&user.email, &user.id);
                 if let Ok(token) = jwt::generate(state.jwt_secret.as_bytes(), claims) {
                     context.user_id = Some(user.id);
-                    jar = jar.add(cookies::make("jwt", token, 1, &state.urls.cookie));
+                    jar = jar.add(cookies::make("jwt", token, 1, &state.urls.cookie()));
                 }
             }
         }
@@ -62,7 +62,7 @@ pub async fn required_auth(
     next: Next,
 ) -> Response {
     if !ctx.is_authenticated() {
-        let login_url = format!("{}/login", state.urls.base);
+        let login_url = format!("{}/login", state.urls.base());
         return Redirect::to(&login_url).into_response();
     }
     next.run(request).await

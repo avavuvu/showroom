@@ -1,14 +1,40 @@
 use sea_orm::DatabaseConnection;
-use serde::Serialize;
 
-#[derive(Clone, Serialize)]
+#[derive(Clone)]
 pub struct Urls {
-    /// Root domain url
-    pub base: String,
-    /// app. subdomain
-    pub app: String,
-    /// Cookie domain shared across all subdomains
-    pub cookie: String,
+    domain: String,
+    port: String,
+    secure: bool,
+}
+
+impl Urls {
+    pub fn new(domain: impl Into<String>, port: impl Into<String>, secure: bool) -> Self {
+        Self {
+            domain: domain.into(),
+            port: port.into(),
+            secure,
+        }
+    }
+
+    fn scheme(&self) -> &str {
+        if self.secure { "https" } else { "http" }
+    }
+
+    pub fn base(&self) -> String {
+        format!("{}://{}:{}", self.scheme(), self.domain, self.port)
+    }
+
+    pub fn app(&self) -> String {
+        format!("{}://app.{}:{}", self.scheme(), self.domain, self.port)
+    }
+
+    pub fn user(&self, handle: &str) -> String {
+        format!("{}://{}.{}:{}", self.scheme(), handle, self.domain, self.port)
+    }
+
+    pub fn cookie(&self) -> String {
+        format!(".{}", self.domain)
+    }
 }
 
 #[derive(Clone)]
