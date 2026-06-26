@@ -1,11 +1,8 @@
-use axum::extract::State;
+use axum::{extract::{Path, State}, http::StatusCode};
 use maud::Markup;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use crate::{
-    auth::extractors::AuthenticatedUser,
-    models::newsletter::{self, Entity as Newsletter},
-    state::AppState,
-    views,
+    auth::extractors::AuthenticatedUser, models::newsletter::{self, Entity as Newsletter}, renderer::html::ProseVars, state::AppState, views,
 };
 
 pub async fn index(State(state): State<AppState>, AuthenticatedUser(user): AuthenticatedUser) -> Markup {
@@ -26,4 +23,36 @@ pub async fn get_newsletters(
 
     let user_base = state.urls.user(&user.handle);
     views::dashboard::newsletters(newsletters, &user_base)
+}
+
+pub async fn get_preview(
+    State(state): State<AppState>,
+    AuthenticatedUser(user): AuthenticatedUser,
+    Path(slug): Path<String>,
+) -> Result<Markup, StatusCode> {
+    let newsletter = Newsletter::find()
+        .filter(newsletter::Column::UserId.eq(&user.id))
+        .filter(newsletter::Column::Slug.eq(&slug))
+        .one(&state.db)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .ok_or(StatusCode::NOT_FOUND)?;
+
+    Ok(views::dashboard::preview(&newsletter, ProseVars::default()))
+}
+
+pub async fn get_edit(
+    State(state): State<AppState>,
+    AuthenticatedUser(user): AuthenticatedUser,
+    Path(slug): Path<String>,
+) -> Result<Markup, StatusCode> {
+    let newsletter = Newsletter::find()
+        .filter(newsletter::Column::UserId.eq(&user.id))
+        .filter(newsletter::Column::Slug.eq(&slug))
+        .one(&state.db)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .ok_or(StatusCode::NOT_FOUND)?;
+
+    Ok(views::dashboard::edit(&newsletter))
 }

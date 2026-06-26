@@ -13,7 +13,6 @@ pub struct Model {
     pub sent: bool,
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,
-    pub rendered_html: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

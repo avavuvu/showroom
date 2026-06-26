@@ -1,5 +1,6 @@
 use maud::{Markup, html};
 use crate::models::{newsletter, user};
+use crate::renderer::html::{render_email, ProseVars};
 use crate::views::components::ui::*;
 use super::layouts::base;
 
@@ -27,6 +28,21 @@ pub fn index(user: &user::Model, base_url: &str) -> Markup {
         }
     })
 }
+
+pub fn preview(newsletter: &newsletter::Model, vars: ProseVars) -> Markup {
+    let rendered = render_email(&newsletter.content, vars);
+    base(html! {
+        (maud::PreEscaped(rendered))
+    })
+}
+
+pub fn edit(newsletter: &newsletter::Model) -> Markup {
+    let props = serde_json::json!({ "newsletterId": newsletter.id }).to_string();
+    base(html! {
+        div data-island="Editor" data-props=(props) {}
+    })
+}
+
 
 pub fn newsletters(newsletters: Vec<newsletter::Model>, user_base: &str) -> Markup {
     html! {

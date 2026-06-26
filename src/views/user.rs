@@ -1,5 +1,5 @@
 use maud::{Markup, PreEscaped, html};
-use crate::models::newsletter::Model as Newsletter;
+use crate::{models::newsletter::Model as Newsletter, renderer::html::render};
 use super::layouts::base;
 
 pub fn profile(username: &str, is_authenticated: bool, base_url: &str) -> Markup {
@@ -18,17 +18,21 @@ pub fn profile(username: &str, is_authenticated: bool, base_url: &str) -> Markup
 }
 
 pub fn newsletter(newsletter: Newsletter) -> Markup {
+    let html_string = render(&newsletter.content);
+
     base(html! {
-        article {
+        article.prose {
             h1 { (newsletter.title) }
             @if let Some(subtitle) = &newsletter.subtitle {
                 p { (subtitle) }
             }
-            @if let Some(rendered) = &newsletter.rendered_html {
-                div { (PreEscaped(rendered)) }
-            } @else {
-                p { "This newsletter hasn't been rendered yet." }
-            }
+
+            div { (PreEscaped(html_string)) }
+            // @if let Some(rendered) = &newsletter.rendered_html {
+
+            // } @else {
+            //     p { "This newsletter hasn't been rendered yet." }
+            // }
         }
     })
 }

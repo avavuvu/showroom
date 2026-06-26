@@ -24,4 +24,3 @@ axum-extra = { version = "0.10", features = ["cookie"] }
 jsonwebtoken = "9"
 time = "0.3"
 dotenvy = "0.15"
-prosemirror = "0.5.2"

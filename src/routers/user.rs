@@ -4,6 +4,6 @@ use crate::{handlers, state::AppState};
 pub fn create_router(state: AppState) -> Router {
     Router::new()
         .route("/", get(handlers::user::profile))
-        .route("/:slug", get(handlers::user::newsletter))
+        .route("/{slug}", get(handlers::user::newsletter))
         .with_state(state)
 }
