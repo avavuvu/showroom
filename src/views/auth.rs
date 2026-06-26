@@ -1,104 +1,76 @@
-use html_to_string_macro::html;
+use maud::{Markup, html};
+use crate::views::components::forms::{input::input, password_input::password_input};
+
 use super::layouts::base;
 
-pub fn login(error: Option<&str>) -> String {
-    base(html!(
-        <div>
-            <div>
-                <h1>"Sign in"</h1>
-                {error.map(|err| html!(<p>{err}</p>)).unwrap_or_default()}
-                <form method="POST" action="/login" novalidate data-controller="login-form">
-                    <div>
-                        <label for="email">"Email"</label>
-                        <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            autocomplete="email"
-                            data-login-form-target="email"
-                            data-action="blur->login-form#validateEmail"
-                        />
-                        <p hidden data-login-form-target="emailError"></p>
-                    </div>
-                    <div>
-                        <label for="password">"Password"</label>
-                        <div>
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                autocomplete="current-password"
-                                data-login-form-target="password"
-                            />
-                            <button
-                                type="button"
-                                tabindex="-1"
-                                data-login-form-target="passwordToggle"
-                                data-action="click->login-form#togglePassword"
-                            >"Show"</button>
-                        </div>
-                    </div>
-                    <button type="submit">"Sign in"</button>
-                </form>
-                <p>"No account? "<a href="/signup">"Sign up"</a></p>
-            </div>
-        </div>
-    ))
+pub fn login(error: Option<&str>) -> Markup {
+    base(html! {
+        div {
+            div {
+                h1 { "Sign in" }
+                div id="login-error" {
+                    @if let Some(err) = error {
+                        p { (err) }
+                    }
+                }
+                form
+                    method="POST"
+                    action="/login"
+                    novalidate?[true]
+                    hx-post="/login"
+                    hx-trigger="validated"
+                    hx-target="#login-error"
+                    hx-swap="innerHTML"
+                    x-data="form()"
+                    x-on:submit="validate($event)"
+                {
+                    (input("email", "email", "email", "email", "you@example.com", true))
+                    (password_input("password", "Password"))
+                    button type="submit" { "Sign in" }
+                }
+                p {
+                    "No account? "
+                    a href="/signup" { "Sign up" }
+                }
+            }
+        }
+    })
 }
 
-pub fn signup(error: Option<&str>) -> String {
-    base(html!(
-        <div>
-            <div>
-                <h1>"Create account"</h1>
-                {error.map(|err| html!(<p>{err}</p>)).unwrap_or_default()}
-                <form method="POST" action="/signup" novalidate data-controller="login-form">
-                    <div>
-                        <label for="email">"Email"</label>
-                        <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            autocomplete="email"
-                            data-login-form-target="email"
-                            data-action="blur->signup-form#validateEmail"
-                        />
-                        <p hidden data-login-form-target="emailError"></p>
-                    </div>
-                    <div>
-                        <label for="handle">"Handle"</label>
-                        <input
-                            id="handle"
-                            name="handle"
-                            type="text"
-                            autocomplete="handle"
-                            data-login-form-target="handle"
-                            data-action="blur->signup-form#validateHandle"
-                        />
-                        <p hidden data-login-form-target="handleError"></p>
-                    </div>
-                    <div>
-                        <label for="password">"Password"</label>
-                        <div>
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                autocomplete="new-password"
-                                data-login-form-target="password"
-                            />
-                            <button
-                                type="button"
-                                tabindex="-1"
-                                data-signup-form-target="passwordToggle"
-                                data-action="click->signup-form#togglePassword"
-                            >"Show"</button>
-                        </div>
-                    </div>
-                    <button type="submit">"Create account"</button>
-                </form>
-                <p>"Already have an account? "<a href="/login">"Sign in"</a></p>
-            </div>
-        </div>
-    ))
+pub fn signup(error: Option<&str>) -> Markup {
+    base(html! {
+        div {
+            div {
+                h1 { "Create account" }
+                div id="signup-error" {
+                    @if let Some(err) = error {
+                        p { (err) }
+                    }
+                }
+                form
+                    method="POST"
+                    action="/signup"
+                    novalidate?[true]
+                    hx-post="/signup"
+                    hx-trigger="validated"
+                    hx-target="#signup-error"
+                    hx-swap="innerHTML"
+                    x-data="form()"
+                    x-on:submit="validate($event)"
+                {
+                    (input("email", "email", "email", "email", "you@example.com", true))
+                    div class="inline-flex" {
+                        span { "@" }
+                        (input("handle", "handle", "text", "off", "yourhandle", true))
+                    }
+                    (password_input("password", "Password"))
+                    button type="submit" { "Create account" }
+                }
+                p {
+                    "Already have an account? "
+                    a href="/login" { "Sign in" }
+                }
+            }
+        }
+    })
 }

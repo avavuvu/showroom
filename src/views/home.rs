@@ -1,17 +1,14 @@
-use html_to_string_macro::html;
+use maud::{Markup, html};
+use crate::{state::Urls, views::components::layout::header::header};
+
 use super::layouts::base;
 
-pub fn index() -> String {
-    base(html!(
-        <div>
-            <div>
-                <h1>"Showroom"</h1>
-                <p>"Newsletters for a new age"</p>
-                <div>
-                    <a href="/login">"Sign in"</a>
-                    <a href="/signup">"Sign up"</a>
-                </div>
-            </div>
-        </div>
-    ))
+pub fn index(is_authenticated: bool, urls: &Urls) -> Markup {
+    base(html! {
+        (header(is_authenticated, urls))
+
+        div {
+
+        }
+    })
 }

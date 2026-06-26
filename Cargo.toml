@@ -13,10 +13,13 @@ serde = { version = "1.0.228", features = ["derive"] }
 argon2 = "0.5"
 uuid = { version = "1", features = ["v4"] }
 chrono = "0.4"
-html-to-string-macro = "0.2"
+garde = { version = "0.23", features = ["derive", "email"] }
+maud = { version = "0.27", features = ["axum"] }
 tokio = { version = "1", features = ["full"] }
 tower = "0.5"
 tower-http = { version = "0.6", features = ["fs", "set-header"] }
 tower-livereload = "0.10"
-tower-sessions = "0.14"
+axum-extra = { version = "0.10", features = ["cookie"] }
+jsonwebtoken = "9"
+time = "0.3"
 dotenvy = "0.15"

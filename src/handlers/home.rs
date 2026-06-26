@@ -1,6 +1,7 @@
-use axum::response::Html;
-use crate::views;
+use axum::{extract::State, Extension};
+use maud::Markup;
+use crate::{auth::context::UserContext, state::AppState, views};
 
-pub async fn index() -> Html<String> {
-    Html(views::home::index())
+pub async fn index(State(state): State<AppState>, Extension(ctx): Extension<UserContext>) -> Markup {
+    views::home::index(ctx.is_authenticated(), &state.urls)
 }

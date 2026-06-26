@@ -1,17 +1,29 @@
-import { Application, type ControllerConstructor } from "@hotwired/stimulus";
+import Alpine from "alpinejs";
+import "htmx.org";
 
-const application = Application.start();
+Alpine.data("form", () => ({
+    validate(event: Event) {
+        event.preventDefault();
+        let valid = true;
 
-const modules = import.meta.glob<{ default: ControllerConstructor }>(
-    "./controllers/*_controller.ts",
-    { eager: true },
-);
+        for (const input of (
+            this.$el as HTMLFormElement
+        ).querySelectorAll<HTMLInputElement>("input[required]")) {
+            const error = document.getElementById(`${input.name}-error`);
+            if (!input.value.trim()) {
+                if (error) error.textContent = "Required";
+                valid = false;
+            } else {
+                if (error) error.textContent = "";
+            }
+        }
 
-for (const path in modules) {
-    const identifier = path
-        .replace("./controllers/", "")
-        .replace("_controller.ts", "")
-        .replaceAll("_", "-");
+        if (valid) {
+            (this.$el as HTMLElement).dispatchEvent(
+                new Event("validated", { bubbles: true }),
+            );
+        }
+    },
+}));
 
-    application.register(identifier, modules[path].default);
-}
+Alpine.start();

@@ -1,14 +1,9 @@
-use axum::{Router, routing::get};
+use axum::{middleware, Router, routing::get};
+use crate::{auth::middleware::required_auth, handlers, state::AppState};
 
-use tower_sessions::{MemoryStore, SessionManagerLayer};
-use crate::{handlers, state::AppState};
-
-pub fn create_router(
-    state: AppState,
-    session_layer: SessionManagerLayer<MemoryStore>,
-) -> Router {
+pub fn create_router(state: AppState) -> Router {
     Router::new()
         .route("/", get(handlers::dashboard::index))
+        .layer(middleware::from_fn_with_state(state.clone(), required_auth))
         .with_state(state)
-        .layer(session_layer)
 }

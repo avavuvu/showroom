@@ -10,9 +10,9 @@ export default defineConfig({
         emptyOutDir: false,
         rollupOptions: {
             input: {
-                app: "resources/js/app.ts",
                 styles: "resources/css/app.css",
                 prose: "resources/css/prose.css",
+                app: "resources/js/app.ts",
                 islands: "resources/js/islands.ts",
             },
             output: {
