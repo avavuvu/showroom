@@ -2,7 +2,8 @@
 _Newsletters for people like you_
 
 ## To do:
-- [ ] edit page fetch
+- [x] edit page fetch
+- [ ] sending pages
 - [ ] caching pages
 - [ ] header on every page
 - [ ] lander

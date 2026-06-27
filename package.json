@@ -20,6 +20,7 @@
         "@tiptap/starter-kit": "^3.27.1",
         "@tiptap/vue-3": "^3.27.1",
         "@types/alpinejs": "^3.13.11",
+        "@vueuse/core": "^14.3.0",
         "alpinejs": "^3.15.12",
         "htmx.org": "^2.0.10",
         "lucide-vue-next": "^1.0.0",

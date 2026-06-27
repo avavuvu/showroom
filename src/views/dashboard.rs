@@ -51,7 +51,7 @@ pub fn newsletters(newsletters: Vec<newsletter::Model>, user_base: &str) -> Mark
                 li {
                     h2 { (newsletter.title) }
                     a href={ (user_base) "/" (newsletter.slug) } { "View" }
-                    a href={ "/edit/" (newsletter.slug) } { "Edit" }
+                    a href={ "/edit/" (newsletter.id) } { "Edit" }
                 }
             }
         }
