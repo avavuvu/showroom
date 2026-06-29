@@ -1,40 +1,40 @@
 use serde_json::Value;
 
 #[derive(Clone, Debug)]
-pub struct ProseVars {
+pub struct ThemeVariables {
     pub font_body: String,
     pub font_title: String,
-    pub color_link: String,
-    pub color_blockquote_border: String,
-    pub color_pullquote_border: String,
+    pub color_text: String,
+    pub color_primary: String,
+    pub color_surface: String,
     pub color_surface_subtle: String,
-    pub color_rule: String,
+    pub color_muted: String,
 }
 
-impl Default for ProseVars {
+impl Default for ThemeVariables {
     fn default() -> Self {
         Self {
-            font_body:                 r#""Times", "Times New Roman", serif"#.to_string(),
-            font_title:                r#""Playfair Display", "Georgia", serif"#.to_string(),
-            color_link:                "#92ca3a".to_string(),
-            color_blockquote_border:   "#92ca3a".to_string(),
-            color_pullquote_border:    "#000000".to_string(),
-            color_surface_subtle:      "#cccccc".to_string(),
-            color_rule:                "#cccccc".to_string(),
+            font_body:                 r#""Times", "Times New Roman", serif"#.into(),
+            font_title:                r#""Playfair Display", "Georgia", serif"#.into(),
+            color_text:                "#000000".into(),
+            color_primary:             "#92ca3a".into(),
+            color_surface:             "#ffffff".into(),
+            color_surface_subtle:      "#cccccc".into(),
+            color_muted:               "#444444".into(),
         }
     }
 }
 
 pub fn render(content: &Value) -> String {
-    Renderer { vars: None }.render(content)
+    Renderer { theme: None }.render(content)
 }
 
-pub fn render_email(content: &Value, vars: ProseVars) -> String {
-    Renderer { vars: Some(vars) }.render(content)
+pub fn render_email(content: &Value, theme: ThemeVariables) -> String {
+    Renderer { theme: Some(theme) }.render(content)
 }
 
 struct Renderer {
-    vars: Option<ProseVars>,
+    theme: Option<ThemeVariables>,
 }
 
 impl Renderer {
@@ -43,11 +43,11 @@ impl Renderer {
     }
 
     fn is_email(&self) -> bool {
-        self.vars.is_some()
+        self.theme.is_some()
     }
 
-    fn v(&self) -> Option<&ProseVars> {
-        self.vars.as_ref()
+    fn v(&self) -> Option<&ThemeVariables> {
+        self.theme.as_ref()
     }
 
     fn s(&self, style: String) -> String {
@@ -100,7 +100,7 @@ impl Renderer {
         self.s(format!(
             "border-left: 3px solid {}; padding: 0 0 0 16px; margin: 0 0 16px 0; \
              font-family: {}; font-size: 16px; line-height: 1.5;",
-            v.color_blockquote_border, v.font_body
+            v.color_primary, v.font_body
         ))
     }
 
@@ -118,7 +118,7 @@ impl Renderer {
         let Some(v) = self.v() else { return String::new() };
         self.s(format!(
             "border: 0; border-top: 1px solid {}; margin: 32px 0;",
-            v.color_rule
+            v.color_surface_subtle
         ))
     }
 
@@ -133,7 +133,7 @@ impl Renderer {
 
     fn link_style(&self) -> String {
         let Some(v) = self.v() else { return String::new() };
-        self.s(format!("color: {}; text-decoration: underline;", v.color_link))
+        self.s(format!("color: {}; text-decoration: underline;", v.color_primary))
     }
 
     fn code_mark_style(&self) -> String {

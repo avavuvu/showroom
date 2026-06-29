@@ -5,7 +5,7 @@ import UnderlineExtension from "@tiptap/extension-underline";
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import Toolbar from "../editor/Toolbar.vue";
 import { useSave } from "../editor/useSave";
-import { onKeyStroke } from "@vueuse/core";
+import { onKeyStroke, useEventListener } from "@vueuse/core";
 
 const props = defineProps<{
     newsletterId: string;
@@ -35,19 +35,20 @@ const editor = useEditor({
 
 const json = ref();
 
-const { save, debouncedSave, isSaving, isDirty } = useSave(async () => {
-    const newsletterUpdate = {
-        title: title.value,
-        subtitle: subtitle.value,
-        content: editor.value?.getJSON(),
-    };
-
-    await fetch(`/json/${props.newsletterId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newsletterUpdate),
-    });
-});
+const { save, debouncedSave, isSaving, isDirty, networkError } = useSave(
+    async () => {
+        const response = await fetch(`/json/${props.newsletterId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                title: title.value,
+                subtitle: subtitle.value,
+                content: editor.value?.getJSON(),
+            }),
+        });
+        return response.ok;
+    },
+);
 
 onMounted(async () => {
     const response = await fetch(`/json/${props.newsletterId}`);
@@ -76,8 +77,10 @@ onKeyStroke("s", (event) => {
     }
 });
 
-onUnmounted(() => {
-    editor.value?.destroy();
+useEventListener(window, "beforeunload", (event) => {
+    if (isDirty.value) {
+        event.preventDefault();
+    }
 });
 </script>
 
@@ -98,7 +101,8 @@ onUnmounted(() => {
             v-model="subtitle"
         />
         <div>
-            <template v-if="isDirty"> Saving... </template>
+            <span v-if="networkError">Network error — changes not saved</span>
+            <template v-else-if="isDirty"> Saving... </template>
             <template v-else> Saved </template>
         </div>
 

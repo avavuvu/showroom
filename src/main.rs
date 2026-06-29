@@ -1,6 +1,8 @@
 use std::env;
+use aws_config::{BehaviorVersion, Region};
 use sea_orm::Database;
 mod auth;
+mod mailer;
 mod handlers;
 mod htmx;
 mod models;
@@ -11,10 +13,7 @@ mod services;
 mod state;
 mod views;
 
-#[tokio::main]
-async fn main() {
-    dotenvy::dotenv().ok();
-
+async fn main_in_dev() {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let db = Database::connect(&database_url)
         .await
@@ -24,12 +23,13 @@ async fn main() {
     let domain = env::var("DOMAIN").unwrap_or_else(|_| "localtest.me".to_string());
     let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
 
-    let is_produciton = match env::var("ENVIRONMENT") {
-        Ok(environment) => environment == "production",
-        Err(_) => false,
-    };
+    let aws_config = aws_config::defaults(BehaviorVersion::latest())
+        .region(Region::from_static("ap-southeast-2"))
+        .load()
+        .await;
+    let ses = aws_sdk_sesv2::Client::new(&aws_config);
 
-    let app = router::create_service(db, &domain, &port, jwt_secret, is_produciton);
+    let app = router::create_service(db, ses, &domain, &port, jwt_secret);
 
     let address = format!("localtest.me:{port}");
 
@@ -37,4 +37,19 @@ async fn main() {
     println!("listening on http://{address}");
 
     axum::serve(listener, app.into_make_service()).await.unwrap();
+}
+
+async fn main_in_prod() {
+    todo!("write production main")
+}
+
+#[tokio::main]
+async fn main() {
+    dotenvy::dotenv().ok();
+
+    #[cfg(debug_assertions)]
+    main_in_dev().await;
+
+     #[cfg(not(debug_assertions))]
+    main_in_prod().await;
 }

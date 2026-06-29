@@ -1,7 +1,5 @@
 use maud::{Markup, html};
-use crate::views::components::forms::{input::input, password_input::password_input};
-
-use super::layouts::base;
+use crate::views::{components::forms::{input::input, password_input::password_input}, layouts::base};
 
 pub fn login(error: Option<&str>) -> Markup {
     base(html! {

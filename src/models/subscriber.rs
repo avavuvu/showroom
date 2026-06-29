@@ -1,19 +1,15 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
-#[sea_orm(table_name = "newsletters")]
+#[sea_orm(table_name = "subscribers")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
-    pub id: String,
+    pub token: String,
     pub user_id: String,
-    pub title: String,
-    pub slug: String,
-    pub subtitle: Option<String>,
-    pub content: Json,
-    pub rendered: Option<String>,
-    pub sent_at: Option<DateTimeWithTimeZone>,
+    pub name: Option<String>,
+    pub email: String,
+    pub is_confirmed: bool,
     pub created_at: DateTimeWithTimeZone,
-    pub updated_at: DateTimeWithTimeZone,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

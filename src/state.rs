@@ -1,3 +1,4 @@
+use aws_sdk_sesv2::Client as SesClient;
 use sea_orm::DatabaseConnection;
 
 #[derive(Clone)]
@@ -8,7 +9,9 @@ pub struct Urls {
 }
 
 impl Urls {
-    pub fn new(domain: impl Into<String>, port: impl Into<String>, secure: bool) -> Self {
+    pub fn new(domain: impl Into<String>, port: impl Into<String>) -> Self {
+        let secure = !cfg!(debug_assertions);
+
         Self {
             domain: domain.into(),
             port: port.into(),
@@ -35,6 +38,10 @@ impl Urls {
     pub fn cookie(&self) -> String {
         format!(".{}", self.domain)
     }
+
+    pub fn from_email(&self, handle: &str) -> String {
+        format!("{}@{}", handle, self.domain)
+    }
 }
 
 #[derive(Clone)]
@@ -42,4 +49,5 @@ pub struct AppState {
     pub db: DatabaseConnection,
     pub urls: Urls,
     pub jwt_secret: String,
+    pub ses: SesClient,
 }

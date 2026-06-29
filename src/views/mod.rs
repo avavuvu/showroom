@@ -1,7 +1,7 @@
 pub mod components;
 pub mod auth;
 pub mod dashboard;
-
 pub mod home;
 pub mod layouts;
+pub mod subscriber;
 pub mod user;

@@ -1,6 +1,9 @@
 [workspace]
 members = ["migration"]
 
+[features]
+development = []
+
 [package]
 name = "showroom-rs"
 version = "0.1.0"
@@ -24,4 +27,9 @@ axum-extra = { version = "0.10", features = ["cookie"] }
 jsonwebtoken = "9"
 time = "0.3"
 dotenvy = "0.15"
+nanoid = "0.4"
+url = "2"
+aws-config = { version = "1", features = ["behavior-version-latest"] }
+aws-sdk-sesv2 = "1"
+anyhow = "1"
 slugify = "0.1.0"

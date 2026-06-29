@@ -84,7 +84,8 @@ async fn main() {
                 slug: Set(slugify(&title)),
                 subtitle: Set(None),
                 content: Set(tiptap_doc(paragraphs)),
-                sent: Set(false),
+                rendered: Set(None),
+                sent_at: Set(None),
                 created_at: Set(now),
                 updated_at: Set(now),
             })

@@ -1,18 +1,25 @@
 import { useDebounceFn } from "@vueuse/core";
 import { ref } from "vue";
 
-export const useSave = (putFunction: () => Promise<void>, ms = 2_000) => {
+export const useSave = (putFunction: () => Promise<boolean>, ms = 2_000) => {
     const isSaving = ref(false);
     const isDirty = ref(false);
+    const networkError = ref(false);
 
     const save = async () => {
-        isDirty.value = false;
         isSaving.value = true;
-        await putFunction();
+        const ok = await putFunction();
         isSaving.value = false;
+
+        if (ok) {
+            isDirty.value = false;
+            networkError.value = false;
+        } else {
+            networkError.value = true;
+        }
     };
 
     const debouncedSave = useDebounceFn(save, ms);
 
-    return { save, debouncedSave, isSaving, isDirty };
+    return { save, debouncedSave, isSaving, isDirty, networkError };
 };

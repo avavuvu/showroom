@@ -28,11 +28,6 @@ pub fn newsletter(newsletter: Newsletter) -> Markup {
             }
 
             div { (PreEscaped(html_string)) }
-            // @if let Some(rendered) = &newsletter.rendered_html {
-
-            // } @else {
-            //     p { "This newsletter hasn't been rendered yet." }
-            // }
         }
     })
 }
