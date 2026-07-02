@@ -1,0 +1,39 @@
+.subscribe-form {
+    text-align: center;
+
+    & h2 {
+        font-weight: bold;
+    }
+
+    & input {
+        border: 1px solid var(--color-border);
+        text-align: center;
+        padding: 0.5em;
+        width: 100%;
+    }
+
+    & form {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        gap: 0.5em;
+
+        & > * {
+            width: 16em;
+        }
+    }
+
+    & button {
+        border: 1px solid var(--color-border);
+        background-color: var(--color-primary);
+        display: block;
+        color: var(--color-surface);
+        padding: 0.25em 0.5em;
+        transition: background-color;
+        transition-duration: 250ms;
+    }
+
+    & button:hover {
+        background-color: var(--color-foreground);
+    }
+}

@@ -3,15 +3,16 @@ import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
 
 export default defineConfig({
-    publicDir: false,
+    publicDir: "resources/static",
     plugins: [tailwindcss(), vue()],
     build: {
         outDir: "public",
         emptyOutDir: false,
+        watch: {
+            exclude: ["public/**"],
+        },
         rollupOptions: {
             input: {
-                styles: "resources/css/app.css",
-                prose: "resources/css/prose.css",
                 app: "resources/js/app.ts",
                 islands: "resources/js/islands.ts",
             },

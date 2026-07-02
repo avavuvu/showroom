@@ -33,7 +33,7 @@ pub async fn subscribe(
     Form(form): Form<SubscribeForm>,
 ) -> Response {
     if let Err(report) = form.validate() {
-        return htmx::fragments::from_report(report).into_response();
+        return htmx::oob_only(htmx::fragments::from_report(report));
     }
 
     let user = match User::find()
@@ -42,7 +42,7 @@ pub async fn subscribe(
         .await
     {
         Ok(Some(u)) => u,
-        _ => return htmx::fragments::error("Something went wrong, please try again").into_response(),
+        _ => return views::subscriber::subscribe_error("Something went wrong, please try again").into_response(),
     };
 
     insert_or_resend(&state, &user.id, &form, &handle).await
@@ -105,7 +105,7 @@ async fn insert_or_resend(state: &AppState, user_id: &str, form: &SubscribeForm,
         Err(DbErr::Exec(_)) |
         Err(DbErr::Query(_)) => resend_if_unconfirmed(state, &form.email, user_id, handle).await,
 
-        Err(e) => htmx::fragments::error(&format!("Something went wrong, please try again: {e}")).into_response(),
+        Err(e) => views::subscriber::subscribe_error(&format!("Something went wrong, please try again: {e}")).into_response(),
     }
 }
 
@@ -129,8 +129,7 @@ async fn send_confirmation(state: &AppState, email: &str, name: Option<&str>, to
         .await;
 
     if let Err(e) = confirmation_response {
-        let message = format!("Failed to send confirmation email, please try again {e}");
-        return htmx::fragments::error(&message).into_response();
+        return views::subscriber::subscribe_error("Failed to send confirmation email, please try again").into_response();
     }
 
     views::subscriber::subscribe_success().into_response()

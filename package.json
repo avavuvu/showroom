@@ -3,8 +3,9 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "dev": "concurrently -n vite,cargo -c cyan,yellow \"vite build --watch\" \"cargo watch -w src -x 'run --bin showroom-rs'\"",
-        "build": "vite build"
+        "dev:js": "concurrently -n vite,dx -c cyan,yellow \"vite build --watch\" \"~/.cargo/bin/dx serve --hot-patch --features local --package showroom-rs\"",
+        "build": "vite build",
+        "dev": "~/.cargo/bin/dx serve --hot-patch --features local --package showroom-rs"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.3.1",

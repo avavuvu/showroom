@@ -23,7 +23,15 @@ pub fn create_service(db: DatabaseConnection, ses: aws_sdk_sesv2::Client, domain
     ]
     .map(|router| router.fallback_service(static_service.clone()));
 
+    let css_service = ServiceBuilder::new()
+        .layer(SetResponseHeaderLayer::overriding(
+            header::CACHE_CONTROL,
+            HeaderValue::from_static("no-store"),
+        ))
+        .service(ServeDir::new("resources/css"));
+
     axum::Router::new()
+        .nest_service("/css", css_service)
         .fallback_service(SubdomainRouter::new(lander_router, app_router, user_router))
         .layer(middleware::from_fn_with_state(state, base))
         .layer(LiveReloadLayer::new())

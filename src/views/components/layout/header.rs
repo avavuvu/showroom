@@ -1,39 +1,21 @@
 use maud::{Markup, html};
+use crate::views::{components::ui::*, context::PageContext};
 
-use crate::{state::Urls, views::components::ui::*};
-
-pub fn header(is_authenticated: bool, urls: &Urls) -> Markup {
+pub fn header(ctx: &PageContext) -> Markup {
     html! {
-        header class="justify-between flex" {
-            div class="px-2 flex items-center" {
-                a class="p-4" {
-                    img class="h-24" src="logoWordmark" alt="Showroom";
-                }
+        div.header-space {}
+        header.header-full {
+            a.logo-container href=(ctx.urls.base()) {
+                img.logo src="/icons/logo.png" alt="";
+                img.wordmark src="/icons/wordmark.svg" alt="Showroom";
             }
-            div class="flex justify-end items-end" {
-                @if is_authenticated {
-                    (button(
-                        html!{"Log out"},
-                        ButtonElement::Form,
-                        &format!("{}/logout", urls.base()))
-                    )
-                    (button(
-                        html!{"Dashboard"},
-                        ButtonElement::A,
-                        &urls.app())
-                    )
-                }
-                @else {
-                    (button(
-                        html!{"Get started"},
-                        ButtonElement::A,
-                        &format!("{}/signup", urls.base()))
-                    )
-                    (button(
-                        html!{"Login"},
-                        ButtonElement::A,
-                        &format!("{}/login", urls.base()))
-                    )
+            div.auth {
+                @if ctx.is_authenticated() {
+                    (button(html!{"Log out"}, ButtonElement::Form, &format!("{}/logout", ctx.urls.base())))
+                    (button(html!{"Dashboard"}, ButtonElement::A, &ctx.urls.app()))
+                } @else {
+                    (button(html!{"Get started"}, ButtonElement::A, &format!("{}/signup", ctx.urls.base())))
+                    (button(html!{"Login"}, ButtonElement::A, &format!("{}/login", ctx.urls.base())))
                 }
             }
         }

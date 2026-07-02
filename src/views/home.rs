@@ -1,14 +1,10 @@
 use maud::{Markup, html};
-use crate::{state::Urls, views::components::layout::header::header};
-
+use crate::views::{components::layout::header::header, context::PageContext};
 use super::layouts::base;
 
-pub fn index(is_authenticated: bool, urls: &Urls) -> Markup {
+pub fn index(ctx: &PageContext) -> Markup {
     base(html! {
-        (header(is_authenticated, urls))
-
-        div {
-
-        }
+        (header(ctx))
+        div {}
     })
 }

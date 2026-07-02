@@ -8,8 +8,8 @@ pub fn base(content: Markup) -> Markup {
                 meta charset="UTF-8";
                 meta name="viewport" content="width=device-width, initial-scale=1.0";
                 title { "Showroom" }
-                link rel="stylesheet" href="/assets/styles.css";
-                link rel="stylesheet" href="/assets/prose.css";
+                link rel="stylesheet" href="/css/app.css";
+                link rel="stylesheet" href="/css/prose.css";
             }
             body {
                 (content)

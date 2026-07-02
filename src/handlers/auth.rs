@@ -68,7 +68,7 @@ pub async fn login(
 
     let user = user.unwrap();
 
-    let claims = jwt::Claims::new(&user.email, &user.id);
+    let claims = jwt::Claims::new(&user.email, &user.id, &user.handle);
     let jwt_token = match jwt::generate(state.jwt_secret.as_bytes(), claims) {
         Ok(t) => t,
         Err(_) => return htmx::fragments::error("Something went wrong, please try again").into_response(),
@@ -137,7 +137,7 @@ pub async fn signup(
     };
     let user = new_user.insert(&state.db).await.unwrap();
 
-    let claims = jwt::Claims::new(&user.email, &user.id);
+    let claims = jwt::Claims::new(&user.email, &user.id, &user.handle);
     let jwt_token = match jwt::generate(state.jwt_secret.as_bytes(), claims) {
         Ok(t) => t,
         Err(_) => return htmx::fragments::error("Something went wrong, please try again").into_response(),

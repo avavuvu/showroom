@@ -12,11 +12,11 @@ use crate::{
     renderer::html::{ThemeVariables, render_email},
     mailer,
     state::AppState,
-    views,
+    views::{self, PageContext},
 };
 
 pub async fn index(State(state): State<AppState>, AuthenticatedUser(user): AuthenticatedUser) -> Markup {
-    views::dashboard::index(&user, &state.urls)
+    views::dashboard::index(&PageContext::from_user(&user, state.urls.clone()))
 }
 
 pub async fn get_newsletters(
@@ -85,9 +85,9 @@ pub async fn get_send(
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    let app_url = state.urls.app();
+    let page_ctx = PageContext::from_user(&user, state.urls.clone());
 
-    Ok(views::dashboard::preview(&app_url, &rendered_newsletter))
+    Ok(views::dashboard::preview(&page_ctx, &rendered_newsletter))
 }
 
 pub async fn post_send(
@@ -140,9 +140,9 @@ pub async fn get_edit(
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .ok_or(StatusCode::NOT_FOUND)?;
 
-    let app_url = state.urls.app();
+    let page_ctx = PageContext::from_user(&user, state.urls.clone());
 
-    Ok(views::dashboard::edit(&app_url, &newsletter))
+    Ok(views::dashboard::edit(&page_ctx, &newsletter))
 }
 
 pub async fn get_edit_json(

@@ -1,8 +1,9 @@
 [workspace]
-members = ["migration"]
+exclude = ["migration"]
 
 [features]
 development = []
+local = ["dep:dioxus-devtools"]
 
 [package]
 name = "showroom-rs"
@@ -33,3 +34,4 @@ aws-config = { version = "1", features = ["behavior-version-latest"] }
 aws-sdk-sesv2 = "1"
 
 slugify = "0.1.0"
+dioxus-devtools = { version = "0.7.3", optional = true, features = ["serve"] }

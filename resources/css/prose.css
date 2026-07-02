@@ -10,19 +10,9 @@
     font-family: var(--prose-font-body);
 }
 
-.prose p {
-    margin-bottom: 1rem;
-}
-
 .prose a {
     text-decoration: underline;
     color: var(--prose-color-link);
-}
-
-.prose ul,
-.prose ol {
-    padding-left: 1rem;
-    margin-bottom: 1rem;
 }
 
 .prose ul {
@@ -47,7 +37,6 @@
 .prose h6 {
     text-wrap: pretty;
     font-weight: bold;
-    margin-bottom: 0.5rem;
 }
 
 .prose h1 strong,

@@ -17,7 +17,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     let aws_config = aws_config::load_from_env().await;
     let client = aws_sdk_sesv2::Client::new(&aws_config);
-    let urls = Urls::new(domain, port);
+    let urls = Urls::new(domain, port, "");
 
     let newsletter = Newsletter {
         id: "test-05".to_string(),

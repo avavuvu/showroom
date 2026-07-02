@@ -1,15 +1,16 @@
 use maud::{Markup, html};
-use crate::models::{newsletter, user};
-use crate::state::Urls;
+use crate::models::newsletter;
 use crate::views::components::ui::*;
+use crate::views::context::PageContext;
 use super::layouts::base;
 
-pub fn index(user: &user::Model, urls: &Urls) -> Markup {
+pub fn index(ctx: &PageContext) -> Markup {
+    let user = ctx.user.as_ref().expect("dashboard requires authentication");
     base(html! {
         div {
             h1 { "Your dashboard" }
             p { "Welcome, " (user.handle) }
-            form method="POST" action={ (urls.base()) "/logout" } {
+            form method="POST" action={ (ctx.urls.base()) "/logout" } {
                 button type="submit" { "Sign out" }
             }
             div
@@ -22,15 +23,15 @@ pub fn index(user: &user::Model, urls: &Urls) -> Markup {
                 (button(
                     html! { "Create a new newsletter" },
                     ButtonElement::Form,
-                    &format!("{}/newsletters", urls.app())
+                    &format!("{}/newsletters", ctx.urls.app())
                 ))
             }
         }
     })
 }
 
-pub fn preview(app_url: &str, newsletter: &newsletter::Model) -> Markup {
-    let send_url = format!("{}/send/{}", app_url, newsletter.id);
+pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
+    let send_url = format!("{}/send/{}", ctx.urls.app(), newsletter.id);
 
     // it shouldnt be possible for this to not be rendered,
     // because it gets rendered in the handler
@@ -47,10 +48,9 @@ pub fn preview(app_url: &str, newsletter: &newsletter::Model) -> Markup {
     })
 }
 
-pub fn edit(app_url: &str, newsletter: &newsletter::Model) -> Markup {
+pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     let props = serde_json::json!({ "newsletterId": newsletter.id }).to_string();
-
-    let send_url = format!("{}/send/{}", app_url, newsletter.id);
+    let send_url = format!("{}/send/{}", ctx.urls.app(), newsletter.id);
 
     base(html! {
         div data-island="Editor" data-props=(props) {}
@@ -64,7 +64,6 @@ pub fn edit(app_url: &str, newsletter: &newsletter::Model) -> Markup {
         }
     })
 }
-
 
 pub fn newsletters(newsletters: Vec<newsletter::Model>, user_base: &str) -> Markup {
     html! {

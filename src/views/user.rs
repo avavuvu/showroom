@@ -1,57 +1,51 @@
 use maud::{Markup, PreEscaped, html};
-use crate::{models::newsletter::Model as Newsletter, renderer::html::render, state::Urls, views::components::{forms::input::input, ui::{ButtonElement, button}}};
+use crate::{models::newsletter::Model as Newsletter, renderer::html::render, views::{components::forms::subscribe::subscribe_form, context::PageContext, layouts::shell}};
 use super::layouts::base;
 
-pub fn profile(handle: &str, is_authenticated: bool, urls: &Urls) -> Markup {
-    let subscribe_to_url = &format!("{}/subscribe", urls.user(handle));
-
+pub fn profile(ctx: &PageContext) -> Markup {
+    let owner = ctx.page_owner.as_ref().expect("user profile requires page_owner");
     base(html! {
         div {
-            @if is_authenticated {
-                form method="POST" action="/logout" {
-                    button type="submit" { "Sign out" }
-                }
+            @if ctx.is_authenticated() {
+                form method="POST" action="/logout" { button type="submit" { "Sign out" } }
             } @else {
-                a href={ (urls.base()) "/login" } { "Sign in" }
+                a href={ (ctx.urls.base()) "/login" } { "Sign in" }
             }
-
-            h1 { (handle)"'s room" }
-
-            div {
-                div id="subscribe-error" {}
-                form
-                    method="POST"
-                    action=(subscribe_to_url)
-                    novalidate?[true]
-                    hx-post=(subscribe_to_url)
-                    hx-trigger="validated"
-                    hx-target="#subscribe-error"
-                    hx-swap="innerHTML"
-                    x-data="form()"
-                    x-on:submit="validate($event)" {
-
-                    (input("email", "email", "email", "email", "you@example.com", true))
-                    (input("name", "name", "text", "name", "name (optional)", true))
-                    button type="submit" { "Subscribe to @"(handle) }
-                }
-            }
-
-
+            h1 { (owner.handle)"'s room" }
+            (subscribe_form(&ctx.urls.user(&owner.handle), &owner.handle))
         }
     })
 }
 
-pub fn newsletter(newsletter: Newsletter) -> Markup {
+pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
+    let owner = ctx.page_owner.as_ref().expect("newsletter view requires page_owner");
     let html_string = render(&newsletter.content);
+    let date = newsletter.created_at.format("%B %-d, %Y").to_string();
+    let user_url = ctx.urls.user(&owner.handle);
 
-    base(html! {
-        article.prose {
-            h1 { (newsletter.title) }
-            @if let Some(subtitle) = &newsletter.subtitle {
-                p { (subtitle) }
+    shell(ctx, html! {
+        main.article-layout .newsletter {
+            article.prose .flow {
+                div.info {
+                    p.date { (date) }
+                    h1 { (newsletter.title) }
+                    @if let Some(subtitle) = &newsletter.subtitle {
+                        p.subtitle { (subtitle) }
+                    }
+                    p.handle {
+                        a href=(user_url) { "@"(owner.handle) }
+                    }
+                }
+                (PreEscaped(html_string))
             }
-
-            div { (PreEscaped(html_string)) }
+            div.subscribe {
+                p {
+                    "To recieve updates whenever "
+                    a href=(user_url) { (owner.handle) }
+                    " posts, consider subscribing."
+                }
+                (subscribe_form(&user_url, &owner.handle))
+            }
         }
     })
 }

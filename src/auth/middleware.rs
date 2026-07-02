@@ -23,7 +23,10 @@ pub async fn base(
 
     if let Some(jwt_cookie) = jar.get("jwt") {
         match jwt::validate(state.jwt_secret.as_bytes(), jwt_cookie.value()) {
-            Ok(claims) => context.user_id = Some(claims.user_id),
+            Ok(claims) => {
+                context.user_id = Some(claims.user_id);
+                context.handle = Some(claims.handle);
+            }
             Err(_) => {
                 jar = jar
                     .remove(cookies::remove("jwt", &state.urls.cookie()))
@@ -41,9 +44,10 @@ pub async fn base(
 
         if let Some(record) = record {
             if let Ok(Some(user)) = User::find_by_id(&record.user_id).one(&state.db).await {
-                let claims = jwt::Claims::new(&user.email, &user.id);
+                let claims = jwt::Claims::new(&user.email, &user.id, &user.handle);
                 if let Ok(token) = jwt::generate(state.jwt_secret.as_bytes(), claims) {
                     context.user_id = Some(user.id);
+                    context.handle = Some(user.handle);
                     jar = jar.add(cookies::make("jwt", token, 1, &state.urls.cookie()));
                 }
             }
