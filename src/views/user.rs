@@ -1,18 +1,42 @@
 use maud::{Markup, PreEscaped, html};
-use crate::{models::newsletter::Model as Newsletter, renderer::html::render};
+use crate::{models::newsletter::Model as Newsletter, renderer::html::render, state::Urls, views::components::{forms::input::input, ui::{ButtonElement, button}}};
 use super::layouts::base;
 
-pub fn profile(username: &str, is_authenticated: bool, base_url: &str) -> Markup {
+pub fn profile(handle: &str, is_authenticated: bool, urls: &Urls) -> Markup {
+    let subscribe_to_url = &format!("{}/subscribe", urls.user(handle));
+
     base(html! {
         div {
-            h1 { (username) }
             @if is_authenticated {
                 form method="POST" action="/logout" {
                     button type="submit" { "Sign out" }
                 }
             } @else {
-                a href={ (base_url) "/login" } { "Sign in" }
+                a href={ (urls.base()) "/login" } { "Sign in" }
             }
+
+            h1 { (handle)"'s room" }
+
+            div {
+                div id="subscribe-error" {}
+                form
+                    method="POST"
+                    action=(subscribe_to_url)
+                    novalidate?[true]
+                    hx-post=(subscribe_to_url)
+                    hx-trigger="validated"
+                    hx-target="#subscribe-error"
+                    hx-swap="innerHTML"
+                    x-data="form()"
+                    x-on:submit="validate($event)" {
+
+                    (input("email", "email", "email", "email", "you@example.com", true))
+                    (input("name", "name", "text", "name", "name (optional)", true))
+                    button type="submit" { "Subscribe to @"(handle) }
+                }
+            }
+
+
         }
     })
 }

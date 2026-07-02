@@ -2,21 +2,21 @@ use maud::{Markup, html};
 use super::layouts::base;
 
 pub fn subscribe_success() -> Markup {
-    base(html! {
-        div {
-            h1 { "Check your email" }
+    html! {
+        div id="subscribe-form" {
+            h2 { "Please check your email" }
             p { "We've sent you a confirmation link. Click it to complete your subscription." }
         }
-    })
+    }
 }
 
 pub fn subscribe_exists() -> Markup {
-    base(html! {
-        div {
-            h1 { "Already subscribed" }
-            p { "This email is already subscribed. Check your inbox for the confirmation email if you haven't confirmed yet." }
+    html! {
+        div id="subscribe-form" {
+            h2 { "Already subscribed" }
+            p { "This email is already subscribed to this newsletter." }
         }
-    })
+    }
 }
 
 pub fn confirmed(handle: &str) -> Markup {

@@ -6,8 +6,8 @@ use tower_http::{services::ServeDir, set_header::SetResponseHeaderLayer};
 use tower_livereload::LiveReloadLayer;
 use crate::{auth::middleware::base, routers::*, state::{AppState, Urls}, services::subdomain::SubdomainRouter};
 
-pub fn create_service(db: DatabaseConnection, ses: aws_sdk_sesv2::Client, domain: &str, port: &str, jwt_secret: String) -> axum::Router {
-    let state = AppState { db, ses, urls: Urls::new(domain, port), jwt_secret };
+pub fn create_service(db: DatabaseConnection, ses: aws_sdk_sesv2::Client, domain: &str, port: &str, email_domain: &str, jwt_secret: String) -> axum::Router {
+    let state = AppState { db, ses, urls: Urls::new(domain, port, email_domain), jwt_secret };
 
     let static_service = ServiceBuilder::new()
         .layer(SetResponseHeaderLayer::overriding(

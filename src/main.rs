@@ -21,6 +21,7 @@ async fn main_in_dev() {
 
     let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string());
     let domain = env::var("DOMAIN").unwrap_or_else(|_| "localtest.me".to_string());
+    let email_domain = env::var("EMAIL_DOMAIN").unwrap_or_else(|_| "showroom.you".to_string());
     let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
 
     let aws_config = aws_config::defaults(BehaviorVersion::latest())
@@ -29,7 +30,7 @@ async fn main_in_dev() {
         .await;
     let ses = aws_sdk_sesv2::Client::new(&aws_config);
 
-    let app = router::create_service(db, ses, &domain, &port, jwt_secret);
+    let app = router::create_service(db, ses, &domain, &port, &email_domain, jwt_secret);
 
     let address = format!("localtest.me:{port}");
 

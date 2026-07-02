@@ -3,7 +3,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "dev": "concurrently -n vite,cargo -c cyan,yellow \"vite build --watch\" \"cargo watch -w src -x run\"",
+        "dev": "concurrently -n vite,cargo -c cyan,yellow \"vite build --watch\" \"cargo watch -w src -x 'run --bin showroom-rs'\"",
         "build": "vite build"
     },
     "devDependencies": {

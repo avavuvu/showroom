@@ -7,6 +7,6 @@ pub fn create_router(state: AppState) -> Router {
         .route("/{slug}", get(handlers::user::newsletter))
         .route("/subscribe", post(handlers::subscriber::subscribe))
         .route("/confirm", get(handlers::subscriber::confirm))
-        .route("/unsubscribe", get(handlers::subscriber::unsubscribe))
+        .route("/unsubscribe", get(handlers::subscriber::unsubscribe).post(handlers::subscriber::unsubscribe))
         .with_state(state)
 }

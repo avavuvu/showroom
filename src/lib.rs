@@ -4,3 +4,5 @@ pub mod htmx;
 pub mod models;
 pub mod services;
 pub mod state;
+pub mod mailer;
+pub mod views;

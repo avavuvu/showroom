@@ -14,19 +14,19 @@ use crate::{
 
 pub async fn profile(
     State(state): State<AppState>,
-    UsernameSubdomain(username): UsernameSubdomain,
+    UsernameSubdomain(handle): UsernameSubdomain,
     Extension(ctx): Extension<UserContext>,
 ) -> Markup {
-    views::user::profile(&username, ctx.is_authenticated(), &state.urls.base())
+    views::user::profile(&handle, ctx.is_authenticated(), &state.urls)
 }
 
 pub async fn newsletter(
     State(state): State<AppState>,
-    UsernameSubdomain(username): UsernameSubdomain,
+    UsernameSubdomain(handle): UsernameSubdomain,
     Path(slug): Path<String>,
 ) -> Result<Markup, StatusCode> {
     let user = User::find()
-        .filter(user::Column::Handle.eq(&username))
+        .filter(user::Column::Handle.eq(&handle))
         .one(&state.db)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?

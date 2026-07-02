@@ -4,17 +4,20 @@ use sea_orm::DatabaseConnection;
 #[derive(Clone)]
 pub struct Urls {
     domain: String,
+    email_domain: String,
     port: String,
     secure: bool,
+
 }
 
 impl Urls {
-    pub fn new(domain: impl Into<String>, port: impl Into<String>) -> Self {
+    pub fn new(domain: impl Into<String>, port: impl Into<String>, email_domain: impl Into<String>) -> Self {
         let secure = !cfg!(debug_assertions);
 
         Self {
             domain: domain.into(),
             port: port.into(),
+            email_domain: email_domain.into(),
             secure,
         }
     }
@@ -39,8 +42,8 @@ impl Urls {
         format!(".{}", self.domain)
     }
 
-    pub fn from_email(&self, handle: &str) -> String {
-        format!("{}@{}", handle, self.domain)
+    pub fn email(&self, handle: &str) -> String {
+        format!("{}@{}", handle, self.email_domain)
     }
 }
 

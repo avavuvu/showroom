@@ -54,7 +54,7 @@ impl Renderer {
         if style.is_empty() {
             String::new()
         } else {
-            format!(" style=\"{style}\"")
+            format!(" style=\"{}\"", style.replace('"', "&quot;"))
         }
     }
 

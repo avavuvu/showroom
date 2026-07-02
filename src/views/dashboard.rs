@@ -1,14 +1,15 @@
 use maud::{Markup, html};
 use crate::models::{newsletter, user};
+use crate::state::Urls;
 use crate::views::components::ui::*;
 use super::layouts::base;
 
-pub fn index(user: &user::Model, base_url: &str) -> Markup {
+pub fn index(user: &user::Model, urls: &Urls) -> Markup {
     base(html! {
         div {
             h1 { "Your dashboard" }
             p { "Welcome, " (user.handle) }
-            form method="POST" action={ (base_url) "/logout" } {
+            form method="POST" action={ (urls.base()) "/logout" } {
                 button type="submit" { "Sign out" }
             }
             div
@@ -21,7 +22,7 @@ pub fn index(user: &user::Model, base_url: &str) -> Markup {
                 (button(
                     html! { "Create a new newsletter" },
                     ButtonElement::Form,
-                    &format!("{}/newsletter", base_url)
+                    &format!("{}/newsletters", urls.app())
                 ))
             }
         }
@@ -29,7 +30,6 @@ pub fn index(user: &user::Model, base_url: &str) -> Markup {
 }
 
 pub fn preview(app_url: &str, newsletter: &newsletter::Model) -> Markup {
-
     let send_url = format!("{}/send/{}", app_url, newsletter.id);
 
     // it shouldnt be possible for this to not be rendered,

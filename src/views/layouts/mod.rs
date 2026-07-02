@@ -2,4 +2,4 @@ mod base;
 mod email;
 
 pub use base::base;
-pub use email::{email_layout, confirmation_html, confirmation_text};
+pub use email::{base_email_layout, confirmation_html, newsletter_template, NewsletterTemplateData, confirmation_text, generate_subscriber_data};

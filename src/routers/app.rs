@@ -4,7 +4,7 @@ use crate::{auth::middleware::required_auth, handlers::dashboard::*, state::AppS
 pub fn create_router(state: AppState) -> Router {
     Router::new()
         .route("/", get(index))
-        .route("/newsletters", get(get_newsletters))
+        .route("/newsletters", get(get_newsletters).post(post_newsletters))
         .route("/edit/{id}", get(get_edit))
         .route("/send/{id}", get(get_send).post(post_send))
         .route("/json/{id}", get(get_edit_json).put(put_edit_json))

@@ -1,28 +1,24 @@
 use axum::{
-    Form,
-    extract::{Query, State},
-    http::StatusCode,
-    response::Redirect,
+    Form, extract::{Query, State}, http::StatusCode, response::{Redirect, Response, IntoResponse},
 };
+use garde::Validate;
 use maud::Markup;
 use nanoid::nanoid;
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, DbErr, EntityTrait, QueryFilter};
 use serde::Deserialize;
 
 use crate::{
-    mailer,
-    models::{
+    htmx, mailer, models::{
         subscriber::{self, Entity as Subscriber},
         user::{self, Entity as User},
-    },
-    services::subdomain::UsernameSubdomain,
-    state::AppState,
-    views,
+    }, services::subdomain::UsernameSubdomain, state::AppState, views,
 };
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Validate)]
 pub struct SubscribeForm {
+    #[garde(email)]
     pub email: String,
+    #[garde(skip)]
     pub name: Option<String>,
 }
 
@@ -35,47 +31,21 @@ pub async fn subscribe(
     State(state): State<AppState>,
     UsernameSubdomain(handle): UsernameSubdomain,
     Form(form): Form<SubscribeForm>,
-) -> Result<Markup, StatusCode> {
-    let user = User::find()
+) -> Response {
+    if let Err(report) = form.validate() {
+        return htmx::fragments::from_report(report).into_response();
+    }
+
+    let user = match User::find()
         .filter(user::Column::Handle.eq(&handle))
         .one(&state.db)
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::NOT_FOUND)?;
+    {
+        Ok(Some(u)) => u,
+        _ => return htmx::fragments::error("Something went wrong, please try again").into_response(),
+    };
 
-    let token = nanoid!(21);
-
-    let result_of_insert = subscriber::ActiveModel {
-        token: Set(token.clone()),
-        user_id: Set(user.id),
-        name: Set(form.name.clone()),
-        email: Set(form.email.clone()),
-        is_confirmed: Set(false),
-        created_at: Set(chrono::Utc::now().fixed_offset()),
-    }
-    .insert(&state.db)
-    .await;
-
-    match result_of_insert {
-        Err(DbErr::RecordNotInserted) | Err(DbErr::Exec(_)) => {
-            return Ok(views::subscriber::subscribe_exists());
-        }
-        Err(_) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
-        Ok(_) => {}
-    }
-
-    mailer::send_confirmation(
-        &state.ses,
-        &form.email,
-        form.name.as_deref(),
-        &token,
-        &handle,
-        &state.urls,
-    )
-    .await
-    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    Ok(views::subscriber::subscribe_success())
+    insert_or_resend(&state, &user.id, &form, &handle).await
 }
 
 pub async fn confirm(
@@ -112,4 +82,56 @@ pub async fn unsubscribe(
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     Ok(views::subscriber::unsubscribed(&handle))
+}
+
+async fn insert_or_resend(state: &AppState, user_id: &str, form: &SubscribeForm, handle: &str) -> Response {
+    let token = nanoid!(21);
+
+    let subscriber_response = (subscriber::ActiveModel {
+        token: Set(token.clone()),
+        user_id: Set(user_id.to_string()),
+        name: Set(form.name.clone()),
+        email: Set(form.email.clone()),
+        is_confirmed: Set(false),
+        created_at: Set(chrono::Utc::now().fixed_offset())
+    })
+        .insert(&state.db)
+        .await;
+
+    match subscriber_response {
+        Ok(_) => send_confirmation(state, &form.email, form.name.as_deref(), &token, handle).await,
+
+        Err(DbErr::RecordNotInserted) |
+        Err(DbErr::Exec(_)) |
+        Err(DbErr::Query(_)) => resend_if_unconfirmed(state, &form.email, user_id, handle).await,
+
+        Err(e) => htmx::fragments::error(&format!("Something went wrong, please try again: {e}")).into_response(),
+    }
+}
+
+async fn resend_if_unconfirmed(state: &AppState, email: &str, user_id: &str, handle: &str) -> Response {
+    let existing = Subscriber::find()
+        .filter(subscriber::Column::Email.eq(email))
+        .filter(subscriber::Column::UserId.eq(user_id))
+        .one(&state.db)
+        .await;
+
+    match existing {
+        Ok(Some(sub)) if !sub.is_confirmed => {
+            send_confirmation(state, &sub.email, sub.name.as_deref(), &sub.token, handle).await
+        }
+        _ => views::subscriber::subscribe_exists().into_response(),
+    }
+}
+
+async fn send_confirmation(state: &AppState, email: &str, name: Option<&str>, token: &str, handle: &str) -> Response {
+    let confirmation_response = mailer::send_confirmation(&state.ses, email, name, token, handle, &state.urls)
+        .await;
+
+    if let Err(e) = confirmation_response {
+        let message = format!("Failed to send confirmation email, please try again {e}");
+        return htmx::fragments::error(&message).into_response();
+    }
+
+    views::subscriber::subscribe_success().into_response()
 }
