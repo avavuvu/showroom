@@ -12,8 +12,21 @@ button {
     padding: 0.25em 0.5em;
     transition: background-color;
     transition-duration: 250ms;
+
+    &:hover {
+        background-color: var(--color-foreground);
+    }
 }
 
-.button-primary:hover {
-    background-color: var(--color-foreground);
+.button-secondary {
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    display: block;
+    padding: 0.25em 0.5em;
+    transition: background-color;
+    transition-duration: 250ms;
+
+    &:hover {
+        background-color: var(--color-muted);
+    }
 }

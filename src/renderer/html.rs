@@ -5,9 +5,10 @@ pub struct ThemeVariables {
     pub font_body: String,
     pub font_title: String,
     pub color_text: String,
+    pub color_border: String,
     pub color_primary: String,
     pub color_surface: String,
-    pub color_surface_subtle: String,
+    pub color_surface_muted: String,
     pub color_muted: String,
 }
 
@@ -17,10 +18,11 @@ impl Default for ThemeVariables {
             font_body:                 r#""Times", "Times New Roman", serif"#.into(),
             font_title:                r#""Playfair Display", "Georgia", serif"#.into(),
             color_text:                "#000000".into(),
+            color_border:              "#000000".into(),
             color_primary:             "#92ca3a".into(),
             color_surface:             "#ffffff".into(),
-            color_surface_subtle:      "#cccccc".into(),
-            color_muted:               "#444444".into(),
+            color_surface_muted:       "#eee".into(),
+            color_muted:               "#aaa".into(),
         }
     }
 }
@@ -108,9 +110,10 @@ impl Renderer {
         let Some(v) = self.v() else { return String::new() };
         self.s(format!(
             "font-family: monospace, monospace; font-size: 14px; \
-             background-color: {}; padding: 16px; margin: 0 0 16px 0; \
+             background-color: {}; border: 1px solid {}; padding: 16px; margin: 0 0 16px 0; \
              display: block; white-space: pre-wrap; word-wrap: break-word;",
-            v.color_surface_subtle
+            v.color_surface_muted,
+            v.color_border,
         ))
     }
 
@@ -118,7 +121,7 @@ impl Renderer {
         let Some(v) = self.v() else { return String::new() };
         self.s(format!(
             "border: 0; border-top: 1px solid {}; margin: 32px 0;",
-            v.color_surface_subtle
+            v.color_surface_muted
         ))
     }
 
@@ -142,7 +145,7 @@ impl Renderer {
         self.s(format!(
             "font-family: monospace, monospace; font-size: 14px; \
              background-color: {}; padding: 2px 4px;",
-            v.color_surface_subtle
+            v.color_surface_muted
         ))
     }
 

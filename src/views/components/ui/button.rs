@@ -5,20 +5,22 @@ pub enum ButtonElement {
     Button, A, Form
 }
 
-pub fn button(content: Markup, element: ButtonElement, on_click: &str) -> Markup {
+pub fn button(content: Markup, element: ButtonElement, on_click: &str, class: Option<&str>) -> Markup {
+    let class = class.map(|c| format!("button {c}")).unwrap_or("button".to_string());
+
     match element {
         ButtonElement::Button => html!{
-            button.btn onclick={(on_click)} {
+            button onclick={(on_click)} class=(class) {
                 (content)
             }
         },
         ButtonElement::A => html!{
-            a.btn href={(on_click)} {
+            a href={(on_click)} class=(class) {
                 (content)
             }
         },
         ButtonElement::Form => html! {
-            form.btn method="POST" action={(on_click)} {
+            form method="POST" action={(on_click)} class=(class) {
                 button type="submit" { (content) }
             }
         }

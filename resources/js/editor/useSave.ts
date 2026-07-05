@@ -1,25 +1,25 @@
 import { useDebounceFn } from "@vueuse/core";
 import { ref } from "vue";
 
+const dispatch = (detail: string) =>
+    window.dispatchEvent(new CustomEvent("save-status", { detail }));
+
 export const useSave = (putFunction: () => Promise<boolean>, ms = 2_000) => {
-    const isSaving = ref(false);
     const isDirty = ref(false);
-    const networkError = ref(false);
+
+    const markDirty = () => {
+        isDirty.value = true;
+        dispatch("Saving…");
+    };
 
     const save = async () => {
-        isSaving.value = true;
+        dispatch("Saving…");
         const ok = await putFunction();
-        isSaving.value = false;
-
-        if (ok) {
-            isDirty.value = false;
-            networkError.value = false;
-        } else {
-            networkError.value = true;
-        }
+        isDirty.value = false;
+        dispatch(ok ? "Saved" : "Error saving");
     };
 
     const debouncedSave = useDebounceFn(save, ms);
 
-    return { save, debouncedSave, isSaving, isDirty, networkError };
+    return { save, debouncedSave, isDirty, markDirty };
 };

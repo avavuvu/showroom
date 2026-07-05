@@ -11,11 +11,11 @@ pub fn header(ctx: &PageContext) -> Markup {
             }
             div.auth {
                 @if ctx.is_authenticated() {
-                    (button(html!{"Log out"}, ButtonElement::Form, &format!("{}/logout", ctx.urls.base())))
-                    (button(html!{"Dashboard"}, ButtonElement::A, &ctx.urls.app()))
+                    (button(html!{"Log out"}, ButtonElement::Form, &format!("{}/logout", ctx.urls.base()), None))
+                    (button(html!{"Dashboard"}, ButtonElement::A, &ctx.urls.app(), None))
                 } @else {
-                    (button(html!{"Get started"}, ButtonElement::A, &format!("{}/signup", ctx.urls.base())))
-                    (button(html!{"Login"}, ButtonElement::A, &format!("{}/login", ctx.urls.base())))
+                    (button(html!{"Get started"}, ButtonElement::A, &format!("{}/signup", ctx.urls.base()), None))
+                    (button(html!{"Login"}, ButtonElement::A, &format!("{}/login", ctx.urls.base()), None))
                 }
             }
         }

@@ -17,7 +17,7 @@ export function initAsciiBackground(container: HTMLElement): () => void {
     const charWidth = FONT_SIZE * CHAR_WIDTH_RATIO;
 
     const video = document.createElement("video");
-    video.src = "/flower-loop.webm";
+    video.src = "/assets/flower-loop.webm";
     video.loop = true;
     video.muted = true;
     video.playsInline = true;

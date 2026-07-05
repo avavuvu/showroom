@@ -8,6 +8,15 @@ if (asciiContainer) {
     });
 }
 
+Alpine.data("saveStatus", () => ({
+    status: "Saved",
+    init() {
+        window.addEventListener("save-status", (e) => {
+            this.status = (e as CustomEvent).detail;
+        });
+    },
+}));
+
 Alpine.data("form", () => ({
     validate(event: Event) {
         event.preventDefault();

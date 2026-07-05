@@ -1,20 +1,24 @@
 use maud::{Markup, PreEscaped, html};
-use crate::{models::newsletter::Model as Newsletter, renderer::html::render, views::{components::forms::subscribe::subscribe_form, context::PageContext, layouts::shell}};
-use super::layouts::base;
+use crate::{models::newsletter::{self, Model as Newsletter}, renderer::html::render, views::{components::forms::subscribe::subscribe_form, context::PageContext, layouts::shell}};
 
 pub fn profile(ctx: &PageContext) -> Markup {
     let owner = ctx.page_owner.as_ref().expect("user profile requires page_owner");
-    base(html! {
-        div {
-            @if ctx.is_authenticated() {
-                form method="POST" action="/logout" { button type="submit" { "Sign out" } }
-            } @else {
-                a href={ (ctx.urls.base()) "/login" } { "Sign in" }
+    shell(ctx,
+        html! {
+            div.user-view .article-layout .flow {
+                h1 { (owner.handle)"'s room" }
+
+                div
+                    hx-get="/newsletters"
+                    hx-trigger="load"
+                    hx-swap="outerHTML" {
+                    "Loading..."
+                }
+
             }
-            h1 { (owner.handle)"'s room" }
             (subscribe_form(&ctx.urls.user(&owner.handle), &owner.handle))
         }
-    })
+    )
 }
 
 pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
@@ -48,4 +52,16 @@ pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
             }
         }
     })
+}
+
+pub fn newsletters(newsletters: Vec<newsletter::Model>, user_base: &str) -> Markup {
+    html! {
+        ul {
+            @for newsletter in &newsletters {
+                li {
+                    a href=(format!("{}/{}", user_base, newsletter.slug)) { (newsletter.title) }
+                }
+            }
+        }
+    }
 }

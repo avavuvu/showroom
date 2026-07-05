@@ -5,6 +5,7 @@ use crate::{views::pages::about::about};
 
 pub fn create_router(state: AppState) -> Router {
     Router::new()
+        .fallback(handlers::error404::lander_404)
         .route("/", get(handlers::home::index))
         .route("/about", get(handlers::passthrough(about)))
         .route("/login", get(handlers::passthrough(login)).post(handlers::auth::login))

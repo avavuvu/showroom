@@ -5,7 +5,10 @@
 @import "components/footer.css";
 @import "components/auth.css";
 @import "components/button.css";
-@import "pages/lander.css";
+@import "views/lander.css";
+@import "views/edit.css";
+@import "views/preview.css";
+@import "views/user.css";
 
 :root {
     --font-body: "Times", "Times New Roman", serif;
@@ -13,7 +16,8 @@
     --color-primary: #92ca3a;
     --color-surface: #ffffff;
     --color-error: #af1d27;
-    --color-muted: #888;
+    --color-muted: #aaa;
+    --color-surface-muted: #eee;
     --color-foreground: black;
 
     --color-placeholder: var(--color-muted);
@@ -42,10 +46,10 @@ body {
 .article-layout {
     display: grid;
     grid-template-columns: 1fr min(70ch, 100%) 1fr;
-    grid-template-rows: 1fr;
 
     padding-top: 4em;
     min-height: 80vh;
+    align-content: start;
 
     & > * {
         grid-column-start: 2;

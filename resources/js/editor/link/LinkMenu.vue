@@ -1,68 +1,59 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { CheckIcon, Trash, Link, ExternalLink } from 'lucide-vue-next';
-import { getMarkRange, type Editor } from '@tiptap/vue-3';
+import { ref, onMounted, onUnmounted } from "vue";
+import { CheckIcon, Trash, ExternalLink } from "lucide-vue-next";
+import { getMarkRange, type Editor } from "@tiptap/vue-3";
 
 const props = defineProps<{ editor: Editor }>();
 
-const showLinkMenu = ref(false);
-const linkUrl = ref('');
-const linkDisplay = ref('');
-const linkMenuPosition = ref({
-    top: '0px',
-    left: '0px',
-    transform: 'translateX(-50%)'
-});
+const menu = ref<HTMLElement | null>(null);
+const open = ref(false);
+const linkUrl = ref("");
+const linkDisplay = ref("");
+const linkMenuPosition = ref({ top: "0px", left: "0px" });
+
+const MENU_WIDTH = 240;
+const MARGIN = 8;
 
 const setLink = () => {
     const { view, state } = props.editor;
-    const { from, to, $from, } = state.selection;
+    const { from, to, $from } = state.selection;
     let start = view.coordsAtPos(from);
     let end = view.coordsAtPos(to);
-    linkDisplay.value = state.doc.textBetween(from, to, '')
+    linkDisplay.value = state.doc.textBetween(from, to, "");
 
-    const range = getMarkRange($from, state.schema.marks.link)
+    const range = getMarkRange($from, state.schema.marks.link);
     if (range) {
-        linkDisplay.value = state.doc.textBetween(range.from, range.to, '')
+        linkDisplay.value = state.doc.textBetween(range.from, range.to, "");
         start = view.coordsAtPos(range.from);
         end = view.coordsAtPos(range.to);
     }
 
-    // Position the menu below the selection
+    const rawLeft = (start.left + end.left) / 2;
+    const clampedLeft = Math.max(
+        MENU_WIDTH / 2 + MARGIN,
+        Math.min(window.innerWidth - MENU_WIDTH / 2 - MARGIN, rawLeft),
+    );
+
     linkMenuPosition.value = {
         top: `${end.bottom + 10}px`,
-        left: `${(start.left + end.left) / 2}px`,
-        transform: 'translateX(-50%)'
+        left: `${clampedLeft}px`,
     };
 
-    showLinkMenu.value = true;
-
-    const previousUrl = props.editor.getAttributes('link').href;
-    linkUrl.value = previousUrl || '';
-
+    linkUrl.value = props.editor.getAttributes("link").href || "";
+    open.value = true;
 };
 
 const saveLink = () => {
-    console.log(linkUrl.value)
-
-    if (linkUrl.value === '') {
+    if (!linkUrl.value) {
         removeLink();
         return;
     }
 
-    const normalizedUrl = normalizeUrl(linkUrl.value)
-
+    const normalizedUrl = normalizeUrl(linkUrl.value);
     const { state } = props.editor;
-    const { $from } = state.selection
-
-    // this is assuming there is already a link for us to select its mark
-    const range = getMarkRange($from, state.schema.marks.link)
-
-    // if there is no range, use the regular selection
-    let { from, to } = range ? {
-        from: range.from,
-        to: range.to,
-    } : state.selection
+    const { $from } = state.selection;
+    const range = getMarkRange($from, state.schema.marks.link);
+    const { from, to } = range ?? state.selection;
 
     props.editor
         .chain()
@@ -83,76 +74,170 @@ const saveLink = () => {
 };
 
 const removeLink = () => {
-    props.editor
-        .chain()
-        .focus()
-        .extendMarkRange('link')
-        .unsetLink()
-        .run();
-
+    props.editor.chain().focus().extendMarkRange("link").unsetLink().run();
     closeLinkMenu();
 };
 
 const closeLinkMenu = () => {
-    showLinkMenu.value = false;
-    linkUrl.value = '';
+    open.value = false;
+    linkUrl.value = "";
 };
 
 const normalizeUrl = (url: string) => {
-    if (!url || !url.trim()) return '';
-
-    let normalizedUrl = url.trim();
-
-    if (!/^https?:\/\//i.test(normalizedUrl)) {
-        normalizedUrl = 'https://' + normalizedUrl;
-    }
-
+    if (!url?.trim()) return "";
+    let normalized = url.trim();
+    if (!/^https?:\/\//i.test(normalized)) normalized = "https://" + normalized;
     try {
-        const urlObject = new URL(normalizedUrl);
-        return urlObject.href;
-    } catch (e) {
-        console.warn('Invalid URL:', url);
+        return new URL(normalized).href;
+    } catch {
         return url;
     }
 };
 
-defineExpose({
-    setLink
+defineExpose({ setLink });
+
+const onClickOutside = (e: MouseEvent) => {
+    if (menu.value && !menu.value.contains(e.target as Node)) closeLinkMenu();
+};
+const onKeydown = (e: KeyboardEvent) => {
+    if (e.key === "Escape") closeLinkMenu();
+};
+
+onMounted(() => {
+    document.addEventListener("mousedown", onClickOutside);
+    document.addEventListener("keydown", onKeydown);
+});
+onUnmounted(() => {
+    document.removeEventListener("mousedown", onClickOutside);
+    document.removeEventListener("keydown", onKeydown);
 });
 
 props.editor.on("selectionUpdate", ({ transaction }) => {
-    const linkMark = transaction.doc.nodeAt(transaction.selection.from)?.marks.find(mark => mark.type.name === 'link');
-
-    if (linkMark) {
-        setLink()
-    } else if (showLinkMenu.value) {
-        closeLinkMenu()
-    }
-})
-
+    const linkMark = transaction.doc
+        .nodeAt(transaction.selection.from)
+        ?.marks.find((m) => m.type.name === "link");
+    if (linkMark) setLink();
+    else if (open.value) closeLinkMenu();
+});
 </script>
 
 <template>
-    <div v-if="showLinkMenu" ref="link-menu" class="
-        fixed z-100 p-2 items-center bg-surface border shadow
-        grid grid-rows-3 gap-1" :style="linkMenuPosition">
-        <input ref="text-display-input" class="outline-none border px-2 border-dashed" v-model="linkDisplay" type="text"
-            placeholder="Display as..." @keydown.enter="saveLink" @keydown.escape="closeLinkMenu" />
-        <div class="inline-flex justify-between border items-center px-2">
-            <input ref="link-input" class="outline-none underline" v-model="linkUrl" type="text"
-                placeholder="Enter URL..." @keydown.enter="saveLink" @keydown.escape="closeLinkMenu" />
-            <a :href="linkUrl" target="_blank">
-                <ExternalLink class="w-4" />
+    <div
+        v-if="open"
+        ref="menu"
+        class="link-menu"
+        :style="{ ...linkMenuPosition, transform: 'translateX(-50%)' }"
+    >
+        <input
+            class="link-input"
+            v-model="linkDisplay"
+            type="text"
+            placeholder="Display as..."
+            @keydown.enter="saveLink"
+            @keydown.escape="closeLinkMenu"
+        />
+        <div class="link-url-row">
+            <input
+                class="link-input link-input--url"
+                v-model="linkUrl"
+                type="text"
+                placeholder="Enter URL..."
+                @keydown.enter="saveLink"
+                @keydown.escape="closeLinkMenu"
+            />
+            <a :href="linkUrl" target="_blank" class="link-external">
+                <ExternalLink />
             </a>
         </div>
-        <div class="flex justify-end">
-            <button @click="saveLink" class="cursor-pointer hover:bg-surface-subtle">
+        <div class="link-actions">
+            <button class="link-btn" @click="saveLink" title="Save">
                 <CheckIcon />
             </button>
-            <button @click="removeLink" class="cursor-pointer hover:bg-surface-subtle">
+            <button class="link-btn" @click="removeLink" title="Remove link">
                 <Trash />
             </button>
-
         </div>
     </div>
 </template>
+
+<style scoped>
+.link-menu {
+    position: fixed;
+    z-index: 100;
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
+    width: v-bind("`${MENU_WIDTH}px`");
+
+    & .link-input {
+        outline: none;
+        border: 1px solid var(--color-border);
+        padding: 0.25rem 0.5rem;
+        background: transparent;
+        color: inherit;
+        font-family: inherit;
+        font-size: 0.875rem;
+        width: 100%;
+
+        &.link-input--url {
+            text-decoration: underline;
+        }
+    }
+
+    & .link-url-row {
+        display: flex;
+        align-items: center;
+        border: 1px solid var(--color-border);
+        padding: 0 0.5rem;
+
+        & .link-input {
+            border: none;
+            padding: 0.25rem 0;
+        }
+
+        & .link-external {
+            display: flex;
+            align-items: center;
+            color: inherit;
+            opacity: 0.6;
+
+            &:hover {
+                opacity: 1;
+            }
+            & svg {
+                width: 1rem;
+                height: 1rem;
+            }
+        }
+    }
+
+    & .link-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.25rem;
+
+        & .link-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.25rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: inherit;
+            border-radius: 4px;
+
+            &:hover {
+                background-color: var(--color-surface-hover);
+            }
+            & svg {
+                width: 1rem;
+                height: 1rem;
+            }
+        }
+    }
+}
+</style>

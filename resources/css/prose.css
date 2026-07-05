@@ -94,5 +94,13 @@
 }
 
 .prose code {
+    background-color: var(--color-surface-muted);
+    padding: 0.25em;
+}
+
+.prose pre:has(code) {
     font-size: small;
+    padding: 0.5em;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface-muted);
 }

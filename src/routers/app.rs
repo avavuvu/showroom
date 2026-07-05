@@ -1,8 +1,9 @@
-use axum::{middleware, Router, routing::{get, post}};
-use crate::{auth::middleware::required_auth, handlers::dashboard::*, state::AppState};
+use axum::{middleware, Router, routing::{get}};
+use crate::{auth::middleware::required_auth, handlers::{dashboard::*, error404::app_404}, state::AppState};
 
 pub fn create_router(state: AppState) -> Router {
     Router::new()
+        .fallback(app_404)
         .route("/", get(index))
         .route("/newsletters", get(get_newsletters).post(post_newsletters))
         .route("/edit/{id}", get(get_edit))

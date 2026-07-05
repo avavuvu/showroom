@@ -55,9 +55,14 @@ async fn server(env: AppEnv) {
         env.jwt_secret,
     );
 
-    let address = format!("localtest.me:{}", env.port);
+    let address = format!("0.0.0.0:{}", env.port);
     let listener = tokio::net::TcpListener::bind(&address).await.unwrap();
+
+    #[cfg(feature = "local")]
+    println!("listening on http://localtest.me:{}", env.port);
+    #[cfg(not(feature = "local"))]
     println!("listening on http://{address}");
+
     axum::serve(listener, app.into_make_service()).await.unwrap();
 }
 
@@ -75,10 +80,5 @@ async fn main() {
 #[tokio::main]
 async fn main() {
     let env = setup().await;
-
-    #[cfg(debug_assertions)]
     server(env).await;
-
-    #[cfg(not(debug_assertions))]
-    todo!("write production main");
 }

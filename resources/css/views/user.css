@@ -1,0 +1,12 @@
+.user-view {
+    & h1 {
+        font-family: var(--font-title);
+        font-weight: bold;
+        font-size: x-large;
+    }
+    & ul {
+        & a {
+            text-decoration: underline;
+        }
+    }
+}

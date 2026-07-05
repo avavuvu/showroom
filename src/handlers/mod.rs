@@ -1,5 +1,7 @@
+pub mod api;
 pub mod auth;
 pub mod dashboard;
+pub mod error404;
 pub mod home;
 pub mod subscriber;
 pub mod user;
