@@ -27,29 +27,44 @@ impl<S: Send + Sync> FromRequestParts<S> for UsernameSubdomain {
 
 #[derive(Clone)]
 pub struct SubdomainRouter {
-    base: axum::Router, //      no subdomain  (domain)
+    base: axum::Router, //      main_domain (show.room.lc)
     app: axum::Router,  //      app.domain
     user: axum::Router, //      {handle}.domain
-    domain: String,
+    domain: String,      // room.lc
+    main_domain: String, // show.room.lc
 }
 
 enum SubdomainKind {
     Base,
     App,
     User(String),
+    Redirect, // bare domain → main_domain
 }
 
 impl SubdomainRouter {
-    pub fn new(base: axum::Router, app: axum::Router, user: axum::Router, domain: impl Into<String>) -> Self {
-        Self { base, app, user, domain: domain.into() }
+    pub fn new(
+        base: axum::Router,
+        app: axum::Router,
+        user: axum::Router,
+        domain: impl Into<String>,
+        main_domain: impl Into<String>,
+    ) -> Self {
+        Self { base, app, user, domain: domain.into(), main_domain: main_domain.into() }
     }
 
     fn classify(&self, host: &str) -> SubdomainKind {
         let host = host.split(':').next().unwrap_or(host);
         let suffix = format!(".{}", self.domain);
 
-        if host == self.domain {
+        if host == self.main_domain {
             SubdomainKind::Base
+        } else if host == self.domain {
+            // bare domain redirects to main_domain (room.lc → show.room.lc)
+            if self.domain != self.main_domain {
+                SubdomainKind::Redirect
+            } else {
+                SubdomainKind::Base
+            }
         } else if host == format!("app.{}", self.domain) {
             SubdomainKind::App
         } else if let Some(sub) = host.strip_suffix(&suffix) {
@@ -94,6 +109,17 @@ impl Service<Request<Body>> for SubdomainRouter {
                 req.extensions_mut().insert(UsernameSubdomain(username));
                 let mut router = self.user.clone();
                 Box::pin(async move { router.call(req).await })
+            }
+            SubdomainKind::Redirect => {
+                let path = req.uri().path_and_query().map(|p| p.as_str()).unwrap_or("/");
+                let location = format!("https://{}{}", self.main_domain, path);
+                Box::pin(async move {
+                    Ok(Response::builder()
+                        .status(StatusCode::MOVED_PERMANENTLY)
+                        .header(axum::http::header::LOCATION, location)
+                        .body(Body::empty())
+                        .unwrap())
+                })
             }
         }
     }

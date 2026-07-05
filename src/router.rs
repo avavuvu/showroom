@@ -6,8 +6,8 @@ use tower_http::{services::{ServeDir, ServeFile}, set_header::SetResponseHeaderL
 use tower_livereload::LiveReloadLayer;
 use crate::{auth::middleware::base, routers::*, state::{AppState, Urls}, services::subdomain::SubdomainRouter};
 
-pub fn create_service(db: DatabaseConnection, ses: aws_sdk_sesv2::Client, domain: &str, port: &str, email_domain: &str, jwt_secret: String) -> axum::Router {
-    let state = AppState { db, ses, urls: Urls::new(domain, port, email_domain), jwt_secret };
+pub fn create_service(db: DatabaseConnection, ses: aws_sdk_sesv2::Client, domain: &str, port: &str, main_domain: &str, jwt_secret: String) -> axum::Router {
+    let state = AppState { db, ses, urls: Urls::new(domain, port, main_domain), jwt_secret };
 
     let no_cache = |dir| ServiceBuilder::new()
         .layer(SetResponseHeaderLayer::overriding(
@@ -25,7 +25,7 @@ pub fn create_service(db: DatabaseConnection, ses: aws_sdk_sesv2::Client, domain
         .nest_service("/css", no_cache("resources/css"))
         .nest_service("/assets", no_cache("public/assets"))
         .nest_service("/icons", no_cache("public/icons"))
-        .fallback_service(SubdomainRouter::new(lander_router, app_router, user_router, domain))
+        .fallback_service(SubdomainRouter::new(lander_router, app_router, user_router, domain, main_domain))
         .layer(middleware::from_fn_with_state(state, base));
 
     #[cfg(debug_assertions)]

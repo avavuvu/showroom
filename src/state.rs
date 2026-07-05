@@ -3,31 +3,38 @@ use sea_orm::DatabaseConnection;
 
 #[derive(Clone)]
 pub struct Urls {
-    domain: String,
-    email_domain: String,
+    domain: String,      // room.lc — used for subdomain routing
+    main_domain: String, // show.room.lc — primary URL and email from-address
     port: String,
     secure: bool,
-
 }
 
 impl Urls {
-    pub fn new(domain: impl Into<String>, port: impl Into<String>, email_domain: impl Into<String>) -> Self {
-        let secure = !cfg!(debug_assertions);
+    pub fn new(domain: impl Into<String>, port: impl Into<String>, main_domain: impl Into<String>) -> Self {
+            let secure = !cfg!(debug_assertions);
 
-        Self {
-            domain: domain.into(),
-            port: port.into(),
-            email_domain: email_domain.into(),
-            secure,
-        }
+            Self {
+                domain: domain.into(),
+                main_domain: main_domain.into(),
+                port: port.into(),
+                secure,
+            }
     }
 
     fn scheme(&self) -> &str {
         if self.secure { "https" } else { "http" }
     }
 
+    pub fn domain(&self) -> &str {
+        &self.domain
+    }
+
+    pub fn main_domain(&self) -> &str {
+        &self.main_domain
+    }
+
     pub fn base(&self) -> String {
-        format!("{}://{}:{}", self.scheme(), self.domain, self.port)
+        format!("{}://{}:{}", self.scheme(), self.main_domain, self.port)
     }
 
     pub fn app(&self) -> String {
@@ -43,7 +50,7 @@ impl Urls {
     }
 
     pub fn email(&self, handle: &str) -> String {
-        format!("{}@{}", handle, self.email_domain)
+        format!("{}@{}", handle, self.main_domain)
     }
 }
 

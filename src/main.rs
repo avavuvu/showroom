@@ -19,7 +19,7 @@ struct AppEnv {
     ses: aws_sdk_sesv2::Client,
     port: String,
     domain: String,
-    email_domain: String,
+    main_domain: String,
     jwt_secret: String,
 }
 
@@ -33,7 +33,7 @@ async fn setup() -> AppEnv {
 
     let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string());
     let domain = env::var("DOMAIN").unwrap_or_else(|_| "localtest.me".to_string());
-    let email_domain = env::var("EMAIL_DOMAIN").unwrap_or_else(|_| "showroom.you".to_string());
+    let main_domain = env::var("MAIN_DOMAIN").unwrap_or_else(|_| "localtest.me".to_string());
     let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
 
     let aws_config = aws_config::defaults(BehaviorVersion::latest())
@@ -42,7 +42,7 @@ async fn setup() -> AppEnv {
         .await;
     let ses = aws_sdk_sesv2::Client::new(&aws_config);
 
-    AppEnv { db, ses, port, domain, email_domain, jwt_secret }
+    AppEnv { db, ses, port, domain, main_domain, jwt_secret }
 }
 
 async fn server(env: AppEnv) {
@@ -51,7 +51,7 @@ async fn server(env: AppEnv) {
         env.ses,
         &env.domain,
         &env.port,
-        &env.email_domain,
+        &env.main_domain,
         env.jwt_secret,
     );
 
