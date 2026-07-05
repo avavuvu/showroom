@@ -4,41 +4,42 @@ use axum::{
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 use argon2::password_hash::{rand_core::OsRng, SaltString};
 use axum_extra::extract::cookie::CookieJar;
-use garde::Validate;
-use maud::Markup;
+use validator::Validate;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, Set};
 use serde::Deserialize;
 use crate::{
-    auth::{cookies, jwt},
-    htmx,
-    models::{refresh_token, user::{self, Entity as User}},
-    state::AppState,
+    auth::{cookies, jwt}, htmx, models::{refresh_token, user::{self, Entity as User}}, state::AppState
 };
+
+fn alphanumeric(value: &str) -> Result<(), validator::ValidationError> {
+    if value.chars().all(|c| c.is_alphanumeric()) {
+        Ok(())
+    } else {
+        let mut e = validator::ValidationError::new("alphanumeric");
+        e.message = Some("Handle can only contain letters and numbers".into());
+        Err(e)
+    }
+}
 
 #[derive(Deserialize, Validate)]
 pub struct LoginForm {
-    #[garde(email)]
+    #[validate(email(message = "Enter a valid email address"))]
     pub email: String,
-    #[garde(length(min = 1))]
+    #[validate(length(min = 1, message = "Password is required"))]
     pub password: String,
 }
 
 #[derive(Deserialize, Validate)]
 pub struct SignupForm {
-    #[garde(email)]
+    #[validate(email(message = "Enter a valid email address"))]
     pub email: String,
-    #[garde(alphanumeric, length(min = 3, max = 20))]
+    #[validate(
+        custom(function = "alphanumeric", message = "Handle can only contain letters and numbers"),
+        length(min = 3, max = 20, message = "Handle must be between 3 and 20 characters")
+    )]
     pub handle: String,
-    #[garde(length(min = 8))]
+    #[validate(length(min = 8, message = "Password must be at least 8 characters"))]
     pub password: String,
-}
-
-pub async fn login_page() -> Markup {
-    crate::views::auth::login(None)
-}
-
-pub async fn signup_page() -> Markup {
-    crate::views::auth::signup(None)
 }
 
 pub async fn login(
@@ -46,8 +47,8 @@ pub async fn login(
     jar: CookieJar,
     Form(form): Form<LoginForm>,
 ) -> Response {
-    if let Err(report) = form.validate() {
-        return htmx::fragments::from_report(report).into_response();
+    if let Err(errors) = form.validate() {
+        return htmx::oob_only(htmx::fragments::from_errors(errors));
     }
 
     let user = User::find()
@@ -63,7 +64,7 @@ pub async fn login(
     });
 
     if !valid {
-        return htmx::fragments::error("Invalid email or password").into_response();
+        return htmx::fragments::error("Incorrect email or password").into_response();
     }
 
     let user = user.unwrap();
@@ -96,8 +97,8 @@ pub async fn signup(
     jar: CookieJar,
     Form(form): Form<SignupForm>,
 ) -> Response {
-    if let Err(report) = form.validate() {
-        return htmx::fragments::from_report(report).into_response();
+    if let Err(errors) = form.validate() {
+        return htmx::oob_only(htmx::fragments::from_errors(errors));
     }
 
     let email_taken = User::find()

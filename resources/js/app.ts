@@ -1,6 +1,13 @@
 import Alpine from "alpinejs";
 import "htmx.org";
 
+const asciiContainer = document.getElementById("ascii-background");
+if (asciiContainer) {
+    import("./ascii/background").then(({ initAsciiBackground }) => {
+        initAsciiBackground(asciiContainer);
+    });
+}
+
 Alpine.data("form", () => ({
     validate(event: Event) {
         event.preventDefault();
@@ -11,7 +18,7 @@ Alpine.data("form", () => ({
         ).querySelectorAll<HTMLInputElement>("input[required]")) {
             const error = document.getElementById(`${input.name}-error`);
             if (!input.value.trim()) {
-                if (error) error.textContent = "Required";
+                if (error) error.textContent = "This is required";
                 valid = false;
             } else {
                 if (error) error.textContent = "";

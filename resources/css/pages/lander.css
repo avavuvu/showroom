@@ -1,0 +1,39 @@
+body:has(.lander) {
+    overflow: hidden;
+}
+
+.lander {
+    display: grid;
+    grid-template-columns: 1;
+    grid-template-rows: 1;
+
+    & > * {
+        grid-row-start: 1;
+        grid-row-end: 2;
+        grid-column-start: 1;
+        grid-column-end: 2;
+    }
+
+    & #ascii-background {
+        & canvas {
+            height: 100%;
+            width: 100%;
+        }
+    }
+
+    & .container {
+        display: flex;
+        justify-content: center;
+    }
+
+    & main {
+        border: 1px solid var(--color-border);
+        background-color: var(--color-surface);
+        width: min(60ch, 100%);
+        padding: min(4em, 10%);
+        margin: 0 1em;
+        margin-top: 12em;
+        text-align: center;
+        height: min-content;
+    }
+}

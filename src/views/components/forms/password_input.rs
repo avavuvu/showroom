@@ -2,10 +2,14 @@ use maud::{Markup, html};
 
 pub fn password_input(name: &str, label: &str) -> Markup {
     html! {
-        div {
-            label { (label) }
-            div x-data="{ show: false }" {
-                input
+        div.input-component {
+            label for=(name) { (label) }
+            div
+                .shell
+                .password
+                x-data="{ show: false }" {
+                input.password-input
+                    id=(name)
                     name=(name)
                     x-bind:type="show ? 'text' : 'password'"
                     autocomplete="current-password"
@@ -17,7 +21,7 @@ pub fn password_input(name: &str, label: &str) -> Markup {
                     x-text="show ? 'Hide' : 'Show'"
                     {}
             }
-            p id=(format!("{}-error", name)) {}
+            p.error id=(format!("{}-error", name)) {}
         }
     }
 }

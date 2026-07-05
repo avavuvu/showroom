@@ -20,7 +20,7 @@ pub fn subscribe_form(user_url: &str, handle: &str) -> Markup {
 
                 (input("email", "email", "email", "email", "you@example.com", true))
                 (input("name", "name", "text", "name", "name (optional)", false))
-                button type="submit" { "Subscribe to @"(handle) }
+                button.button-primary type="submit" { "Subscribe to @"(handle) }
             }
         }
     }

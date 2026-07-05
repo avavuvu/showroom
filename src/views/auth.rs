@@ -1,17 +1,13 @@
 use maud::{Markup, html};
-use crate::views::{components::forms::{input::input, password_input::password_input}, layouts::base};
+use crate::views::{PageContext, components::forms::{handle_input::handle_input, input::input, password_input::password_input}, layouts::shell};
 
-pub fn login(error: Option<&str>) -> Markup {
-    base(html! {
-        div {
-            div {
-                h1 { "Sign in" }
-                div id="login-error" {
-                    @if let Some(err) = error {
-                        p { (err) }
-                    }
-                }
-                form
+pub fn login(ctx: &PageContext) -> Markup {
+    shell(ctx, html! {
+        div.article-layout {
+            div.auth-form {
+                h1 { "Log in" }
+                p.error id="login-error" {}
+                form.flow
                     method="POST"
                     action="/login"
                     novalidate?[true]
@@ -24,28 +20,26 @@ pub fn login(error: Option<&str>) -> Markup {
                 {
                     (input("email", "email", "email", "email", "you@example.com", true))
                     (password_input("password", "Password"))
-                    button type="submit" { "Sign in" }
-                }
-                p {
-                    "No account? "
-                    a href="/signup" { "Sign up" }
+                    button.button-primary type="submit" { "Sign in" }
+                    p {
+                        "No account? "
+                        a.link href="/signup" { "Sign up" }
+                    }
                 }
             }
         }
     })
 }
 
-pub fn signup(error: Option<&str>) -> Markup {
-    base(html! {
-        div {
-            div {
+pub fn signup(ctx: &PageContext) -> Markup {
+    shell(
+        ctx,
+        html! {
+        div.article-layout {
+            div.auth-form {
                 h1 { "Create account" }
-                div id="signup-error" {
-                    @if let Some(err) = error {
-                        p { (err) }
-                    }
-                }
-                form
+                div id="signup-error" {}
+                form.flow
                     method="POST"
                     action="/signup"
                     novalidate?[true]
@@ -57,16 +51,14 @@ pub fn signup(error: Option<&str>) -> Markup {
                     x-on:submit="validate($event)"
                 {
                     (input("email", "email", "email", "email", "you@example.com", true))
-                    div class="inline-flex" {
-                        span { "@" }
-                        (input("handle", "handle", "text", "off", "yourhandle", true))
-                    }
+                    (handle_input())
                     (password_input("password", "Password"))
-                    button type="submit" { "Create account" }
-                }
-                p {
-                    "Already have an account? "
-                    a href="/login" { "Sign in" }
+                    button.button-primary type="submit" { "Create account" }
+
+                    p {
+                        "Already have an account? "
+                        a.link href="/login" { "Sign in" }
+                    }
                 }
             }
         }

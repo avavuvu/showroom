@@ -1,0 +1,19 @@
+.btn,
+a,
+button {
+    cursor: pointer;
+}
+
+.button-primary {
+    border: 1px solid var(--color-border);
+    background-color: var(--color-primary);
+    display: block;
+    color: var(--color-surface);
+    padding: 0.25em 0.5em;
+    transition: background-color;
+    transition-duration: 250ms;
+}
+
+.button-primary:hover {
+    background-color: var(--color-foreground);
+}

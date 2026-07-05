@@ -1,7 +1,7 @@
 use axum::{
     Form, extract::{Query, State}, http::StatusCode, response::{Redirect, Response, IntoResponse},
 };
-use garde::Validate;
+use validator::Validate;
 use maud::Markup;
 use nanoid::nanoid;
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, DbErr, EntityTrait, QueryFilter};
@@ -16,9 +16,8 @@ use crate::{
 
 #[derive(Deserialize, Validate)]
 pub struct SubscribeForm {
-    #[garde(email)]
+    #[validate(email(message = "Enter a valid email address"))]
     pub email: String,
-    #[garde(skip)]
     pub name: Option<String>,
 }
 
@@ -32,8 +31,8 @@ pub async fn subscribe(
     UsernameSubdomain(handle): UsernameSubdomain,
     Form(form): Form<SubscribeForm>,
 ) -> Response {
-    if let Err(report) = form.validate() {
-        return htmx::oob_only(htmx::fragments::from_report(report));
+    if let Err(errors) = form.validate() {
+        return htmx::oob_only(htmx::fragments::from_errors(errors));
     }
 
     let user = match User::find()

@@ -3,12 +3,16 @@
 @import "components/header.css";
 @import "components/subscribe_form.css";
 @import "components/footer.css";
+@import "components/auth.css";
+@import "components/button.css";
+@import "pages/lander.css";
 
 :root {
     --font-body: "Times", "Times New Roman", serif;
     --font-title: "Playfair Display", "Georgia", serif;
     --color-primary: #92ca3a;
     --color-surface: #ffffff;
+    --color-error: #af1d27;
     --color-muted: #888;
     --color-foreground: black;
 
@@ -54,8 +58,7 @@ input::placeholder {
     font-style: italic;
 }
 
-.btn,
-a,
-button {
-    cursor: pointer;
+.link {
+    text-decoration: underline;
+    color: var(--color-primary);
 }
