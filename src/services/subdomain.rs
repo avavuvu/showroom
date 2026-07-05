@@ -27,24 +27,40 @@ impl<S: Send + Sync> FromRequestParts<S> for UsernameSubdomain {
 
 #[derive(Clone)]
 pub struct SubdomainRouter {
-    base: axum::Router, //      no subdomain
-    app: axum::Router, //       app.domain
-    user: axum::Router, //      {user}.domain
+    base: axum::Router, //      no subdomain  (domain)
+    app: axum::Router,  //      app.domain
+    user: axum::Router, //      {handle}.domain
+    domain: String,
+}
+
+enum SubdomainKind {
+    Base,
+    App,
+    User(String),
 }
 
 impl SubdomainRouter {
-    pub fn new(base: axum::Router, app: axum::Router, user: axum::Router) -> Self {
-        Self { base, app, user }
+    pub fn new(base: axum::Router, app: axum::Router, user: axum::Router, domain: impl Into<String>) -> Self {
+        Self { base, app, user, domain: domain.into() }
     }
 
-    fn parse_subdomain(host: &str) -> Option<&str> {
-        let host = host.split(':').next()?;
-        if host.matches('.').count() < 2 {
-            return None;
+    fn classify(&self, host: &str) -> SubdomainKind {
+        let host = host.split(':').next().unwrap_or(host);
+        let suffix = format!(".{}", self.domain);
+
+        if host == self.domain {
+            SubdomainKind::Base
+        } else if host == format!("app.{}", self.domain) {
+            SubdomainKind::App
+        } else if let Some(sub) = host.strip_suffix(&suffix) {
+            if sub.is_empty() || sub.contains('.') {
+                SubdomainKind::Base
+            } else {
+                SubdomainKind::User(sub.to_string())
+            }
+        } else {
+            SubdomainKind::Base
         }
-        let dot = host.find('.')?;
-        let sub = &host[..dot];
-        if sub.is_empty() { None } else { Some(sub) }
     }
 }
 
@@ -65,18 +81,17 @@ impl Service<Request<Body>> for SubdomainRouter {
             .unwrap_or("")
             .to_string();
 
-        match Self::parse_subdomain(&host) {
-            None => {
+        match self.classify(&host) {
+            SubdomainKind::Base => {
                 let mut router = self.base.clone();
                 Box::pin(async move { router.call(req).await })
             }
-            Some("app") => {
+            SubdomainKind::App => {
                 let mut router = self.app.clone();
                 Box::pin(async move { router.call(req).await })
             }
-            Some(username) => {
-                req.extensions_mut()
-                    .insert(UsernameSubdomain(username.to_string()));
+            SubdomainKind::User(username) => {
+                req.extensions_mut().insert(UsernameSubdomain(username));
                 let mut router = self.user.clone();
                 Box::pin(async move { router.call(req).await })
             }

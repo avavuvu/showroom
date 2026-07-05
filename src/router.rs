@@ -25,7 +25,7 @@ pub fn create_service(db: DatabaseConnection, ses: aws_sdk_sesv2::Client, domain
         .nest_service("/css", no_cache("resources/css"))
         .nest_service("/assets", no_cache("public/assets"))
         .nest_service("/icons", no_cache("public/icons"))
-        .fallback_service(SubdomainRouter::new(lander_router, app_router, user_router))
+        .fallback_service(SubdomainRouter::new(lander_router, app_router, user_router, domain))
         .layer(middleware::from_fn_with_state(state, base));
 
     #[cfg(debug_assertions)]
