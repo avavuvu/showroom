@@ -6,7 +6,7 @@ pub fn header(ctx: &PageContext) -> Markup {
         div.header-space {}
         header.header-full {
             a.logo-container href=(ctx.urls.base()) {
-                img.logo src="/icons/logo.png" alt="";
+                img.logo src="/icons/logo-sm.webp" alt="";
                 img.wordmark src="/icons/wordmark.svg" alt="Showroom";
             }
             div.auth {

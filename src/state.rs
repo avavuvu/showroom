@@ -25,6 +25,10 @@ impl Urls {
         if self.secure { "https" } else { "http" }
     }
 
+    fn port_suffix(&self) -> String {
+        if self.secure { String::new() } else { format!(":{}", self.port) }
+    }
+
     pub fn domain(&self) -> &str {
         &self.domain
     }
@@ -34,15 +38,15 @@ impl Urls {
     }
 
     pub fn base(&self) -> String {
-        format!("{}://{}:{}", self.scheme(), self.main_domain, self.port)
+        format!("{}://{}{}", self.scheme(), self.main_domain, self.port_suffix())
     }
 
     pub fn app(&self) -> String {
-        format!("{}://app.{}:{}", self.scheme(), self.domain, self.port)
+        format!("{}://app.{}{}", self.scheme(), self.domain, self.port_suffix())
     }
 
     pub fn user(&self, handle: &str) -> String {
-        format!("{}://{}.{}:{}", self.scheme(), handle, self.domain, self.port)
+        format!("{}://{}.{}{}", self.scheme(), handle, self.domain, self.port_suffix())
     }
 
     pub fn cookie(&self) -> String {
