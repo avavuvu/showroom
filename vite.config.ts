@@ -8,9 +8,6 @@ export default defineConfig({
     build: {
         outDir: "public",
         emptyOutDir: false,
-        watch: {
-            exclude: ["public/**"],
-        },
         rollupOptions: {
             input: {
                 app: "resources/js/app.ts",
