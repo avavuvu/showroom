@@ -17,8 +17,10 @@ I have dubbed in Ava's Max Stack
 - [x] caching pages
 - [x] header on every page
 - [x] lander
-- [ ] markdown API
-- [ ] styling
+- [x] markdown API
+- [x] styling
+- [ ] Disable HTMX/Islands on pages that dont need it
+- [ ] 
 
 ## Migrations
 `cargo run -p migration --bin migration -- up

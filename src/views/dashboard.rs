@@ -2,12 +2,18 @@ use maud::{Markup, html};
 use crate::models::newsletter;
 use crate::views::components::ui::*;
 use crate::views::context::PageContext;
-use crate::views::layouts::newsletter_template;
+use crate::views::layouts::{ViewContext, newsletter_template};
 use super::layouts::base;
 
 pub fn index(ctx: &PageContext) -> Markup {
     let user = ctx.user.as_ref().expect("dashboard requires authentication");
-    base(html! {
+    base(
+        &ViewContext {
+            title: "Dashboard".into(),
+            js: true,
+            islands: false,
+        },
+        html! {
         div {
             h1 { "Your dashboard" }
             p { "Welcome, " (user.handle) }
@@ -55,7 +61,9 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
 
     // it shouldnt be possible for this to not be rendered,
     // because it gets rendered in the handler
-    base(html! {
+    base(
+        &ViewContext::metadata(&newsletter.title),
+        html! {
         div.preview-view {
             header {
                 div.left {
@@ -111,7 +119,13 @@ pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     let send_url = format!("{}/send/{}", ctx.urls.app(), newsletter.id);
     let back_url = ctx.urls.app();
 
-    base(html! {
+    base(
+        &ViewContext {
+            title: "Edit".into(),
+            js: true,
+            islands: true,
+        },
+        html! {
         div.edit-view {
             @if newsletter.sent_at.is_some() {
                 div.marquee {

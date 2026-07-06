@@ -2,7 +2,7 @@ use axum::middleware;
 use sea_orm::DatabaseConnection;
 use tower_http::services::{ServeDir, ServeFile};
 use tower_livereload::LiveReloadLayer;
-use crate::{auth::middleware::base, routers::*, state::{AppState, Urls}, services::subdomain::SubdomainRouter};
+use crate::{auth::middleware::base, middleware::https_redirect::https_redirect, routers::*, state::{AppState, Urls}, services::subdomain::SubdomainRouter};
 
 pub fn create_service(db: DatabaseConnection, ses: aws_sdk_sesv2::Client, domain: &str, port: &str, main_domain: &str, jwt_secret: String) -> axum::Router {
     let state = AppState { db, ses, urls: Urls::new(domain, port, main_domain), jwt_secret };
@@ -37,6 +37,9 @@ pub fn create_service(db: DatabaseConnection, ses: aws_sdk_sesv2::Client, domain
 
     #[cfg(debug_assertions)]
     let router = router.layer(LiveReloadLayer::new());
+
+    #[cfg(not(debug_assertions))]
+    let router = router.layer(axum::middleware::from_fn(https_redirect));
 
     router
 }

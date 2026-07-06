@@ -1,8 +1,14 @@
 use maud::{Markup, html};
-use crate::views::{PageContext, components::forms::{handle_input::handle_input, input::input, password_input::password_input}, layouts::shell};
+use crate::views::{PageContext, components::forms::{handle_input::handle_input, input::input, password_input::password_input}, layouts::{ViewContext, shell}};
 
 pub fn login(ctx: &PageContext) -> Markup {
-    shell(ctx, html! {
+    shell(
+        &ViewContext {
+            title: "Login".into(),
+            islands: false,
+            js: true,
+        },
+        ctx, html! {
         div.article-layout {
             div.auth-form {
                 h1 { "Log in" }
@@ -33,6 +39,11 @@ pub fn login(ctx: &PageContext) -> Markup {
 
 pub fn signup(ctx: &PageContext) -> Markup {
     shell(
+        &ViewContext {
+            title: "Get started".into(),
+            islands: false,
+            js: true,
+        },
         ctx,
         html! {
         div.article-layout {

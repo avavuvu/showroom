@@ -1,9 +1,11 @@
 use maud::{Markup, PreEscaped, html};
-use crate::{models::newsletter::{self, Model as Newsletter}, renderer::html::render, views::{components::forms::subscribe::subscribe_form, context::PageContext, layouts::shell}};
+use crate::{models::newsletter::{self, Model as Newsletter}, renderer::html::render, views::{components::forms::subscribe::subscribe_form, context::PageContext, layouts::{ViewContext, shell}}};
 
 pub fn profile(ctx: &PageContext) -> Markup {
     let owner = ctx.page_owner.as_ref().expect("user profile requires page_owner");
-    shell(ctx,
+    shell(
+        &ViewContext::metadata(&owner.handle),
+        ctx,
         html! {
             div.user-view .article-layout .flow {
                 h1 { (owner.handle)"'s room" }
@@ -27,7 +29,10 @@ pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
     let date = newsletter.created_at.format("%B %-d, %Y").to_string();
     let user_url = ctx.urls.user(&owner.handle);
 
-    shell(ctx, html! {
+    shell(
+        &ViewContext::metadata(&owner.handle),
+        ctx,
+        html! {
         main.article-layout .newsletter {
             article.prose .flow {
                 div.info {

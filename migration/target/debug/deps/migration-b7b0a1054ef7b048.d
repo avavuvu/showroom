@@ -1,0 +1,14 @@
+/Users/adem/Desktop/showroom/showroom-rs/migration/target/debug/deps/migration-b7b0a1054ef7b048.d: src/lib.rs src/m20250101_000001_create_users_table.rs src/m20250101_000002_create_newsletters_table.rs src/m20250101_000003_create_refresh_tokens_table.rs src/m20250101_000004_schema_updates.rs src/m20260627_000005_add_rendered_to_newsletters.rs src/m20260627_000006_change_sent_to_sent_at.rs src/m20260627_000007_create_subscribers_table.rs
+
+/Users/adem/Desktop/showroom/showroom-rs/migration/target/debug/deps/libmigration-b7b0a1054ef7b048.rlib: src/lib.rs src/m20250101_000001_create_users_table.rs src/m20250101_000002_create_newsletters_table.rs src/m20250101_000003_create_refresh_tokens_table.rs src/m20250101_000004_schema_updates.rs src/m20260627_000005_add_rendered_to_newsletters.rs src/m20260627_000006_change_sent_to_sent_at.rs src/m20260627_000007_create_subscribers_table.rs
+
+/Users/adem/Desktop/showroom/showroom-rs/migration/target/debug/deps/libmigration-b7b0a1054ef7b048.rmeta: src/lib.rs src/m20250101_000001_create_users_table.rs src/m20250101_000002_create_newsletters_table.rs src/m20250101_000003_create_refresh_tokens_table.rs src/m20250101_000004_schema_updates.rs src/m20260627_000005_add_rendered_to_newsletters.rs src/m20260627_000006_change_sent_to_sent_at.rs src/m20260627_000007_create_subscribers_table.rs
+
+src/lib.rs:
+src/m20250101_000001_create_users_table.rs:
+src/m20250101_000002_create_newsletters_table.rs:
+src/m20250101_000003_create_refresh_tokens_table.rs:
+src/m20250101_000004_schema_updates.rs:
+src/m20260627_000005_add_rendered_to_newsletters.rs:
+src/m20260627_000006_change_sent_to_sent_at.rs:
+src/m20260627_000007_create_subscribers_table.rs:

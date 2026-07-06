@@ -2,6 +2,7 @@ use std::env;
 use aws_config::{BehaviorVersion, Region};
 use sea_orm::{Database, DatabaseConnection};
 mod auth;
+mod middleware;
 mod mailer;
 mod handlers;
 mod htmx;
@@ -23,10 +24,22 @@ struct AppEnv {
     jwt_secret: String,
 }
 
+fn ensure_ssl(url: &str) -> String {
+    if url.contains("sslmode") {
+        url.to_string()
+    } else if url.contains('?') {
+        format!("{}&sslmode=require", url)
+    } else {
+        format!("{}?sslmode=require", url)
+    }
+}
+
 async fn setup() -> AppEnv {
     dotenvy::dotenv().ok();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    #[cfg(not(debug_assertions))]
+    let database_url = ensure_ssl(&database_url);
     let db = Database::connect(&database_url)
         .await
         .expect("Failed to connect to database");

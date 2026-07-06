@@ -1,0 +1,11 @@
+/Users/adem/Desktop/showroom/showroom-rs/migration/target/debug/deps/aws_smithy_xml-67b6e38e5da5270d.d: /Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/lib.rs /Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/decode.rs /Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/encode.rs /Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/escape.rs /Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/unescape.rs
+
+/Users/adem/Desktop/showroom/showroom-rs/migration/target/debug/deps/libaws_smithy_xml-67b6e38e5da5270d.rlib: /Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/lib.rs /Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/decode.rs /Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/encode.rs /Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/escape.rs /Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/unescape.rs
+
+/Users/adem/Desktop/showroom/showroom-rs/migration/target/debug/deps/libaws_smithy_xml-67b6e38e5da5270d.rmeta: /Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/lib.rs /Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/decode.rs /Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/encode.rs /Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/escape.rs /Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/unescape.rs
+
+/Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/lib.rs:
+/Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/decode.rs:
+/Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/encode.rs:
+/Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/escape.rs:
+/Users/adem/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-smithy-xml-0.60.13/src/unescape.rs:
