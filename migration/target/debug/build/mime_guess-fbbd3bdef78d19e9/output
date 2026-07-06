@@ -1,1 +1,0 @@
-cargo:rustc-env=MIME_TYPES_GENERATED_PATH=/Users/adem/Desktop/showroom/showroom-rs/migration/target/debug/build/mime_guess-fbbd3bdef78d19e9/out/mime_types_generated.rs
