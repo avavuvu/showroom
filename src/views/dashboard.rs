@@ -9,7 +9,7 @@ pub fn index(ctx: &PageContext) -> Markup {
     let user = ctx.user.as_ref().expect("dashboard requires authentication");
     base(
         &ViewContext {
-            title: "Dashboard".into(),
+            title: "Dashboard – Showroom".into(),
             js: true,
             islands: false,
         },
@@ -121,7 +121,7 @@ pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
 
     base(
         &ViewContext {
-            title: "Edit".into(),
+            title: "Edit – Showroom".into(),
             js: true,
             islands: true,
         },
