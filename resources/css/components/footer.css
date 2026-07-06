@@ -1,0 +1,36 @@
+footer.footer-full {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 10vh 20vh;
+    align-items: center;
+    justify-content: center;
+
+    & .content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        padding: 0 2em;
+
+        & p {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5em;
+        }
+    }
+
+    & .logo-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        & img.wordmark {
+            max-width: 12em;
+        }
+    }
+
+    & a {
+        text-decoration: underline;
+    }
+}

@@ -1,0 +1,68 @@
+@import "./reset.css";
+@import "components/newsletter.css";
+@import "components/header.css";
+@import "components/subscribe_form.css";
+@import "components/footer.css";
+@import "components/auth.css";
+@import "components/button.css";
+@import "views/lander.css";
+@import "views/edit.css";
+@import "views/preview.css";
+@import "views/user.css";
+
+:root {
+    --font-body: "Times", "Times New Roman", serif;
+    --font-title: "Playfair Display", "Georgia", serif;
+    --color-primary: #92ca3a;
+    --color-surface: #ffffff;
+    --color-error: #af1d27;
+    --color-muted: #aaa;
+    --color-surface-muted: #eee;
+    --color-foreground: black;
+
+    --color-placeholder: var(--color-muted);
+    --color-border: var(--color-foreground);
+
+    font-family: var(--prose-font-body);
+}
+
+html,
+body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.flow {
+    --flow-space: 1em;
+}
+
+.flow > * + * {
+    margin-top: 1em;
+    margin-top: var(--flow-space);
+}
+
+.article-layout {
+    display: grid;
+    grid-template-columns: 1fr min(70ch, 100%) 1fr;
+
+    padding-top: 4em;
+    min-height: 80vh;
+    align-content: start;
+
+    & > * {
+        grid-column-start: 2;
+        padding: 0 0.5em;
+    }
+}
+
+input::placeholder {
+    color: var(--color-placeholder);
+    font-style: italic;
+}
+
+.link {
+    text-decoration: underline;
+    color: var(--color-primary);
+}

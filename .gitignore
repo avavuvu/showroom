@@ -1,0 +1,6 @@
+/target
+.env
+node_modules
+public/assets
+*/target
+/public

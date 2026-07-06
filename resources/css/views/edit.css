@@ -1,0 +1,30 @@
+.edit-view {
+    & .marquee {
+        background-color: var(--color-primary);
+        color: var(--color-surface);
+        text-align: center;
+    }
+
+    & header {
+        z-index: 10;
+        top: 0;
+        position: sticky;
+        background-color: var(--color-surface);
+        height: 4em;
+
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5em 2em;
+
+        & .left {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+
+            & .save-status {
+                color: var(--color-muted);
+            }
+        }
+    }
+}

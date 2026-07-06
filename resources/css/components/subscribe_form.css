@@ -1,0 +1,25 @@
+.subscribe-form {
+    text-align: center;
+
+    & h2 {
+        font-weight: bold;
+    }
+
+    & input {
+        border: 1px solid var(--color-border);
+        text-align: center;
+        padding: 0.5em;
+        width: 100%;
+    }
+
+    & form {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        gap: 0.5em;
+
+        & > * {
+            width: 16em;
+        }
+    }
+}

@@ -1,0 +1,31 @@
+.header-space {
+    height: 2em;
+}
+
+header.header-full {
+    background-color: var(--color-surface);
+    border-bottom: 1px solid var(--color-foreground);
+    position: sticky;
+    top: 0;
+    height: 4em;
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    padding: 1em 1em;
+
+    & .logo-container {
+        display: flex;
+        height: 2em;
+
+        .wordmark {
+            @media (max-width: 25em) {
+                display: none;
+            }
+        }
+    }
+
+    & .auth {
+        display: flex;
+        gap: 1em;
+    }
+}
