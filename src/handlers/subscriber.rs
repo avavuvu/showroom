@@ -128,7 +128,7 @@ async fn send_confirmation(state: &AppState, email: &str, name: Option<&str>, to
         .await;
 
     if let Err(e) = confirmation_response {
-        return views::subscriber::subscribe_error("Failed to send confirmation email, please try again").into_response();
+        return views::subscriber::subscribe_error(&format!("Failed to send confirmation email, please try again, {e}")).into_response();
     }
 
     views::subscriber::subscribe_success().into_response()

@@ -2,6 +2,12 @@ use maud::{Markup, html};
 use crate::views::{components::ui::*, context::PageContext};
 
 pub fn header(ctx: &PageContext) -> Markup {
+    let login_text = if cfg!(debug_assertions) {
+        "Login"
+    } else {
+        "Admin"
+    };
+
     html! {
         div.header-space {}
         header.header-full {
@@ -14,8 +20,10 @@ pub fn header(ctx: &PageContext) -> Markup {
                     (button(html!{"Log out"}, ButtonElement::Form, &format!("{}/logout", ctx.urls.base()), None))
                     (button(html!{"Dashboard"}, ButtonElement::A, &ctx.urls.app(), None))
                 } @else {
-                    (button(html!{"Get started"}, ButtonElement::A, &format!("{}/signup", ctx.urls.base()), None))
-                    (button(html!{"Login"}, ButtonElement::A, &format!("{}/login", ctx.urls.base()), None))
+                    @if cfg!(debug_assertions) {
+                        (button(html!{"Get started"}, ButtonElement::A, &format!("{}/signup", ctx.urls.base()), None))
+                    }
+                    (button(html!{(login_text)}, ButtonElement::A, &format!("{}/login", ctx.urls.base()), None))
                 }
             }
         }

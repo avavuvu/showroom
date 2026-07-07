@@ -4,7 +4,11 @@ use crate::{models::newsletter::{self, Model as Newsletter}, renderer::html::ren
 pub fn profile(ctx: &PageContext) -> Markup {
     let owner = ctx.page_owner.as_ref().expect("user profile requires page_owner");
     shell(
-        &ViewContext::metadata(&owner.handle),
+        &ViewContext {
+            title: format!("{} – Showroom", &owner.handle),
+            islands: false,
+            js: true,
+        },
         ctx,
         html! {
             div.user-view .article-layout .flow {
@@ -30,7 +34,11 @@ pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
     let user_url = ctx.urls.user(&owner.handle);
 
     shell(
-        &ViewContext::metadata(&owner.handle),
+        &ViewContext {
+            title: format!("{} – Showroom", &owner.handle),
+            islands: false,
+            js: true,
+        },
         ctx,
         html! {
         main.article-layout .newsletter {

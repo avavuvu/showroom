@@ -12,10 +12,23 @@ pub async fn profile(
     State(state): State<AppState>,
     UsernameSubdomain(handle): UsernameSubdomain,
     Extension(ctx): Extension<UserContext>,
-) -> Markup {
+) -> (StatusCode, Markup) {
     let page_ctx = PageContext::public(&ctx, state.urls.clone())
         .with_page_owner(&handle);
-    views::user::profile(&page_ctx)
+
+    let exists = User::find()
+        .filter(user::Column::Handle.eq(&handle))
+        .one(&state.db)
+        .await
+        .ok()
+        .flatten()
+        .is_some();
+
+    if !exists {
+        return (StatusCode::NOT_FOUND, error404::user_404(&page_ctx));
+    }
+
+    (StatusCode::OK, views::user::profile(&page_ctx))
 }
 
 pub async fn newsletter(

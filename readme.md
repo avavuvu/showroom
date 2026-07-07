@@ -19,8 +19,13 @@ I have dubbed in Ava's Max Stack
 - [x] lander
 - [x] markdown API
 - [x] styling
-- [ ] Disable HTMX/Islands on pages that dont need it
-- [ ] 
-
+- [ ] Dashboard styling
+- [x] Disable HTMX/Islands on pages that dont need it
+- [ ] Add proper loading animation to edit
+- [ ] Add Placeholder
+- [ ] Remove create account page on prod
+- [ ] Figure out why fake users are not 404ing
+    - [ ] Enabble JS on user pages
+ 
 ## Migrations
 `cargo run -p migration --bin migration -- up

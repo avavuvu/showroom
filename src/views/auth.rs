@@ -27,9 +27,11 @@ pub fn login(ctx: &PageContext) -> Markup {
                     (input("email", "email", "email", "email", "you@example.com", true))
                     (password_input("password", "Password"))
                     button.button-primary type="submit" { "Sign in" }
-                    p {
-                        "No account? "
-                        a.link href="/signup" { "Sign up" }
+                    @if cfg!(debug_assertions) {
+                        p {
+                            "No account? "
+                            a.link href="/signup" { "Sign up" }
+                        }
                     }
                 }
             }
