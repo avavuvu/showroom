@@ -29,3 +29,27 @@ pub fn validate(secret: &[u8], token: &str) -> Result<Claims, jsonwebtoken::erro
     decode::<Claims>(token, &DecodingKey::from_secret(secret), &Validation::default())
         .map(|data| data.claims)
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct PasswordResetClaims {
+    pub sub: String, // user_id
+    pub exp: usize,
+}
+
+impl PasswordResetClaims {
+    pub fn new(user_id: &str) -> Self {
+        Self {
+            sub: user_id.to_string(),
+            exp: (Utc::now() + chrono::Duration::hours(1)).timestamp() as usize,
+        }
+    }
+}
+
+pub fn generate_password_reset(secret: &[u8], user_id: &str) -> Result<String, jsonwebtoken::errors::Error> {
+    encode(&Header::default(), &PasswordResetClaims::new(user_id), &EncodingKey::from_secret(secret))
+}
+
+pub fn validate_password_reset(secret: &[u8], token: &str) -> Result<PasswordResetClaims, jsonwebtoken::errors::Error> {
+    decode::<PasswordResetClaims>(token, &DecodingKey::from_secret(secret), &Validation::default())
+        .map(|data| data.claims)
+}
