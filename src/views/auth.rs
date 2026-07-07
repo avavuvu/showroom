@@ -3,11 +3,7 @@ use crate::views::{PageContext, components::forms::{handle_input::handle_input, 
 
 pub fn login(ctx: &PageContext) -> Markup {
     shell(
-        &ViewContext {
-            title: "Login".into(),
-            islands: false,
-            js: true,
-        },
+        ViewContext::new("Login").alpine().htmx(),
         ctx, html! {
         div.article-layout {
             div.auth-form {
@@ -41,11 +37,7 @@ pub fn login(ctx: &PageContext) -> Markup {
 
 pub fn signup(ctx: &PageContext) -> Markup {
     shell(
-        &ViewContext {
-            title: "Get started".into(),
-            islands: false,
-            js: true,
-        },
+        ViewContext::new("Get started").alpine().htmx(),
         ctx,
         html! {
         div.article-layout {

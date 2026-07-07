@@ -23,6 +23,7 @@ import {
     TextQuote,
     Code,
     Code2,
+    Minus,
 } from "lucide-vue-next";
 import LinkMenu from "./link/LinkMenu.vue";
 
@@ -238,6 +239,11 @@ const setLink = () => linkMenu.value?.setLink();
                 :is-active="isOrderedList"
                 title="Ordered List"
                 @click="editor.chain().focus().toggleOrderedList().run()"
+            />
+            <ToolbarItem
+                :icon="Minus"
+                title="Horizontal Rule"
+                @click="editor.chain().focus().setHorizontalRule().run()"
             />
         </div>
     </div>

@@ -1,4 +1,5 @@
 pub mod api;
+pub mod sitemap;
 pub mod auth;
 pub mod dashboard;
 pub mod error404;

@@ -1,16 +1,12 @@
 use maud::{Markup, html};
-use crate::views::{components::layout::header::header, context::PageContext, layouts::ViewContext};
+use crate::views::{components::layout::header::header, context::PageContext, layouts::{ViewContext, view_context::Metadata}};
 use super::layouts::base;
 
 pub fn index(ctx: &PageContext) -> Markup {
-    let view = ViewContext {
-        title: "Showroom".into(),
-        islands: false,
-        js: true,
-    };
-
     base(
-        &view,
+        ViewContext::new("Showroom")
+            .js("ascii")
+            .seo(Metadata::website("A newsletter platform for the little guy")),
         html! {
         (header(ctx))
         div.lander {

@@ -124,10 +124,9 @@ export function createAsciiAtlas(
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
 
-    // Black background, white text (shader colorizes)
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = "#92ca3a";
     ctx.font = `${charSize * 0.8}px Times New Roman`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";

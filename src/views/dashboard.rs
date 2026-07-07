@@ -8,11 +8,7 @@ use super::layouts::base;
 pub fn index(ctx: &PageContext) -> Markup {
     let user = ctx.user.as_ref().expect("dashboard requires authentication");
     base(
-        &ViewContext {
-            title: "Dashboard – Showroom".into(),
-            js: true,
-            islands: false,
-        },
+        ViewContext::page("Dashboard").alpine().htmx(),
         html! {
         div {
             h1 { "Your dashboard" }
@@ -62,7 +58,7 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     // it shouldnt be possible for this to not be rendered,
     // because it gets rendered in the handler
     base(
-        &ViewContext::metadata(&newsletter.title),
+        ViewContext::page(&newsletter.title),
         html! {
         div.preview-view {
             header {
@@ -116,15 +112,30 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
 
 pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     let props = serde_json::json!({ "newsletterId": newsletter.id }).to_string();
-    let send_url = format!("{}/send/{}", ctx.urls.app(), newsletter.id);
     let back_url = ctx.urls.app();
+    let view_or_preview_button = if newsletter.sent_at.is_some() {
+        let user = ctx.user.as_ref().expect("User must be authenticated");
+        let view_url = format!("{}/{}", ctx.urls.user(&user.handle), newsletter.slug);
+
+        button(
+            html!("View"),
+            ButtonElement::A,
+            &view_url,
+            Some("button-primary")
+        )
+    } else {
+        let send_url = format!("{}/send/{}", ctx.urls.app(), newsletter.id);
+
+        button(
+            html!( "Publish" ),
+            ButtonElement::A,
+            &send_url,
+            Some("button-primary")
+        )
+    };
 
     base(
-        &ViewContext {
-            title: "Edit – Showroom".into(),
-            js: true,
-            islands: true,
-        },
+        ViewContext::page("Edit").alpine().htmx().islands(),
         html! {
         div.edit-view {
             @if newsletter.sent_at.is_some() {
@@ -147,12 +158,7 @@ pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
                 }
 
                 div {
-                    (button(
-                        html!( "Publish" ),
-                        ButtonElement::A,
-                        &send_url,
-                        Some("button-primary"))
-                    )
+                    (view_or_preview_button)
                 }
             }
 

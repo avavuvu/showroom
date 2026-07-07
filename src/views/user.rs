@@ -1,14 +1,18 @@
 use maud::{Markup, PreEscaped, html};
-use crate::{models::newsletter::{self, Model as Newsletter}, renderer::html::render, views::{components::forms::subscribe::subscribe_form, context::PageContext, layouts::{ViewContext, shell}}};
+use crate::{models::newsletter::{self, Model as Newsletter}, renderer::html::render, views::{components::forms::subscribe::subscribe_form, context::PageContext, layouts::{Metadata, ViewContext, shell}}};
 
 pub fn profile(ctx: &PageContext) -> Markup {
     let owner = ctx.page_owner.as_ref().expect("user profile requires page_owner");
+
+    let metadata = Metadata::article(
+        &format!("{}'s room", &owner.handle),
+        &owner.handle,
+        &ctx.urls.user(&owner.handle));
+
     shell(
-        &ViewContext {
-            title: format!("{} – Showroom", &owner.handle),
-            islands: false,
-            js: true,
-        },
+        ViewContext::page(&owner.handle)
+            .alpine().htmx()
+            .seo(metadata),
         ctx,
         html! {
             div.user-view .article-layout .flow {
@@ -33,12 +37,15 @@ pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
     let date = newsletter.created_at.format("%B %-d, %Y").to_string();
     let user_url = ctx.urls.user(&owner.handle);
 
+    let metadata = Metadata::article(
+        &newsletter.title,
+        &owner.handle,
+        &user_url);
+
     shell(
-        &ViewContext {
-            title: format!("{} – Showroom", &owner.handle),
-            islands: false,
-            js: true,
-        },
+        ViewContext::page(&newsletter.title)
+            .alpine().htmx()
+            .seo(metadata),
         ctx,
         html! {
         main.article-layout .newsletter {

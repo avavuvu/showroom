@@ -9,7 +9,8 @@ pub fn create_router(state: AppState) -> Router {
         .route("/", get(handlers::home::index))
         .route("/about", get(handlers::passthrough(about)))
         .route("/login", get(handlers::passthrough(login)).post(handlers::auth::login))
-        .route("/logout", post(handlers::auth::logout));
+        .route("/logout", post(handlers::auth::logout))
+        .merge(super::sitemap::create_router());
 
     #[cfg(debug_assertions)]
     let router = {

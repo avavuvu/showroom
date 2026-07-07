@@ -41,14 +41,14 @@ void main() {
   // Figure out which ASCII cell this pixel is in
   vec2 cellCoord = floor(v_texCoord * u_gridSize);
   vec2 thisCell = cellCoord;
-  
+
   // Sample video at cell center (mipmaps handle averaging)
   vec2 cellCenter = (cellCoord + 0.5) / u_gridSize;
   vec4 videoColor = texture(u_video, cellCenter);
-  
+
   // Perceived brightness using human eye sensitivity weights
   float brightness = dot(videoColor.rgb, vec3(0.299, 0.587, 0.114));
-  
+
   // Apply brightness multiplier
   // brightness < 1.0: darkens (multiply)
   // brightness > 1.0: brightens (compress dark values toward 1.0)
@@ -62,27 +62,27 @@ void main() {
     adjustedBrightness = 1.0 - (1.0 - brightness) / u_brightness;
   }
   adjustedBrightness = clamp(adjustedBrightness, 0.0, 1.0);
-  
+
   // Map brightness to character index (Inverted for dark-on-light: 0 = lightest/sparse, N = darkest/dense)
   float charIndex = floor((1.0 - adjustedBrightness) * (u_numChars - 0.001));
-  
+
   // Find the character in the atlas (horizontal strip of pre-rendered chars)
   float atlasX = charIndex / u_numChars;
   vec2 cellPos = fract(v_texCoord * u_gridSize);
   vec2 atlasCoord = vec2(atlasX + cellPos.x / u_numChars, cellPos.y);
   vec4 charColor = texture(u_asciiAtlas, atlasCoord);
-  
+
   // Pick the color - video colors or green terminal aesthetic
   vec3 baseColor = vec3(1.0, 1.0, 1.0);
-  
-  
-  // White background, black text
+
+
+  // White background, atlas-coloured text
   vec3 bgColor = vec3(1.0, 1.0, 1.0);
-  vec3 textColor = vec3(0.0, 0.0, 0.0);
-  vec3 finalColor = mix(bgColor, textColor, charColor.r);
-  
+  float charMask = dot(charColor.rgb, vec3(0.299, 0.587, 0.114));
+  vec3 finalColor = mix(bgColor, charColor.rgb, smoothstep(0.05, 0.6, charMask));
+
   // Blend with original video if requested
-  
+
   fragColor = vec4(finalColor, 1.0);
 }
-`
+`;

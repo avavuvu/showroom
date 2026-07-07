@@ -1,9 +1,10 @@
 use maud::{Markup, html};
-use crate::views::{context::PageContext, layouts::{ViewContext, shell}};
+use crate::views::{context::PageContext, layouts::{ViewContext, shell, view_context::Metadata}};
 
 pub fn about(ctx: &PageContext) -> Markup {
     shell(
-        &ViewContext::metadata("About"),
+        ViewContext::page("About")
+            .seo(Metadata::website("About Showroom, a newsletter service for people like you")),
         ctx, html! {
         main.article-layout .prose {
             div.flow  {

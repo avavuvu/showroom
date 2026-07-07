@@ -1,12 +1,4 @@
 import Alpine from "alpinejs";
-import "htmx.org";
-
-const asciiContainer = document.getElementById("ascii-background");
-if (asciiContainer) {
-    import("./ascii/background").then(({ initAsciiBackground }) => {
-        initAsciiBackground(asciiContainer);
-    });
-}
 
 Alpine.data("saveStatus", () => ({
     status: "Saved",

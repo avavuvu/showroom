@@ -7,5 +7,6 @@ pub mod layouts;
 pub mod subscriber;
 pub mod user;
 pub mod pages;
+pub mod sitemap;
 
 pub use context::PageContext;

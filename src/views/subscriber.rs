@@ -29,20 +29,9 @@ pub fn subscribe_error(message: &str) -> Markup {
     }
 }
 
-pub fn confirmed(handle: &str) -> Markup {
-    base(
-        &ViewContext::metadata("Confirmed"),
-        html! {
-        div {
-            h1 { "You're subscribed!" }
-            p { "Your subscription to " (handle) " has been confirmed." }
-        }
-    })
-}
-
 pub fn unsubscribed(handle: &str) -> Markup {
     base(
-        &ViewContext::metadata("Confirmed"),
+        ViewContext::page("Confirmed"),
         html! {
         div {
             h1 { "Sorry to see you go" }
