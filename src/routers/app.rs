@@ -1,4 +1,4 @@
-use axum::{middleware, Router, routing::{get, post}};
+use axum::{middleware, Router, routing::{delete, get, post}};
 use crate::{auth::middleware::required_auth, handlers::{dashboard::*, error404::app_404, settings, subscribers}, state::AppState};
 
 pub fn create_router(state: AppState) -> Router {
@@ -6,6 +6,7 @@ pub fn create_router(state: AppState) -> Router {
         .fallback(app_404)
         .route("/", get(index))
         .route("/newsletters", get(get_newsletters).post(post_newsletters))
+        .route("/newsletters/{id}", delete(delete_newsletter))
         .route("/edit/{id}", get(get_edit))
         .route("/send/{id}", get(get_send).post(post_send))
         .route("/json/{id}", get(get_edit_json).put(put_edit_json))

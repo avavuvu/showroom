@@ -51,10 +51,17 @@ pub fn newsletters(newsletters: Vec<newsletter::Model>, user_base: &str) -> Mark
     html! {
         ul {
             @for newsletter in &newsletters {
-                li {
+                li id={ "newsletter-" (newsletter.id) } {
                     h2 { (newsletter.title) }
-                    a href={ (user_base) "/" (newsletter.slug) } { "View" }
+                    @if newsletter.sent_at.is_some() {
+                        a href={ (user_base) "/" (newsletter.slug) } { "View" }
+                    }
                     a href={ "/edit/" (newsletter.id) } { "Edit" }
+                    button
+                        hx-delete={ "/newsletters/" (newsletter.id) }
+                        hx-target={ "#newsletter-" (newsletter.id) }
+                        hx-swap="outerHTML"
+                        hx-confirm="Delete this newsletter?" { "Delete" }
                 }
             }
         }

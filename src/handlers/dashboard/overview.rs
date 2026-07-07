@@ -1,7 +1,7 @@
-use axum::{extract::State, http::StatusCode, response::{IntoResponse, Redirect, Response}};
+use axum::{extract::{Path, State}, http::StatusCode, response::{IntoResponse, Redirect, Response}};
 use nanoid::nanoid;
 use maud::Markup;
-use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter};
+use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, ModelTrait, QueryFilter};
 use crate::{
     auth::extractors::AuthenticatedUser,
     models::newsletter::{self, Entity as Newsletter},
@@ -55,5 +55,24 @@ pub async fn post_newsletters(
             eprintln!("{e}");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         },
+    }
+}
+
+pub async fn delete_newsletter(
+    State(state): State<AppState>,
+    AuthenticatedUser(user): AuthenticatedUser,
+    Path(id): Path<String>,
+) -> StatusCode {
+    let result = Newsletter::find_by_id(&id)
+        .filter(newsletter::Column::UserId.eq(&user.id))
+        .one(&state.db)
+        .await;
+
+    match result {
+        Ok(Some(newsletter)) => {
+            let _ = newsletter.delete(&state.db).await;
+            StatusCode::OK
+        }
+        _ => StatusCode::NOT_FOUND,
     }
 }

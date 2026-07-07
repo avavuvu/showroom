@@ -59,8 +59,7 @@ impl SubdomainRouter {
         if host == self.main_domain {
             SubdomainKind::Base
         } else if host == self.domain {
-            // bare domain redirects to main_domain (room.lc → show.room.lc)
-            if self.domain != self.main_domain {
+            if self.domain != self.main_domain && cfg!(not(debug_assertions)) {
                 SubdomainKind::Redirect
             } else {
                 SubdomainKind::Base
