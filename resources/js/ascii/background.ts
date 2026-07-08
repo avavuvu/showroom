@@ -16,16 +16,14 @@ export function initAsciiBackground(container: HTMLElement): () => void {
     const chars = getCharArray("showroom");
     const charWidth = FONT_SIZE * CHAR_WIDTH_RATIO;
 
-    const video = document.createElement("video");
-    video.src = "/assets/flower-loop.webm";
-    video.loop = true;
-    video.muted = true;
-    video.playsInline = true;
-    video.crossOrigin = "anonymous";
-    video.style.display = "none";
+    // Video is declared in the server-rendered HTML with autoplay/muted/loop/playsinline
+    const video = document.getElementById(
+        "ascii-video",
+    ) as HTMLVideoElement | null;
+    if (!video) return () => {};
 
     const canvas = document.createElement("canvas");
-    container.append(video, canvas);
+    container.append(canvas);
 
     let gl: WebGL2RenderingContext | null = null;
     let videoTexture: WebGLTexture | null = null;
@@ -121,13 +119,45 @@ export function initAsciiBackground(container: HTMLElement): () => void {
     const onResize = () => init();
     window.addEventListener("resize", onResize);
 
-    video.addEventListener("loadedmetadata", () => {
-        init();
-        video.play();
-        raf = requestAnimationFrame(render);
-    });
+    const startRender = () => {
+        if (!raf) raf = requestAnimationFrame(render);
+    };
 
-    video.load();
+    const tryPlay = () => {
+        video
+            .play()
+            .then(startRender)
+            .catch(() => {
+                document.addEventListener(
+                    "click",
+                    () =>
+                        video
+                            .play()
+                            .then(startRender)
+                            .catch(() => {}),
+                    { once: true },
+                );
+                document.addEventListener(
+                    "touchstart",
+                    () =>
+                        video
+                            .play()
+                            .then(startRender)
+                            .catch(() => {}),
+                    { once: true },
+                );
+            });
+    };
+
+    if (video.readyState >= 1) {
+        init();
+        tryPlay();
+    } else {
+        video.addEventListener("loadedmetadata", () => {
+            init();
+            tryPlay();
+        });
+    }
 
     return () => {
         window.removeEventListener("resize", onResize);
@@ -135,6 +165,6 @@ export function initAsciiBackground(container: HTMLElement): () => void {
         video.pause();
         teardown();
         canvas.remove();
-        video.remove();
+        // Don't remove the video — it lives in the server-rendered HTML
     };
 }

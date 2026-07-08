@@ -10,7 +10,17 @@ pub fn index(ctx: &PageContext) -> Markup {
         html! {
         (header(ctx))
         div.lander {
-            div id="ascii-background" {}
+            div id="ascii-background" {
+                video id="ascii-video"
+                    autoplay?[true]
+                    muted?[true]
+                    loop?[true]
+                    playsinline?[true]
+                    {
+                    source src="/assets/flower-loop.webm" type="video/webm";
+                    source src="/assets/flower-loop.mp4" type="video/mp4";
+                }
+            }
             div.container {
                 main {
                     p {

@@ -17,6 +17,11 @@ header.header-full {
         display: flex;
         height: 2em;
 
+        img {
+            height: 100%;
+            width: auto;
+        }
+
         .wordmark {
             @media (max-width: 25em) {
                 display: none;
