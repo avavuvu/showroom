@@ -7,6 +7,7 @@ pub fn create_router(state: AppState) -> Router {
         .route("/", get(handlers::user::profile))
         .route("/{slug}", get(handlers::user::newsletter))
         .route("/newsletters", get(handlers::user::get_newsletters))
+        .route("/api/newsletters", get(handlers::api::get_newsletters))
         .route("/api/newsletters/{slug}", get(handlers::api::get_newsletter))
         .route("/subscribe", post(handlers::subscriber::subscribe))
         .route("/confirm", get(handlers::subscriber::confirm))
