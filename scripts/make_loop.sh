@@ -3,8 +3,8 @@
 set -e
 
 INPUT="$1"
-OUTPUT_WEBM="${2:-resources/static/assets/flower-loop.webm}"
-OUTPUT_MP4="${3:-resources/static/assets/flower-loop.mp4}"
+OUTPUT_WEBM="${2:-showroom-web/resources/static/assets/flower-loop.webm}"
+OUTPUT_MP4="${3:-showroom-web/resources/static/assets/flower-loop.mp4}"
 
 if [ -z "$INPUT" ]; then
     echo "Usage: $0 <input> [output]"

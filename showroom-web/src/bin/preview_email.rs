@@ -1,6 +1,6 @@
 use chrono::Utc;
 use serde_json::json;
-use showroom_rs::{
+use showroom_web::{
     renderer::html::{ThemeVariables, render_email},
     views::layouts::newsletter_template,
 };

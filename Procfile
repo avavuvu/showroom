@@ -1,1 +1,1 @@
-web: ./target/release/showroom-rs
+web: ./target/release/showroom-web
