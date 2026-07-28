@@ -7,38 +7,33 @@ use crate::views::layouts::{ViewContext, base};
 pub fn index(ctx: &PageContext) -> Markup {
     let user = ctx.user.as_ref().expect("dashboard requires authentication");
 
+
+
     let rows = 20;
     let cols = 24;
     base(
         ViewContext::page("Dashboard").alpine().htmx(),
         html! {
         div.dashboard {
-            div.grid
-                style=(format!("
-                    display:grid;
-                    grid-template-rows:repeat({rows}, 1fr);
-                    grid-template-columns:repeat({cols}, calc(100vh / {rows}))"))
-            {
-                .bg-grid {
-                    @for row in 0..rows {
-                        @for col in 0..cols {
-                            div.bg {};
-                        }
+            div {
+                nav {
+                    a.logo  {
+                        "Logo"
+                    }
+                    a.posts href="/posts" {
+                        "Posts"
+                    }
+                    a.subscribers href="/subscribers" {
+                        "Subscribers"
+                    }
+                    a.settings href="/settings" {
+                        "Settings"
                     }
                 }
+            }
 
-                div.nav.logo {
-                    "Logo"
-                }
-                div.nav.posts {
-                    "Posts"
-                }
-                div.nav.subscribers {
-                    "Subscribers"
-                }
-                div.nav.settings {
-                    "Settings"
-                }
+            main {
+
             }
 
             // h1 { "Your dashboard" }
