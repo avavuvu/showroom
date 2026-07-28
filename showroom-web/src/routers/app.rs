@@ -1,5 +1,5 @@
 use axum::{middleware, Router, routing::{delete, get, post}};
-use crate::{auth::middleware::required_auth, handlers::{dashboard::*, error404::app_404, settings, subscribers}, state::AppState};
+use crate::{auth::middleware::required_auth, handlers::{dashboard::*, error404::app_404}, state::AppState};
 
 pub fn create_router(state: AppState) -> Router {
     Router::new()

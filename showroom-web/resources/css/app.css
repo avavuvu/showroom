@@ -10,6 +10,7 @@
 @import "views/preview.css";
 @import "views/user.css";
 @import "views/dashboard.css";
+@import "views/subscribers.css";
 
 :root {
     --font-body: "Times", "Times New Roman", serif;

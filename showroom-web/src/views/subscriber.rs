@@ -31,7 +31,7 @@ pub fn subscribe_error(message: &str) -> Markup {
 
 pub fn unsubscribed(handle: &str) -> Markup {
     base(
-        ViewContext::page("Confirmed"),
+        &ViewContext::page("Confirmed"),
         html! {
         div {
             h1 { "Sorry to see you go" }

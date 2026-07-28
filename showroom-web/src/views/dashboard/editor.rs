@@ -29,7 +29,7 @@ pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     };
 
     base(
-        ViewContext::page("Edit").alpine().htmx().islands(),
+        &ViewContext::page("Edit").alpine().htmx().islands(),
         html! {
         div.edit-view {
             @if newsletter.sent_at.is_some() {

@@ -32,7 +32,7 @@ pub async fn get_subscribers(
     AuthenticatedUser(user): AuthenticatedUser,
 ) -> Markup {
     let subscribers = fetch_subscribers(&user.id, &state.db).await;
-    views::subscribers::index(&PageContext::from_user(&user, state.urls.clone()), &subscribers)
+    views::dashboard::subscribers::index(&PageContext::from_user(&user, state.urls.clone()), &subscribers)
 }
 
 
@@ -123,7 +123,7 @@ pub async fn import_subscribers(
         }
 
         let subscribers = fetch_subscribers(&user.id, &state.db).await;
-        return views::subscribers::import_result(&subscribers, skipped).into_response();
+        return views::dashboard::subscribers::import_result(&subscribers, skipped).into_response();
     }
 
     (StatusCode::BAD_REQUEST, "No file received").into_response()

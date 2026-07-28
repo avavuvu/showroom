@@ -1,27 +1,29 @@
 use maud::{Markup, html};
-use crate::views::{context::PageContext, layouts::{ViewContext, base}};
+use crate::views::{context::PageContext, layouts::{ViewContext, base, dashboard_shell}};
 
 pub fn index(ctx: &PageContext) -> Markup {
-    let user = ctx.user.as_ref().expect("settings requires authentication");
-    base(ViewContext::page("Settings").alpine().htmx(), html! {
-        h1 { "Settings" }
+    dashboard_shell(
+        ViewContext::page("Settings").alpine().htmx(),
+        ctx,
+        html! {
+            h1 { "Settings" }
 
-        section {
-            h2 { "Change Password" }
-            form
-                hx-post="/settings/change-password/request"
-                hx-target="#change-password-result"
-                hx-swap="innerHTML" {
-                div id="change-password-result" {}
-                p { "A reset link will be sent to your email." }
-                button type="submit" { "Send reset email" }
+            section {
+                h2 { "Change Password" }
+                form
+                    hx-post="/settings/change-password/request"
+                    hx-target="#change-password-result"
+                    hx-swap="innerHTML" {
+                    div id="change-password-result" {}
+                    p { "A reset link will be sent to your email." }
+                    button type="submit" { "Send reset email" }
             }
         }
     })
 }
 
 pub fn change_password_form(token: &str) -> Markup {
-    base(ViewContext::page("Set New Password").alpine().htmx(), html! {
+    base(&ViewContext::page("Set New Password").alpine().htmx(), html! {
         h1 { "Set New Password" }
         form
             hx-post="/settings/change-password"
@@ -51,7 +53,7 @@ pub fn change_password_error(message: &str) -> Markup {
 }
 
 pub fn change_password_success() -> Markup {
-    base(ViewContext::page("Password Changed"), html! {
+    base(&ViewContext::page("Password Changed"), html! {
         h1 { "Password changed" }
         p { "Your password has been updated." }
         a href="/settings" { "Back to settings" }

@@ -225,10 +225,11 @@ impl Renderer {
             "image" => {
                 let src   = escape_html(node["attrs"]["src"].as_str().unwrap_or(""));
                 let alt   = escape_html(node["attrs"]["alt"].as_str().unwrap_or(""));
+                let width = escape_html(node["attrs"]["width"].as_str().unwrap_or("normal"));
                 let style = self.image_style();
                 match node["attrs"]["title"].as_str() {
-                    Some(t) => format!("<img src=\"{src}\" alt=\"{alt}\" title=\"{}\"{style}>", escape_html(t)),
-                    None    => format!("<img src=\"{src}\" alt=\"{alt}\"{style}>"),
+                    Some(t) => format!("<img src=\"{src}\" alt=\"{alt}\" title=\"{}\" data-width=\"{width}\"{style}>", escape_html(t)),
+                    None    => format!("<img src=\"{src}\" alt=\"{alt}\" data-width=\"{width}\"{style}>"),
                 }
             }
 

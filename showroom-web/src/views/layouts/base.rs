@@ -2,7 +2,7 @@ use maud::{DOCTYPE, Markup, html};
 
 use crate::views::layouts::{ViewContext, view_context::Metadata};
 
-pub fn base(context: ViewContext, content: Markup) -> Markup {
+pub fn base(context: &ViewContext, content: Markup) -> Markup {
     html! {
         (DOCTYPE)
         html lang="en" {

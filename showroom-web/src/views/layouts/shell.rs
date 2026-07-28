@@ -3,7 +3,7 @@ use crate::views::{components::layout::{footer::footer, header::header}, context
 
 pub fn shell(view: ViewContext, page: &PageContext, content: Markup) -> Markup {
     base(
-        view,
+        &view,
         html! {
             (header(page))
             (content)

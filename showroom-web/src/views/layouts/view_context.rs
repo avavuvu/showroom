@@ -5,6 +5,7 @@ pub struct ViewContext {
     pub islands: bool,
     pub scripts: Vec<String>,
     pub metadata: Option<Metadata>,
+    pub class: Option<String>,
 }
 
 impl ViewContext {
@@ -17,12 +18,13 @@ impl ViewContext {
             islands: false,
             scripts: Vec::new(),
             metadata: None,
+            class: None,
         }
     }
 
     /// Appends " – Showroom" to the title.
     pub fn page(title: impl Into<String>) -> Self {
-        Self::new(format!("{} – Showroom", title.into()))
+        Self::new(format!("{}", title.into()))
     }
 
     pub fn htmx(mut self) -> Self {
@@ -47,6 +49,11 @@ impl ViewContext {
 
     pub fn seo(mut self, metadata: Metadata) -> Self {
         self.metadata = Some(metadata);
+        self
+    }
+
+    pub fn class(mut self, name: String) -> Self {
+        self.class = Some(name);
         self
     }
 }

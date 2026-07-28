@@ -2,20 +2,21 @@ use argon2::{Argon2, PasswordHasher};
 use argon2::password_hash::{rand_core::OsRng, SaltString};
 use axum::{
     Form,
-    extract::{Multipart, Query, State},
+    extract::State,
     http::StatusCode,
     response::{IntoResponse, Response},
 };
+use axum::extract::Query;
 use maud::Markup;
-use nanoid::nanoid;
-use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, sea_query::OnConflict};
+use sea_orm::EntityTrait;
+use sea_orm::{ActiveModelTrait, ActiveValue::Set};
 use serde::Deserialize;
 use validator::Validate;
 
 use crate::{
     auth::{extractors::AuthenticatedUser, jwt},
     mailer,
-    models::{subscriber, user},
+    models::user,
     state::AppState,
     views::{self, PageContext},
 };
@@ -24,7 +25,7 @@ pub async fn get_settings(
     State(state): State<AppState>,
     AuthenticatedUser(user): AuthenticatedUser,
 ) -> Markup {
-    views::settings::index(&PageContext::from_user(&user, state.urls.clone()))
+    views::dashboard::settings::index(&PageContext::from_user(&user, state.urls.clone()))
 }
 
 pub async fn request_password_change(
@@ -35,17 +36,17 @@ pub async fn request_password_change(
         Ok(t) => t,
         Err(e) => {
             eprintln!("[password reset] token generation failed: {e}");
-            return views::settings::change_password_error("Something went wrong, please try again");
+            return views::dashboard::settings::change_password_error("Something went wrong, please try again");
         }
     };
 
     let reset_url = format!("{}/settings/change-password?token={}", state.urls.app(), token);
 
     match mailer::send_password_reset(&state.ses, &user.email, &reset_url, &state.urls).await {
-        Ok(_) => views::settings::change_password_requested(),
+        Ok(_) => views::dashboard::settings::change_password_requested(),
         Err(e) => {
             eprintln!("[password reset] email failed for {}: {e}", user.email);
-            views::settings::change_password_error(&format!("Failed to send email: {e}"))
+            views::dashboard::settings::change_password_error(&format!("Failed to send email: {e}"))
         }
     }
 }
@@ -59,7 +60,7 @@ pub async fn get_change_password(
     AuthenticatedUser(_): AuthenticatedUser,
     Query(params): Query<TokenQuery>,
 ) -> Markup {
-    views::settings::change_password_form(&params.token)
+    views::dashboard::settings::change_password_form(&params.token)
 }
 
 #[derive(Deserialize, Validate)]
@@ -103,5 +104,5 @@ pub async fn post_change_password(
     active.password = Set(hash);
     let _ = active.update(&state.db).await;
 
-    views::settings::change_password_success().into_response()
+    views::dashboard::settings::change_password_success().into_response()
 }

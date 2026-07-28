@@ -24,6 +24,7 @@ import {
     Code,
     Code2,
     Minus,
+    Image as ImageIcon,
 } from "lucide-vue-next";
 import LinkMenu from "./link/LinkMenu.vue";
 
@@ -244,6 +245,11 @@ const setLink = () => linkMenu.value?.setLink();
                 :icon="Minus"
                 title="Horizontal Rule"
                 @click="editor.chain().focus().setHorizontalRule().run()"
+            />
+            <ToolbarItem
+                :icon="ImageIcon"
+                title="Insert Image"
+                @click="editor.chain().focus().setImage({ src: '' }).run()"
             />
         </div>
     </div>

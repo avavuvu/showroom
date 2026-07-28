@@ -93,6 +93,13 @@
     max-width: 100%;
 }
 
+.prose img[data-width="full"] {
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+}
+
 .prose code {
     background-color: var(--color-surface-muted);
     padding: 0.25em;

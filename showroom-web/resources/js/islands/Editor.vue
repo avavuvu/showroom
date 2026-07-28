@@ -3,6 +3,7 @@ import { useEditor, EditorContent } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
 import UnderlineExtension from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
+import ImageBlock from "../editor/image/ImageBlock";
 import { onMounted, ref, watch } from "vue";
 import Toolbar from "../editor/Toolbar.vue";
 import { useSave } from "../editor/useSave";
@@ -20,6 +21,7 @@ const editor = useEditor({
     extensions: [
         StarterKit,
         UnderlineExtension,
+        ImageBlock,
         Link.extend({
             renderHTML({ HTMLAttributes }) {
                 const { href, target, rel, ...rest } = HTMLAttributes;

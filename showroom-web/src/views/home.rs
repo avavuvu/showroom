@@ -4,7 +4,7 @@ use super::layouts::base;
 
 pub fn index(ctx: &PageContext) -> Markup {
     base(
-        ViewContext::new("Showroom")
+        &ViewContext::new("Showroom")
             .js("ascii")
             .seo(Metadata::website("A newsletter platform for the little guy")),
         html! {

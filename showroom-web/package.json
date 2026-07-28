@@ -16,6 +16,7 @@
         "vite": "^7.3.3"
     },
     "dependencies": {
+        "@tiptap/extension-image": "3.27.1",
         "@tiptap/extension-underline": "^3.27.1",
         "@tiptap/starter-kit": "^3.27.1",
         "@tiptap/vue-3": "^3.27.1",

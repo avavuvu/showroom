@@ -28,7 +28,7 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     // it shouldnt be possible for this to not be rendered,
     // because it gets rendered in the handler
     base(
-        ViewContext::page(&newsletter.title),
+        &ViewContext::page(&newsletter.title),
         html! {
         div.preview-view {
             header {
