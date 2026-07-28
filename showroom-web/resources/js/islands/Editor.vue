@@ -118,16 +118,13 @@ useEventListener(window, "beforeunload", (event) => {
 
 <style scoped>
 .editor {
-    display: grid;
-
-    grid-template-columns: 1fr min(70ch, 100%) 1fr;
-
     & > * {
-        grid-column-start: 2;
         padding: 0 0.5em;
     }
 
     & .editor-meta {
+        max-width: min(70ch, 100%);
+        margin: 0 auto;
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
@@ -162,8 +159,6 @@ useEventListener(window, "beforeunload", (event) => {
         /*border-bottom: 1px solid var(--color-border);*/
         background-color: var(--color-surface);
         padding: 0 8em;
-        grid-column-start: 1;
-        grid-column-end: 4;
     }
 
     & .editor-content {
@@ -178,6 +173,17 @@ useEventListener(window, "beforeunload", (event) => {
     outline: none;
     max-width: none;
     min-height: 80vh;
+
+    display: grid;
+    grid-template-columns: 1fr min(70ch, 100%) 1fr;
+
+    & > * {
+        grid-column: 2;
+    }
+
+    & > [data-width="full"] {
+        grid-column: 1 / 4;
+    }
 }
 
 .tiptap p.is-editor-empty:first-child::before {

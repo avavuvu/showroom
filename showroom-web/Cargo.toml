@@ -32,4 +32,6 @@ aws-sdk-sesv2 = "1"
 
 slugify = "0.1.0"
 csv = "1"
+sha1 = "0.10"
+hex = "0.4"
 dioxus-devtools = { version = "0.7.3", optional = true, features = ["serve"] }

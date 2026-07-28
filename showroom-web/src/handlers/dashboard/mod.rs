@@ -2,6 +2,7 @@ mod editor;
 mod overview;
 mod send;
 
+pub mod images;
 pub mod settings;
 pub mod subscribers;
 

@@ -2,6 +2,7 @@ use std::env;
 use aws_config::{BehaviorVersion, Region};
 use sea_orm::{Database, DatabaseConnection};
 mod auth;
+mod config;
 mod middleware;
 mod mailer;
 mod handlers;
@@ -18,6 +19,7 @@ mod views;
 struct AppEnv {
     db: DatabaseConnection,
     ses: aws_sdk_sesv2::Client,
+    cloudinary: config::cloudinary::CloudinaryConfig,
     port: String,
     domain: String,
     main_domain: String,
@@ -55,13 +57,16 @@ async fn setup() -> AppEnv {
         .await;
     let ses = aws_sdk_sesv2::Client::new(&aws_config);
 
-    AppEnv { db, ses, port, domain, main_domain, jwt_secret }
+    let cloudinary = config::cloudinary::CloudinaryConfig::from_env();
+
+    AppEnv { db, ses, cloudinary, port, domain, main_domain, jwt_secret }
 }
 
 async fn server(env: AppEnv) {
     let app = router::create_service(
         env.db,
         env.ses,
+        env.cloudinary,
         &env.domain,
         &env.port,
         &env.main_domain,

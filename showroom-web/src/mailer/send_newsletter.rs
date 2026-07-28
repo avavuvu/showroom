@@ -9,7 +9,7 @@ use aws_sdk_sesv2::{
 };
 
 use crate::{
-    models::{newsletter::Model as Newsletter, subscriber::Model as Subscriber}, renderer::{html::{ThemeVariables, render_email}, plain_text}, state::Urls, views::layouts::{NewsletterTemplateData, generate_subscriber_data, newsletter_template},
+    models::{newsletter::Model as Newsletter, subscriber::Model as Subscriber}, renderer::{email::{ThemeVariables, render_email}, plain_text}, state::Urls, views::layouts::{NewsletterTemplateData, generate_subscriber_data, newsletter_template},
 };
 
 pub async fn send_newsletter(
@@ -25,7 +25,7 @@ pub async fn send_newsletter(
 
     let template_name = format!("newsletter-{}", newsletter.id);
 
-    let rendered_html = render_email(&newsletter.content, ThemeVariables::default());
+    let rendered_content = render_email(&newsletter.content, ThemeVariables::default());
     let date = newsletter.created_at.format("%B %-d, %Y").to_string();
     let read_online_url = format!("{}/{}", urls.user(author_handle), newsletter.slug);
     let html = newsletter_template(
@@ -36,7 +36,7 @@ pub async fn send_newsletter(
         &read_online_url,
         &urls.user(author_handle),
         None,
-        &rendered_html,
+        rendered_content,
     );
     let text = &plain_text::render(&newsletter.content);
 

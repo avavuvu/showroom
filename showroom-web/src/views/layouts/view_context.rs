@@ -9,7 +9,6 @@ pub struct ViewContext {
 }
 
 impl ViewContext {
-    /// Exact title, no suffix.
     pub fn new(title: impl Into<String>) -> Self {
         Self {
             title: title.into(),
@@ -22,7 +21,6 @@ impl ViewContext {
         }
     }
 
-    /// Appends " – Showroom" to the title.
     pub fn page(title: impl Into<String>) -> Self {
         Self::new(format!("{}", title.into()))
     }

@@ -5,7 +5,6 @@ use crate::{
     auth::extractors::AuthenticatedUser,
     models::newsletter::{self, Entity as Newsletter},
     models::subscriber::{self, Entity as Subscriber},
-    renderer::html::{ThemeVariables, render_email},
     mailer,
     state::AppState,
     views::{self, PageContext},
@@ -23,18 +22,9 @@ pub async fn get_send(
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .ok_or(StatusCode::NOT_FOUND)?;
 
-    let rendered = render_email(&newsletter.content, ThemeVariables::default());
-
-    let mut active: newsletter::ActiveModel = newsletter.into();
-    active.rendered = Set(Some(rendered));
-
-    let rendered_newsletter = active.update(&state.db)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
     let page_ctx = PageContext::from_user(&user, state.urls.clone());
 
-    Ok(views::dashboard::preview(&page_ctx, &rendered_newsletter))
+    Ok(views::dashboard::preview(&page_ctx, &newsletter))
 }
 
 pub async fn post_send(

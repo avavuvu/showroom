@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod config;
 pub mod renderer;
 pub mod htmx;
 pub mod models;

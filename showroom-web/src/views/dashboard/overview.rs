@@ -12,14 +12,6 @@ pub fn index(ctx: &PageContext) -> Markup {
         ctx,
         html! {
         div.dashboard-page {
-                // (button(
-                //     html! { "New Newsletter" },
-                //     ButtonElement::Form,
-                //     &format!("{}/newsletters", ctx.urls.app()),
-                //     Some("button-primary")
-                // ))
-
-
             div.dashboard-content {
                 section.published {
                     h2 { "Published" }
@@ -29,6 +21,13 @@ pub fn index(ctx: &PageContext) -> Markup {
                         hx-swap="outerHTML" {
                         "Loading..."
                     }
+
+                    (button(
+                        html! { "New Newsletter" },
+                        ButtonElement::Form,
+                        &format!("{}/newsletters", ctx.urls.app()),
+                        Some("button-primary new-newsletter")
+                    ))
                 }
 
                 aside.comments {

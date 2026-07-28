@@ -15,6 +15,7 @@ pub fn create_router(state: AppState) -> Router {
         .route("/settings/change-password", get(settings::get_change_password).post(settings::post_change_password))
         .route("/subscribers", get(subscribers::get_subscribers))
         .route("/subscribers/import", post(subscribers::import_subscribers))
+        .route("/images/sign", get(images::sign_upload))
         .layer(middleware::from_fn_with_state(state.clone(), required_auth))
         .with_state(state)
 }

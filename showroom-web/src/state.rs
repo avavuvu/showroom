@@ -1,5 +1,6 @@
 use aws_sdk_sesv2::Client as SesClient;
 use sea_orm::DatabaseConnection;
+use crate::config::cloudinary::CloudinaryConfig;
 
 #[derive(Clone)]
 pub struct Urls {
@@ -64,4 +65,5 @@ pub struct AppState {
     pub urls: Urls,
     pub jwt_secret: String,
     pub ses: SesClient,
+    pub cloudinary: CloudinaryConfig,
 }

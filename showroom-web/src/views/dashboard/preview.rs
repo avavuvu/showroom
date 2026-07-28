@@ -1,5 +1,6 @@
 use maud::{Markup, html};
 use crate::models::newsletter;
+use crate::renderer::email::{ThemeVariables, render_email};
 use crate::views::components::ui::*;
 use crate::views::context::PageContext;
 use crate::views::layouts::{ViewContext, newsletter_template, base};
@@ -14,6 +15,8 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
 
     let date = newsletter.created_at.format("%B %-d, %Y").to_string();
 
+    let content = render_email(&newsletter.content, ThemeVariables::default());
+
     let template = newsletter_template(
         &newsletter.title,
         newsletter.subtitle.as_deref(),
@@ -22,11 +25,9 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
         &user_url,
         &user_url,
         None,
-        newsletter.rendered.as_ref().expect("")
+        content,
     );
 
-    // it shouldnt be possible for this to not be rendered,
-    // because it gets rendered in the handler
     base(
         &ViewContext::page(&newsletter.title),
         html! {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { NodeViewWrapper, nodeViewProps } from "@tiptap/vue-3";
 import { ref } from "vue";
-import { readImageAsDataUrl } from "./readImageAsDataUrl";
+import { uploadImage } from "./uploadImage";
 
 const { node, updateAttributes, selected, deleteNode } = defineProps(nodeViewProps);
 
@@ -19,10 +19,10 @@ async function loadFile(file: File) {
     loadError.value = null;
 
     try {
-        const src = await readImageAsDataUrl(file);
-        updateAttributes({ src, alt: file.name });
-    } catch {
-        loadError.value = "Could not read file";
+        const { src, publicId } = await uploadImage(file);
+        updateAttributes({ src, publicId, alt: file.name });
+    } catch (e) {
+        loadError.value = e instanceof Error ? e.message : "Upload failed";
     } finally {
         isLoading.value = false;
     }

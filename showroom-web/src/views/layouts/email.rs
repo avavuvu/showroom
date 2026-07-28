@@ -1,7 +1,7 @@
 use maud::{DOCTYPE, Markup, PreEscaped, html};
 use serde::Serialize;
 
-use crate::renderer::html::ThemeVariables;
+use crate::renderer::email::{EmailBlock, ThemeVariables};
 
 #[allow(dead_code)]
 pub enum Align {
@@ -56,9 +56,11 @@ pub fn base_email_layout(title: &str, preheader: Option<&str>, theme: Option<The
     }
 }
 
-pub fn email_section(content: &str, padding: &str, align: Option<Align>, theme: &ThemeVariables) -> Markup {
+const GUTTER: &str = "40";
+
+pub fn email_section(content: &str, padding_top: &str, padding_bottom: &str, align: Option<Align>, theme: &ThemeVariables) -> Markup {
     let mut style = format!(
-        "padding:{padding};font-family:{};font-size:14px;color:{};",
+        "padding-top:{padding_top};padding-bottom:{padding_bottom};font-family:{};font-size:14px;color:{};",
         theme.font_body, theme.color_text
     );
     if let Some(a) = align {
@@ -67,9 +69,11 @@ pub fn email_section(content: &str, padding: &str, align: Option<Align>, theme: 
 
     html! {
         tr {
+            td width=(GUTTER) style=(format!("width:{GUTTER}px;padding:0;")) {}
             td style=(style) {
                 (PreEscaped(content))
             }
+            td width=(GUTTER) style=(format!("width:{GUTTER}px;padding:0;")) {}
         }
     }
 }
@@ -93,6 +97,16 @@ pub fn email_a(content: Markup, theme: &ThemeVariables, href: &str, color_overri
 
     html! {
         a href=(href) style=(style) { (content) }
+    }
+}
+
+fn full_width_image_section(src: &str, alt: &str) -> Markup {
+    html! {
+        tr {
+            td colspan="3" style="padding:0;" width="600" {
+                img src=(src) alt=(alt) width="600" style="width:100%;max-width:100%;height:auto;display:block;";
+            }
+        }
     }
 }
 
@@ -143,9 +157,9 @@ pub fn confirmation_html(name: Option<&str>, confirm_url: &str, handle: &str) ->
         Some("Please confirm your subscription."),
         Some(theme.clone()),
         html! {
-            (email_section(&content.0, "32px 40px", None, &theme))
-            (email_section(&button.0, "32px 40px", Some(Align::Center), &theme))
-            (email_section(&footer.0, "32px 40px", None, &theme))
+            (email_section(&content.0, "32px", "32px", None, &theme))
+            (email_section(&button.0, "32px", "32px", Some(Align::Center), &theme))
+            (email_section(&footer.0, "32px", "32px", None, &theme))
         }
     )
 }
@@ -174,9 +188,14 @@ pub fn newsletter_template(
     read_online_url: &str,
     user_url: &str,
     theme: Option<ThemeVariables>,
-    content: &str,
+    mut content: Vec<EmailBlock>,
 ) -> Markup {
     let theme = theme.unwrap_or_default();
+
+    match content.first_mut() {
+        Some(EmailBlock::Content(s)) => *s = "{{greeting_html}}".to_string() + s,
+        _ => content.insert(0, EmailBlock::Content("{{greeting_html}}".to_string())),
+    }
 
     let header = html! {
         (email_p(html! {
@@ -216,9 +235,13 @@ pub fn newsletter_template(
 
     };
 
-    let content = html! {
-        (PreEscaped("{{greeting_html}}"))
-        (PreEscaped(content))
+    let content_rows = html! {
+        @for block in &content {
+            @match block {
+                EmailBlock::Content(s) => (email_section(s, "0", "32px", None, &theme)),
+                EmailBlock::FullWidthImage { src, alt } => (full_width_image_section(src, alt)),
+            }
+        }
     };
 
     let footer = html! {
@@ -235,7 +258,7 @@ pub fn newsletter_template(
             (email_a(
                 html! { "Showroom" },
                 &theme,
-                "https://showroom.you",
+                "https://show.room.lc",
                 None
             ))
             "."
@@ -247,10 +270,10 @@ pub fn newsletter_template(
         subtitle,
         Some(theme.clone()),
         html! {
-            (email_section(&header.0, "32px 40px 24px", Some(Align::Right), &theme))
-            (email_section(&info.0, "0 40px", None, &theme))
-            (email_section(&content.0, "0 40px 32px", None, &theme))
-            (email_section(&footer.0, "24px 40px", Some(Align::Right), &theme))
+            (email_section(&header.0, "32px", "24px", Some(Align::Right), &theme))
+            (email_section(&info.0, "0", "0", None, &theme))
+            (content_rows)
+            (email_section(&footer.0, "24px", "24px", Some(Align::Right), &theme))
         }
     )
 }

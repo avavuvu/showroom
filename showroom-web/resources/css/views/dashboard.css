@@ -82,6 +82,10 @@
         color: var(--color-muted);
     }
 
+    & .new-newsletter {
+        margin: 0.5em 0em;
+    }
+
     & .newsletter-list {
         list-style: none;
         margin: 0;

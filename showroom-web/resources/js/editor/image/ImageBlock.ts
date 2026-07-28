@@ -2,7 +2,7 @@ import Image from "@tiptap/extension-image";
 import { VueNodeViewRenderer } from "@tiptap/vue-3";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import ImageBlockView from "./ImageBlockView.vue";
-import { readImageAsDataUrl } from "./readImageAsDataUrl";
+import { uploadImage } from "./uploadImage";
 
 export const ImageBlock = Image.extend({
     draggable: true,
@@ -14,6 +14,12 @@ export const ImageBlock = Image.extend({
                 default: "normal",
                 parseHTML: (element) => element.getAttribute("data-width") || "normal",
                 renderHTML: (attributes) => ({ "data-width": attributes.width }),
+            },
+            publicId: {
+                default: null,
+                parseHTML: (element) => element.getAttribute("data-public-id"),
+                renderHTML: (attributes) =>
+                    attributes.publicId ? { "data-public-id": attributes.publicId } : {},
             },
         };
     },
@@ -45,9 +51,9 @@ export const ImageBlock = Image.extend({
                         for (const file of files) {
                             if (!file.type.startsWith("image/")) continue;
 
-                            readImageAsDataUrl(file).then((src) => {
+                            uploadImage(file).then(({ src, publicId }) => {
                                 const { schema } = view.state;
-                                const node = schema.nodes.image.create({ src, alt: file.name });
+                                const node = schema.nodes.image.create({ src, alt: file.name, publicId });
                                 const pos = coordinates?.pos ?? view.state.selection.head;
                                 view.dispatch(view.state.tr.insert(pos, node));
                             });
