@@ -4,12 +4,6 @@ use tower_http::services::{ServeDir, ServeFile};
 use tower_livereload::LiveReloadLayer;
 use crate::{auth::middleware::base, middleware::https_redirect::https_redirect, routers::*, state::{AppState, Urls}, services::subdomain::SubdomainRouter};
 
-// Absolute paths rooted at this crate's own directory, independent of the process's CWD at runtime.
-const FAVICON: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/public/favicon.ico");
-const CSS_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/resources/css");
-const ASSETS_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/public/assets");
-const ICONS_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/public/icons");
-
 pub fn create_service(db: DatabaseConnection, ses: aws_sdk_sesv2::Client, domain: &str, port: &str, main_domain: &str, jwt_secret: String) -> axum::Router {
     let state = AppState { db, ses, urls: Urls::new(domain, port, main_domain), jwt_secret };
 
@@ -34,10 +28,10 @@ pub fn create_service(db: DatabaseConnection, ses: aws_sdk_sesv2::Client, domain
     let user_router = user::create_router(state.clone());
 
     let router = axum::Router::new()
-        .route_service("/favicon.ico", ServeFile::new(FAVICON))
-        .nest_service("/css", serve(CSS_DIR))
-        .nest_service("/assets", serve(ASSETS_DIR))
-        .nest_service("/icons", serve(ICONS_DIR))
+        .route_service("/favicon.ico", ServeFile::new("public/favicon.ico"))
+        .nest_service("/css", serve("resources/css"))
+        .nest_service("/assets", serve("public/assets"))
+        .nest_service("/icons", serve("public/icons"))
         .fallback_service(SubdomainRouter::new(lander_router, app_router, user_router, domain, main_domain))
         .layer(middleware::from_fn_with_state(state, base));
 

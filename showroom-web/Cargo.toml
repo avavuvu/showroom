@@ -1,3 +1,5 @@
+[workspace]
+
 [features]
 development = []
 local = ["dep:dioxus-devtools"]

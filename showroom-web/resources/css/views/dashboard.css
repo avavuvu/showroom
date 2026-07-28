@@ -1,0 +1,48 @@
+.dashboard {
+    display: flex;
+    justify-content: center;
+
+    & .grid {
+        height: 100vh;
+        width: 100%;
+        display: grid;
+        /*align-items: center;*/
+
+        & .bg-grid {
+            display: grid;
+            grid-area: 2 / 1 / -1 / -1;
+            grid-template-columns: inherit;
+            grid-template-rows: inherit;
+        }
+
+        & .bg {
+            outline: 1px solid var(--color-foreground);
+            aspect-ratio: 1;
+        }
+
+        & .nav {
+            text-align: center;
+            text-decoration: underline;
+        }
+
+        & .logo {
+            grid-area: 1 / 1 / 4 / 4;
+            background-color: var(--color-surface);
+            height: 100%;
+        }
+
+        & .posts {
+            grid-area: 1 / 4 / 2 / 6;
+        }
+
+        & .subscribers {
+            grid-area: 1 / 7 / 2 / 9;
+        }
+
+        & .settings {
+            grid-area: 1 / 10 / 2 / 12;
+        }
+    }
+
+
+}
