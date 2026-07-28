@@ -1,0 +1,3 @@
+[workspace]
+members = ["showroom-web"]
+resolver = "2"
