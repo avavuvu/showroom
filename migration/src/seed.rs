@@ -8,7 +8,7 @@ use fake::Fake;
 use nanoid::nanoid;
 use sea_orm::{ActiveValue::Set, Database, EntityTrait};
 use serde_json::json;
-use showroom_rs::models::{newsletter, user};
+use showroom_web::models::{newsletter, user};
 use std::env;
 
 fn slugify(s: &str) -> String {

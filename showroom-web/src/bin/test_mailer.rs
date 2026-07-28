@@ -1,7 +1,7 @@
 use chrono::Utc;
 use dotenvy::dotenv;
 use serde_json::json;
-use showroom_rs::{
+use showroom_web::{
     mailer,
     models::{newsletter::Model as Newsletter, subscriber::Model as Subscriber},
     state::Urls,

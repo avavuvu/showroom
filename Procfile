@@ -1,1 +1,1 @@
-web: ./target/release/showroom-rs
+web: cd showroom-web && target/release/showroom-web
