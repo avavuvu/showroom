@@ -12,7 +12,7 @@
         "@vitejs/plugin-vue": "^6.0.7",
         "concurrently": "^10.0.3",
         "tailwindcss": "^4.3.1",
-        "typescript": "~6.0.3",
+        "typescript": "~6.0.3"
     },
     "dependencies": {
         "@tiptap/extension-image": "3.27.1",
@@ -26,6 +26,5 @@
         "lucide-vue-next": "^1.0.0",
         "vue": "^3.5.38",
         "vite": "^7.3.3"
-
     }
 }
