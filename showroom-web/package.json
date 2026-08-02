@@ -4,7 +4,7 @@
     "type": "module",
     "scripts": {
         "dev:js": "concurrently -n vite,dx -c cyan,yellow \"vite build --watch\" \"~/.cargo/bin/dx serve --hot-patch --features local --package showroom-web\"",
-        "build": "vite build",
+           "build": "cd showroom-web && npm install --include=dev && npm run build",
         "dev": "~/.cargo/bin/dx serve --hot-patch --features local --package showroom-web"
     },
     "devDependencies": {
@@ -12,7 +12,8 @@
         "@vitejs/plugin-vue": "^6.0.7",
         "concurrently": "^10.0.3",
         "tailwindcss": "^4.3.1",
-        "typescript": "~6.0.3"
+        "typescript": "~6.0.3",
+        "vite": "^7.3.3"
     },
     "dependencies": {
         "@tiptap/extension-image": "3.27.1",
@@ -24,7 +25,6 @@
         "alpinejs": "^3.15.12",
         "htmx.org": "^2.0.10",
         "lucide-vue-next": "^1.0.0",
-        "vue": "^3.5.38",
-        "vite": "^7.3.3"
+        "vue": "^3.5.38"
     }
 }
