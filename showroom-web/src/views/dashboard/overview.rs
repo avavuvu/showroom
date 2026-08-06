@@ -5,8 +5,6 @@ use crate::views::context::PageContext;
 use crate::views::layouts::{ViewContext, dashboard_shell};
 
 pub fn index(ctx: &PageContext) -> Markup {
-    let user = ctx.user.as_ref().expect("dashboard requires authentication");
-
     dashboard_shell(
         ViewContext::page("Dashboard").alpine().htmx(),
         ctx,
@@ -77,11 +75,17 @@ pub fn newsletters(newsletters: Vec<newsletter::Model>, user_base: &str) -> Mark
 }
 
 fn newsletter_row(newsletter: &newsletter::Model, user_base: &str) -> Markup {
+    let newsletter_url = if newsletter.sent_at.is_some() {
+        format!("{}/{}",user_base, newsletter.slug)
+    } else {
+        format!("/edit/{}",newsletter.id)
+    };
+
     html! {
         li id={ "newsletter-" (newsletter.id) } {
             div {
                 h3 {
-                    a href={ (user_base) "/" (newsletter.slug) } {
+                    a href=(newsletter_url) {
                         (newsletter.title)
                     }
                 }

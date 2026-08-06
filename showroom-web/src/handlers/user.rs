@@ -65,10 +65,21 @@ pub async fn newsletter(
 
 pub async fn get_newsletters(
     State(state): State<AppState>,
-    AuthenticatedUser(user): AuthenticatedUser,
+    UsernameSubdomain(handle): UsernameSubdomain,
 ) -> Markup {
+    print!("{}",handle);
+
+    let owner = match User::find()
+        .filter(user::Column::Handle.eq(&handle))
+        .one(&state.db)
+        .await
+    {
+        Ok(Some(u)) => u,
+        _ => todo!(),
+    };
+
     let mut newsletters = Newsletter::find()
-        .filter(newsletter::Column::UserId.eq(&user.id))
+        .filter(newsletter::Column::UserId.eq(&owner.id))
         .filter(newsletter::Column::SentAt.is_not_null())
         .all(&state.db)
         .await
@@ -76,6 +87,6 @@ pub async fn get_newsletters(
 
     newsletters.sort_unstable_by_key(|n| std::cmp::Reverse(n.sent_at));
 
-    let user_base = state.urls.user(&user.handle);
+    let user_base = state.urls.user(&owner.handle);
     views::user::newsletters(newsletters, &user_base)
 }

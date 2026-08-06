@@ -22,16 +22,17 @@ I have dubbed in Ava's Max Stack
 - [x] Remove create account page on prod
 - [x] Figure out why fake users are not 404ing
     - [x] Enabble JS on user pages
-- [ ] Monorepo conversion
+- [x] Monorepo conversion
+- [ ] Webhooks
 
 ### Features
 - [ ] Subscribe embed
-- [ ] Image CDN (cloudinary?)
+- [x] Image CDN (cloudinary?)
 - [ ] Comments
 - [ ] Webrings
 
 ### Bug fixes
-- [ ] Why does the profile page hang on load?
+- [x] Why does the profile page hang on load?
 - [ ] Fix markdown conversion errors
     - [ ] Create test files
 - [ ] Fix broken email links
@@ -45,6 +46,8 @@ I have dubbed in Ava's Max Stack
 - [ ] Names beyond usernames
 - [ ] Custom headers
 - [ ] Profile link trees
+- [ ] Hero images
+- [ ] Main loading 
 
 ### Preparing for launch
 - [ ] Banned account names
@@ -54,13 +57,16 @@ I have dubbed in Ava's Max Stack
     - [ ] Search Console
 
 ### The editor
-- [ ] Improve link editor
-- [ ] Keyboard shortcuts
-    - [ ] Ctrl+K -> link menu
+- [x] Improve link editor
 - [ ] Add proper loading animation to edit
 - [ ] Add Placeholder
 - [ ] List margins (and other inconsistencies with email)
 - [ ] Code displays really weird on email
+
+#### Keybinds
+- [ ] Keyboard shortcuts
+    - [x] Ctrl+K -> link menu
+    - [x] Ctrl+Click on a link -> Open the link
  
 ## Migrations
 `cargo run -p migration --bin migration -- up

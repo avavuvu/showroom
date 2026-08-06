@@ -1,0 +1,62 @@
+.editor-prose .is-active-link {
+    opacity: 50%;
+}
+
+.editor-prose a:has(.is-active-link) {
+    text-decoration: none;
+}
+
+.link-menu-container {
+    position: fixed;
+    background-color: var(--color-surface, #fff);
+    z-index: 20;
+}
+
+.link-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 1lh;
+    margin: 0;
+    background-color: var(--color-surface, #fff);
+    color: var(--color-primary);
+    box-sizing: content-box;
+    width: 100%;
+}
+
+.link-menu .link-input {
+    margin-left: var(--left);
+    flex: 1;
+    height: 100%;
+    outline: none;
+    border: none;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    text-decoration: underline;
+}
+
+.link-menu .link-input::placeholder {
+    text-decoration: none;
+}
+
+.link-menu .link-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+}
+
+.link-menu .link-btn:hover {
+    background-color: var(--color-surface-hover);
+}
+
+.link-menu .link-btn svg {
+    width: 0.875rem;
+    height: 0.875rem;
+}

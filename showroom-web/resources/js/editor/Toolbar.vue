@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Editor } from "@tiptap/vue-3";
-import { computed, useTemplateRef } from "vue";
+import { computed } from "vue";
 import ToolbarItem from "./ToolbarItem.vue";
 import ToolbarDropdown, {
     type ToolbarDropdownItem,
@@ -26,14 +26,11 @@ import {
     Minus,
     Image as ImageIcon,
 } from "lucide-vue-next";
-import LinkMenu from "./link/LinkMenu.vue";
-
+import { triggerLinkMenu } from "./link/LinkMenu";
 const { editor, variant = "standard" } = defineProps<{
     editor: Editor;
     variant?: "standard" | "minimal";
 }>();
-
-const linkMenu = useTemplateRef("link-menu");
 
 const isBold = computed(() => editor?.isActive("bold") ?? false);
 const isItalic = computed(() => editor?.isActive("italic") ?? false);
@@ -142,12 +139,10 @@ const quoteItems = computed<ToolbarDropdownItem[]>(() => [
     },
 ]);
 
-const setLink = () => linkMenu.value?.setLink();
+const setLink = () => triggerLinkMenu(editor);
 </script>
 
 <template>
-    <LinkMenu :editor ref="link-menu" />
-
     <div v-if="editor" class="toolbar">
         <div class="toolbar-group">
             <ToolbarItem

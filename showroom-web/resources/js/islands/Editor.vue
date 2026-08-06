@@ -4,6 +4,7 @@ import StarterKit from "@tiptap/starter-kit";
 import UnderlineExtension from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import ImageBlock from "../editor/image/ImageBlock";
+import { LinkMenuExtension } from "../editor/link/LinkMenu";
 import { onMounted, ref, watch } from "vue";
 import Toolbar from "../editor/Toolbar.vue";
 import { useSave } from "../editor/useSave";
@@ -27,7 +28,9 @@ const editor = useEditor({
                 const { href, target, rel, ...rest } = HTMLAttributes;
                 return ["a", rest, 0];
             },
+            inclusive: false,
         }).configure({ openOnClick: false }),
+        LinkMenuExtension,
     ],
     editorProps: {
         attributes: { class: "editor-prose" },
@@ -156,7 +159,6 @@ useEventListener(window, "beforeunload", (event) => {
         top: 4em;
         background-color: var(--color-surface);
         z-index: 10;
-        /*border-bottom: 1px solid var(--color-border);*/
         background-color: var(--color-surface);
         padding: 0 8em;
     }
@@ -173,6 +175,7 @@ useEventListener(window, "beforeunload", (event) => {
     outline: none;
     max-width: none;
     min-height: 80vh;
+    align-content: start;
 
     display: grid;
     grid-template-columns: 1fr min(70ch, 100%) 1fr;
@@ -193,4 +196,5 @@ useEventListener(window, "beforeunload", (event) => {
     height: 0;
     pointer-events: none;
 }
+
 </style>
