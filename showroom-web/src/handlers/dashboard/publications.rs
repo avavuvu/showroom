@@ -19,7 +19,12 @@ use crate::{
 };
 
 async fn account_context(user: &user::Model, state: &AppState) -> PageContext {
-    let publications = publication::for_owner(&user.id, &state.db).await.unwrap_or_default();
+    let publications = publication::for_owner(&user.id, &state.db)
+        .await
+        .unwrap_or_else(|e| {
+            eprintln!("[publications] failed to load publications for {}: {e}", user.id);
+            Vec::new()
+        });
     PageContext::from_user(user, state.urls.clone()).with_publications(publications)
 }
 
@@ -27,7 +32,13 @@ pub async fn index(
     State(state): State<AppState>,
     AuthenticatedUser(user): AuthenticatedUser,
 ) -> Response {
-    let publications = publication::for_owner(&user.id, &state.db).await.unwrap_or_default();
+    let publications = match publication::for_owner(&user.id, &state.db).await {
+        Ok(publications) => publications,
+        Err(e) => {
+            eprintln!("[publications] failed to load publications for {}: {e}", user.id);
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }
+    };
 
     match publications.iter().find(|p| p.is_default).or(publications.first()) {
         Some(room) => Redirect::to(&state.urls.dashboard(&room.slug)).into_response(),
