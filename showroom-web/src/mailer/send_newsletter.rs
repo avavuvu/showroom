@@ -9,13 +9,13 @@ use aws_sdk_sesv2::{
 };
 
 use crate::{
-    models::{newsletter::Model as Newsletter, subscriber::Model as Subscriber}, renderer::{email::{ThemeVariables, render_email}, plain_text}, state::Urls, views::layouts::{NewsletterTemplateData, generate_subscriber_data, newsletter_template},
+    models::{newsletter::Model as Newsletter, publication::Model as Publication, subscriber::Model as Subscriber}, renderer::{email::{ThemeVariables, render_email}, plain_text}, state::Urls, views::layouts::{NewsletterTemplateData, generate_subscriber_data, newsletter_template},
 };
 
 pub async fn send_newsletter(
     client: &Client,
     newsletter: &Newsletter,
-    author_handle: &str,
+    publication: &Publication,
     subscribers: &[Subscriber],
     urls: &Urls,
 ) -> Result<()> {
@@ -24,17 +24,18 @@ pub async fn send_newsletter(
     }
 
     let template_name = format!("newsletter-{}", newsletter.id);
+    let publication_url = urls.publication(&publication.slug);
 
     let rendered_content = render_email(&newsletter.content, ThemeVariables::default());
     let date = newsletter.created_at.format("%B %-d, %Y").to_string();
-    let read_online_url = format!("{}/{}", urls.user(author_handle), newsletter.slug);
+    let read_online_url = format!("{}/{}", publication_url, newsletter.slug);
     let html = newsletter_template(
         &newsletter.title,
         newsletter.subtitle.as_deref(),
-        &author_handle,
+        &publication.name,
         &date,
         &read_online_url,
-        &urls.user(author_handle),
+        &publication_url,
         None,
         rendered_content,
     );
@@ -67,17 +68,12 @@ pub async fn send_newsletter(
         )
         .build();
 
-    let from = urls.email(author_handle);
-    println!("{from}");
+    let from = format!("{} <{}>", publication.name, urls.email(&publication.slug));
 
     let entries: Vec<BulkEmailEntry> = subscribers
         .iter()
         .map(|sub| {
-            let unsubscribe_url = format!(
-                "{}/unsubscribe?token={}",
-                urls.user(author_handle),
-                sub.token
-            );
+            let unsubscribe_url = format!("{}/unsubscribe?token={}", publication_url, sub.token);
 
             let data = serde_json::to_string(
                 &generate_subscriber_data(

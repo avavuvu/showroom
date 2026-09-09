@@ -2,84 +2,17 @@ use axum::{extract::{Path, State}, http::StatusCode, Extension};
 use maud::Markup;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use crate::{
-    auth::{context::UserContext, extractors::AuthenticatedUser}, models::{
-        newsletter::{self, Entity as Newsletter},
-        user::{self, Entity as User},
-    }, services::subdomain::UsernameSubdomain, state::AppState, views::{self, pages::error404, PageContext},
+    auth::context::UserContext, models::newsletter::{self, Entity as Newsletter},
+    services::subdomain::CurrentPublication, state::AppState, views::{self, pages::error404, PageContext},
 };
 
 pub async fn profile(
     State(state): State<AppState>,
-    UsernameSubdomain(handle): UsernameSubdomain,
+    CurrentPublication(publication): CurrentPublication,
     Extension(ctx): Extension<UserContext>,
-) -> (StatusCode, Markup) {
-    let page_ctx = PageContext::public(&ctx, state.urls.clone())
-        .with_page_owner(&handle);
-
-    let exists = User::find()
-        .filter(user::Column::Handle.eq(&handle))
-        .one(&state.db)
-        .await
-        .ok()
-        .flatten()
-        .is_some();
-
-    if !exists {
-        return (StatusCode::NOT_FOUND, error404::user_404(&page_ctx));
-    }
-
-    (StatusCode::OK, views::user::profile(&page_ctx))
-}
-
-pub async fn newsletter(
-    State(state): State<AppState>,
-    UsernameSubdomain(handle): UsernameSubdomain,
-    Path(slug): Path<String>,
-    Extension(ctx): Extension<UserContext>,
-) -> (StatusCode, Markup) {
-    let page_ctx = PageContext::public(&ctx, state.urls.clone())
-        .with_page_owner(&handle);
-
-    let owner = match User::find()
-        .filter(user::Column::Handle.eq(&handle))
-        .one(&state.db)
-        .await
-    {
-        Ok(Some(u)) => u,
-        _ => return (StatusCode::NOT_FOUND, error404::user_404(&page_ctx)),
-    };
-
-    let newsletter = match Newsletter::find()
-        .filter(newsletter::Column::UserId.eq(&owner.id))
-        .filter(newsletter::Column::Slug.eq(&slug))
-        .filter(newsletter::Column::SentAt.is_not_null())
-        .one(&state.db)
-        .await
-    {
-        Ok(Some(n)) => n,
-        _ => return (StatusCode::NOT_FOUND, error404::user_404(&page_ctx)),
-    };
-
-    (StatusCode::OK, views::user::newsletter(newsletter, &page_ctx))
-}
-
-pub async fn get_newsletters(
-    State(state): State<AppState>,
-    UsernameSubdomain(handle): UsernameSubdomain,
 ) -> Markup {
-    print!("{}",handle);
-
-    let owner = match User::find()
-        .filter(user::Column::Handle.eq(&handle))
-        .one(&state.db)
-        .await
-    {
-        Ok(Some(u)) => u,
-        _ => todo!(),
-    };
-
     let mut newsletters = Newsletter::find()
-        .filter(newsletter::Column::UserId.eq(&owner.id))
+        .filter(newsletter::Column::PublicationId.eq(&publication.id))
         .filter(newsletter::Column::SentAt.is_not_null())
         .all(&state.db)
         .await
@@ -87,6 +20,27 @@ pub async fn get_newsletters(
 
     newsletters.sort_unstable_by_key(|n| std::cmp::Reverse(n.sent_at));
 
-    let user_base = state.urls.user(&owner.handle);
-    views::user::newsletters(newsletters, &user_base)
+    let page_ctx = PageContext::public(&ctx, state.urls.clone()).with_publication(publication);
+    views::user::profile(&page_ctx, &newsletters)
+}
+
+pub async fn newsletter(
+    State(state): State<AppState>,
+    CurrentPublication(publication): CurrentPublication,
+    Path(slug): Path<String>,
+    Extension(ctx): Extension<UserContext>,
+) -> (StatusCode, Markup) {
+    let newsletter = Newsletter::find()
+        .filter(newsletter::Column::PublicationId.eq(&publication.id))
+        .filter(newsletter::Column::Slug.eq(&slug))
+        .filter(newsletter::Column::SentAt.is_not_null())
+        .one(&state.db)
+        .await;
+
+    let page_ctx = PageContext::public(&ctx, state.urls.clone()).with_publication(publication);
+
+    match newsletter {
+        Ok(Some(n)) => (StatusCode::OK, views::user::newsletter(n, &page_ctx)),
+        _ => (StatusCode::NOT_FOUND, error404::publication_404(&page_ctx)),
+    }
 }

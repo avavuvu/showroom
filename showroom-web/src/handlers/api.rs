@@ -3,12 +3,9 @@ use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, QueryOrder};
 use serde::Serialize;
 
 use crate::{
-    models::{
-        newsletter::{self, Entity as Newsletter},
-        user::{self, Entity as User},
-    },
+    models::newsletter::{self, Entity as Newsletter},
     renderer::markdown,
-    services::subdomain::UsernameSubdomain,
+    services::subdomain::CurrentPublication,
     state::AppState,
 };
 
@@ -29,23 +26,12 @@ pub struct NewsletterResponse {
     pub content: String,
 }
 
-async fn find_owner(handle: &str, state: &AppState) -> Result<crate::models::user::Model, StatusCode> {
-    User::find()
-        .filter(user::Column::Handle.eq(handle))
-        .one(&state.db)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::NOT_FOUND)
-}
-
 pub async fn get_newsletters(
     State(state): State<AppState>,
-    UsernameSubdomain(handle): UsernameSubdomain,
+    CurrentPublication(publication): CurrentPublication,
 ) -> Result<Json<Vec<NewsletterSummary>>, StatusCode> {
-    let owner = find_owner(&handle, &state).await?;
-
     let newsletters = Newsletter::find()
-        .filter(newsletter::Column::UserId.eq(&owner.id))
+        .filter(newsletter::Column::PublicationId.eq(&publication.id))
         .filter(newsletter::Column::SentAt.is_not_null())
         .order_by_desc(newsletter::Column::SentAt)
         .all(&state.db)
@@ -64,13 +50,11 @@ pub async fn get_newsletters(
 
 pub async fn get_newsletter(
     State(state): State<AppState>,
-    UsernameSubdomain(handle): UsernameSubdomain,
+    CurrentPublication(publication): CurrentPublication,
     Path(slug): Path<String>,
 ) -> Result<Json<NewsletterResponse>, StatusCode> {
-    let owner = find_owner(&handle, &state).await?;
-
     let newsletter = Newsletter::find()
-        .filter(newsletter::Column::UserId.eq(&owner.id))
+        .filter(newsletter::Column::PublicationId.eq(&publication.id))
         .filter(newsletter::Column::Slug.eq(&slug))
         .filter(newsletter::Column::SentAt.is_not_null())
         .one(&state.db)

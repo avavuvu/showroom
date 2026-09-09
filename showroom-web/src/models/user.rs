@@ -5,7 +5,6 @@ use sea_orm::entity::prelude::*;
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: String,
-    pub handle: String,
     pub email: String,
     pub password: String,
     pub created_at: DateTimeWithTimeZone,
@@ -14,13 +13,13 @@ pub struct Model {
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-    #[sea_orm(has_many = "super::subscriber::Entity")]
-    Subscriber,
+    #[sea_orm(has_many = "super::publication::Entity")]
+    Publication,
 }
 
-impl Related<super::subscriber::Entity> for Entity {
+impl Related<super::publication::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Subscriber.def()
+        Relation::Publication.def()
     }
 }
 

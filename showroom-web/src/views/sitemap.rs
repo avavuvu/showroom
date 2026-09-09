@@ -2,7 +2,7 @@ use axum::{http::header, response::{IntoResponse, Response}};
 use maud::{Markup, PreEscaped, html};
 
 use crate::{
-    models::{newsletter::Model as Newsletter, user::Model as User},
+    models::{newsletter::Model as Newsletter, publication::Model as Publication},
     state::Urls,
 };
 
@@ -27,7 +27,7 @@ pub fn index(base: &str) -> Xml {
         (decl())
         sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" {
             sitemap { loc { (base) "/sitemap-pages.xml" } }
-            sitemap { loc { (base) "/sitemap-users.xml" } }
+            sitemap { loc { (base) "/sitemap-publications.xml" } }
             sitemap { loc { (base) "/sitemap-newsletters.xml" } }
         }
     })
@@ -43,24 +43,24 @@ pub fn pages(base: &str) -> Xml {
     })
 }
 
-pub fn users(users: &[User], urls: &Urls) -> Xml {
+pub fn publications(publications: &[Publication], urls: &Urls) -> Xml {
     Xml(html! {
         (decl())
         urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" {
-            @for user in users {
-                url { loc { (urls.user(&user.handle)) "/" } }
+            @for publication in publications {
+                url { loc { (urls.publication(&publication.slug)) "/" } }
             }
         }
     })
 }
 
-pub fn newsletters(items: &[(Newsletter, User)], urls: &Urls) -> Xml {
+pub fn newsletters(items: &[(Newsletter, Publication)], urls: &Urls) -> Xml {
     Xml(html! {
         (decl())
         urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" {
-            @for (newsletter, user) in items {
+            @for (newsletter, publication) in items {
                 url {
-                    loc { (urls.user(&user.handle)) "/" (newsletter.slug) }
+                    loc { (urls.publication(&publication.slug)) "/" (newsletter.slug) }
                     @if let Some(sent_at) = newsletter.sent_at {
                         lastmod { (sent_at.format("%Y-%m-%d")) }
                     }

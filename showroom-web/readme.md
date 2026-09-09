@@ -23,13 +23,15 @@ I have dubbed in Ava's Max Stack
 - [x] Figure out why fake users are not 404ing
     - [x] Enabble JS on user pages
 - [x] Monorepo conversion
+- [ ] RSS
+- [ ] Sitemap
 - [ ] Webhooks
+- [ ] convert to HTMX 4
 
 ### Features
 - [ ] Subscribe embed
 - [x] Image CDN (cloudinary?)
 - [ ] Comments
-- [ ] Webrings
 
 ### Bug fixes
 - [x] Why does the profile page hang on load?
@@ -67,6 +69,14 @@ I have dubbed in Ava's Max Stack
 - [ ] Keyboard shortcuts
     - [x] Ctrl+K -> link menu
     - [x] Ctrl+Click on a link -> Open the link
+
+### Blue sky future features
+- [ ] Webrings
+
  
 ## Migrations
-`cargo run -p migration --bin migration -- up
+```
+cargo run -p migration --bin migration -- up
+sea-orm-cli migrate generate <name> -d migration
+cargo run -p migration --bin seed --features seed
+```

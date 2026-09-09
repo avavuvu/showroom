@@ -43,3 +43,18 @@ form.button-primary {
         background-color: var(--color-muted);
     }
 }
+
+.button-danger {
+    border: 1px solid var(--color-error);
+    background-color: var(--color-surface);
+    color: var(--color-error);
+    display: block;
+    padding: 0.25em 0.5em;
+    transition: background-color;
+    transition-duration: 250ms;
+
+    &:hover {
+        background-color: var(--color-error);
+        color: var(--color-surface);
+    }
+}

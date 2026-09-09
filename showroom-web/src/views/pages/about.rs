@@ -32,7 +32,7 @@ pub fn about(ctx: &PageContext) -> Markup {
 
                 p {
                     "Showroom is currently in a very alpha stage. Only my personal newsletter is running on the platform. If you would like updates about Showroom, you can "
-                    a href=(format!("{}", &ctx.urls.user("ava"))) {
+                    a href=(ctx.urls.publication("ava")) {
                         "subscribe to my mailing list."
                     }
                 }

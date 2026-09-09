@@ -128,7 +128,7 @@ pub fn email_button(label: &str, href: &str, theme: &ThemeVariables) -> Markup {
     }
 }
 
-pub fn confirmation_html(name: Option<&str>, confirm_url: &str, handle: &str) -> Markup {
+pub fn confirmation_html(name: Option<&str>, confirm_url: &str, publication_name: &str) -> Markup {
     let theme = ThemeVariables::default();
 
     let content = html! {
@@ -136,7 +136,7 @@ pub fn confirmation_html(name: Option<&str>, confirm_url: &str, handle: &str) ->
             (email_p(html!{ "Hi " (n) ","}, &theme, None))
         }
         (email_p(
-            html!{ "Please confirm your subscription to " strong { "@"(handle) } "."},
+            html!{ "Please confirm your subscription to " strong { (publication_name) } "."},
             &theme, None)
         )
     };
@@ -183,10 +183,10 @@ pub fn generate_subscriber_data(name: Option<&str>, unsubscribe_url: &str) -> Ne
 pub fn newsletter_template(
     title: &str,
     subtitle: Option<&str>,
-    handle: &str,
+    publication_name: &str,
     date: &str,
     read_online_url: &str,
-    user_url: &str,
+    publication_url: &str,
     theme: Option<ThemeVariables>,
     mut content: Vec<EmailBlock>,
 ) -> Markup {
@@ -225,9 +225,9 @@ pub fn newsletter_template(
         }
         (email_p (
             email_a(
-                html! { "@"(handle) },
+                html! { (publication_name) },
                 &theme,
-                &user_url,
+                &publication_url,
                 None),
             &theme,
             None
@@ -247,7 +247,7 @@ pub fn newsletter_template(
     let footer = html! {
         div  {
             (email_a(
-                html! { "Unsubscribe from @"(handle)"." },
+                html! { "Unsubscribe from "(publication_name)"." },
                 &theme,
                 "{{unsubscribe_url}}",
                 None
@@ -278,7 +278,7 @@ pub fn newsletter_template(
     )
 }
 
-pub fn confirmation_text(name: Option<&str>, confirm_url: &str, handle: &str) -> String {
+pub fn confirmation_text(name: Option<&str>, confirm_url: &str, publication_name: &str) -> String {
     let greeting = name.map(|n| format!("Hi {n},\n\n")).unwrap_or_default();
-    format!("{greeting}Please confirm your subscription to {handle} by visiting:\n\n{confirm_url}\n\nIf you did not request this, you can safely ignore this email.")
+    format!("{greeting}Please confirm your subscription to {publication_name} by visiting:\n\n{confirm_url}\n\nIf you did not request this, you can safely ignore this email.")
 }

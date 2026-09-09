@@ -1,25 +1,48 @@
 use maud::{Markup, html};
-use crate::views::{context::PageContext, layouts::{ViewContext, base, dashboard_shell}};
+use crate::views::{components::ui::*, context::PageContext, layouts::{ViewContext, base, dashboard_shell}};
 
 pub fn index(ctx: &PageContext) -> Markup {
+    let domain = ctx.urls.domain();
+
     dashboard_shell(
-        ViewContext::page("Settings").alpine().htmx(),
+        ViewContext::page("Account").alpine().htmx().class("settings".into()),
         ctx,
         html! {
-            h1 { "Settings" }
+            section.settings-section {
+                h2 { "Publications" }
+                p.hint { "Each publication has its own address, subscribers and newsletters." }
+                ul.settings-list {
+                    @for publication in &ctx.publications {
+                        li {
+                            a href=(ctx.urls.dashboard(&publication.slug)) { (publication.name) }
+                            span.address { (publication.slug) "." (domain) }
+                            @if publication.is_default {
+                                span.badge { "Your room" }
+                            }
+                        }
+                    }
+                }
+                (button(
+                    html! { "New publication" },
+                    ButtonElement::A,
+                    &format!("{}/new", ctx.urls.app()),
+                    Some("button-primary")
+                ))
+            }
 
-            section {
-                h2 { "Change Password" }
-                form
-                    hx-post="/settings/change-password/request"
+            section.settings-section {
+                h2 { "Change password" }
+                p.hint { "A reset link will be sent to your email." }
+                form.settings-form
+                    hx-post={ (ctx.urls.app()) "/settings/change-password/request" }
                     hx-target="#change-password-result"
                     hx-swap="innerHTML" {
                     div id="change-password-result" {}
-                    p { "A reset link will be sent to your email." }
-                    button type="submit" { "Send reset email" }
+                    button.button.button-secondary type="submit" { "Send reset email" }
+                }
             }
         }
-    })
+    )
 }
 
 pub fn change_password_form(token: &str) -> Markup {
@@ -56,6 +79,6 @@ pub fn change_password_success() -> Markup {
     base(&ViewContext::page("Password Changed"), html! {
         h1 { "Password changed" }
         p { "Your password has been updated." }
-        a href="/settings" { "Back to settings" }
+        a href="/settings" { "Back to account" }
     })
 }

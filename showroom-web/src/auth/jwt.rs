@@ -6,16 +6,14 @@ use serde::{Deserialize, Serialize};
 pub struct Claims {
     pub sub: String,
     pub user_id: String,
-    pub handle: String,
     pub exp: usize,
 }
 
 impl Claims {
-    pub fn new(email: &str, user_id: &str, handle: &str) -> Self {
+    pub fn new(email: &str, user_id: &str) -> Self {
         Self {
             sub: email.to_string(),
             user_id: user_id.to_string(),
-            handle: handle.to_string(),
             exp: (Utc::now() + chrono::Duration::hours(1)).timestamp() as usize,
         }
     }

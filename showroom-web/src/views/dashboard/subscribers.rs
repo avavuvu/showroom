@@ -32,10 +32,12 @@ pub fn index(ctx: &PageContext, subscribers: &[Subscriber]) -> Markup {
                 }
                 div id="import-status" {}
                 form
-                    hx-post="/subscribers/import"
+                    hx-post={ (ctx.dashboard_url()) "/subscribers/import" }
                     hx-target="#subscribers-tbody"
                     hx-swap="outerHTML"
-                    hx-encoding="multipart/form-data" {
+                    hx-encoding="multipart/form-data"
+                    hx-config="timeout:300000"
+                    hx-status:4xx="target:#import-status swap:innerHTML" {
                     input type="file" name="file" accept=".csv" required;
                     button.button.button-primary type="submit" { "Import" }
                 }

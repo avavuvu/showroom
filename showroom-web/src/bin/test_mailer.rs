@@ -3,7 +3,7 @@ use dotenvy::dotenv;
 use serde_json::json;
 use showroom_web::{
     mailer,
-    models::{newsletter::Model as Newsletter, subscriber::Model as Subscriber},
+    models::{newsletter::Model as Newsletter, publication::Model as Publication, subscriber::Model as Subscriber},
     state::Urls,
 };
 
@@ -19,9 +19,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let client = aws_sdk_sesv2::Client::new(&aws_config);
     let urls = Urls::new(domain, port, "");
 
+    let publication = Publication {
+        id: "test-publication".to_string(),
+        owner_id: "test-user".to_string(),
+        slug: "test".to_string(),
+        name: "test's room".to_string(),
+        description: None,
+        theme: None,
+        is_default: true,
+        created_at: Utc::now().fixed_offset(),
+        updated_at: Utc::now().fixed_offset(),
+    };
+
     let newsletter = Newsletter {
         id: "test-05".to_string(),
-        user_id: "test-user".to_string(),
+        publication_id: publication.id.clone(),
         title: "My Test Newsletter".to_string(),
         slug: "test".to_string(),
         subtitle: Some("Testing the mailer".to_string()),
@@ -42,7 +54,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     let subscribers = vec![Subscriber {
         token: "test-token-02".to_string(),
-        user_id: "test-users".to_string(),
+        publication_id: publication.id.clone(),
         name: Some("Ava".to_string()),
         email: to_email.clone(),
         is_confirmed: true,
@@ -52,7 +64,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("Sending test newsletter to {to_email}...");
     println!("Creating SES template...");
 
-    mailer::send_newsletter(&client, &newsletter, "test", &subscribers, &urls).await?;
+    mailer::send_newsletter(&client, &newsletter, &publication, &subscribers, &urls).await?;
 
     println!("Done — check {to_email}");
 

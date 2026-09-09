@@ -1,50 +1,47 @@
 use maud::{Markup, PreEscaped, html};
-use crate::{models::newsletter::{self, Model as Newsletter}, renderer::html::render, views::{components::forms::subscribe::subscribe_form, context::PageContext, layouts::{Metadata, ViewContext, shell}}};
+use crate::{models::newsletter::Model as Newsletter, renderer::html::render, views::{components::forms::subscribe::subscribe_form, context::PageContext, layouts::{Metadata, ViewContext, shell}}};
 
-pub fn profile(ctx: &PageContext) -> Markup {
-    let owner = ctx.page_owner.as_ref().expect("user profile requires page_owner");
+pub fn profile(ctx: &PageContext, newsletters: &[Newsletter]) -> Markup {
+    let publication = ctx.publication();
+    let publication_url = ctx.publication_url();
 
     let metadata = Metadata::article(
-        &format!("{}'s room", &owner.handle),
-        &owner.handle,
-        &ctx.urls.user(&owner.handle));
+        publication.description.as_deref().unwrap_or(&publication.name),
+        &publication.name,
+        &publication_url);
 
     shell(
-        ViewContext::page(&owner.handle)
-            .alpine().htmx()
+        ViewContext::page(&publication.name)
+            .htmx()
             .seo(metadata),
         ctx,
         html! {
             div.user-view .article-layout .flow {
-                h1 { (owner.handle)"'s room" }
-
-                div
-                    hx-get="/newsletters"
-                    hx-trigger="load"
-                    hx-swap="outerHTML" {
-                    "Loading..."
+                h1 { (publication.name) }
+                @if let Some(description) = &publication.description {
+                    p.description { (description) }
                 }
-
+                (newsletter_list(newsletters, &publication_url))
             }
-            (subscribe_form(&ctx.urls.user(&owner.handle), &owner.handle))
+            (subscribe_form(&publication_url, &publication.name))
         }
     )
 }
 
 pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
-    let owner = ctx.page_owner.as_ref().expect("newsletter view requires page_owner");
+    let publication = ctx.publication();
+    let publication_url = ctx.publication_url();
     let html_string = render(&newsletter.content);
     let date = newsletter.created_at.format("%B %-d, %Y").to_string();
-    let user_url = ctx.urls.user(&owner.handle);
 
     let metadata = Metadata::article(
         &newsletter.title,
-        &owner.handle,
-        &user_url);
+        &publication.name,
+        &publication_url);
 
     shell(
         ViewContext::page(&newsletter.title)
-            .alpine().htmx()
+            .htmx()
             .seo(metadata),
         ctx,
         html! {
@@ -57,7 +54,7 @@ pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
                         p.subtitle { (subtitle) }
                     }
                     p.handle {
-                        a href=(user_url) { "@"(owner.handle) }
+                        a href=(publication_url) { (publication.name) }
                     }
                 }
                 (PreEscaped(html_string))
@@ -65,21 +62,21 @@ pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
             div.subscribe {
                 p {
                     "To recieve updates whenever "
-                    a href=(user_url) { (owner.handle) }
+                    a href=(publication_url) { (publication.name) }
                     " posts, consider subscribing."
                 }
-                (subscribe_form(&user_url, &owner.handle))
+                (subscribe_form(&publication_url, &publication.name))
             }
         }
     })
 }
 
-pub fn newsletters(newsletters: Vec<newsletter::Model>, user_base: &str) -> Markup {
+fn newsletter_list(newsletters: &[Newsletter], publication_url: &str) -> Markup {
     html! {
         ul {
-            @for newsletter in &newsletters {
+            @for newsletter in newsletters {
                 li {
-                    a href=(format!("{}/{}", user_base, newsletter.slug)) { (newsletter.title) }
+                    a href=(format!("{}/{}", publication_url, newsletter.slug)) { (newsletter.title) }
                 }
             }
         }

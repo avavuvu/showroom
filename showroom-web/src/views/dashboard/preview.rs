@@ -6,12 +6,10 @@ use crate::views::context::PageContext;
 use crate::views::layouts::{ViewContext, newsletter_template, base};
 
 pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
-    let send_url = format!("{}/send/{}", ctx.urls.app(), newsletter.id);
-    let back_url = format!("{}/edit/{}", ctx.urls.app(), newsletter.id);
-
-    let user = ctx.user.as_ref().expect("dashboard requires authentication");
-
-    let user_url = ctx.urls.user(&user.handle);
+    let publication = ctx.publication();
+    let send_url = format!("{}/send/{}", ctx.dashboard_url(), newsletter.id);
+    let back_url = format!("{}/edit/{}", ctx.dashboard_url(), newsletter.id);
+    let publication_url = ctx.publication_url();
 
     let date = newsletter.created_at.format("%B %-d, %Y").to_string();
 
@@ -20,10 +18,10 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     let template = newsletter_template(
         &newsletter.title,
         newsletter.subtitle.as_deref(),
-        &user.handle,
+        &publication.name,
         &date,
-        &user_url,
-        &user_url,
+        &publication_url,
+        &publication_url,
         None,
         content,
     );
@@ -58,7 +56,7 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
                         "FROM:"
                     }
                     span {
-                        (&ctx.urls.email(&user.handle))
+                        (publication.name) " <" (ctx.urls.email(&publication.slug)) ">"
                     }
                     span {
                         "TO:"

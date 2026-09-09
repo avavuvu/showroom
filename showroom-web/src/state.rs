@@ -46,16 +46,20 @@ impl Urls {
         format!("{}://app.{}{}", self.scheme(), self.domain, self.port_suffix())
     }
 
-    pub fn user(&self, handle: &str) -> String {
-        format!("{}://{}.{}{}", self.scheme(), handle, self.domain, self.port_suffix())
+    pub fn publication(&self, slug: &str) -> String {
+        format!("{}://{}.{}{}", self.scheme(), slug, self.domain, self.port_suffix())
+    }
+
+    pub fn dashboard(&self, slug: &str) -> String {
+        format!("{}/{}", self.app(), slug)
     }
 
     pub fn cookie(&self) -> String {
         format!(".{}", self.domain)
     }
 
-    pub fn email(&self, handle: &str) -> String {
-        format!("{}@{}", handle, self.main_domain)
+    pub fn email(&self, slug: &str) -> String {
+        format!("{}@{}", slug, self.main_domain)
     }
 }
 

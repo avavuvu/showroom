@@ -21,13 +21,12 @@ pub fn app_404(ctx: &PageContext) -> Markup {
     })
 }
 
-pub fn user_404(ctx: &PageContext) -> Markup {
-    let owner = ctx.page_owner.as_ref().expect("user_404 requires page_owner");
+pub fn publication_404(ctx: &PageContext) -> Markup {
     shell(ViewContext::page("404"), ctx, html! {
         main.article-layout .flow .prose {
             h1 { "404" }
             p { "Page not found." }
-            a href=(ctx.urls.user(&owner.handle)) { "Back to profile" }
+            a href=(ctx.publication_url()) { "Back to " (ctx.publication().name) }
         }
     })
 }

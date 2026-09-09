@@ -4,23 +4,44 @@ use axum::{
     http::{StatusCode, Request, request::Parts},
     response::Response,
 };
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use std::convert::Infallible;
 use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 use tower::Service;
 
-#[derive(Clone, Debug)]
-pub struct UsernameSubdomain(pub String);
+use crate::{models::publication::{self, Entity as Publication}, state::AppState};
 
-impl<S: Send + Sync> FromRequestParts<S> for UsernameSubdomain {
+#[derive(Clone, Debug)]
+pub struct PublicationSlug(pub String);
+
+impl<S: Send + Sync> FromRequestParts<S> for PublicationSlug {
     type Rejection = StatusCode;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         parts
             .extensions
-            .get::<UsernameSubdomain>()
+            .get::<PublicationSlug>()
             .cloned()
+            .ok_or(StatusCode::NOT_FOUND)
+    }
+}
+
+pub struct CurrentPublication(pub publication::Model);
+
+impl FromRequestParts<AppState> for CurrentPublication {
+    type Rejection = StatusCode;
+
+    async fn from_request_parts(parts: &mut Parts, state: &AppState) -> Result<Self, Self::Rejection> {
+        let PublicationSlug(slug) = PublicationSlug::from_request_parts(parts, state).await?;
+
+        Publication::find()
+            .filter(publication::Column::Slug.eq(&slug))
+            .one(&state.db)
+            .await
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+            .map(CurrentPublication)
             .ok_or(StatusCode::NOT_FOUND)
     }
 }
@@ -29,7 +50,7 @@ impl<S: Send + Sync> FromRequestParts<S> for UsernameSubdomain {
 pub struct SubdomainRouter {
     base: axum::Router, //      main_domain (show.room.lc)
     app: axum::Router,  //      app.domain
-    user: axum::Router, //      {handle}.domain
+    publication: axum::Router, // {slug}.domain
     domain: String,      // room.lc
     main_domain: String, // show.room.lc
 }
@@ -37,7 +58,7 @@ pub struct SubdomainRouter {
 enum SubdomainKind {
     Base,
     App,
-    User(String),
+    Publication(String),
     Redirect, // bare domain → main_domain
 }
 
@@ -45,11 +66,11 @@ impl SubdomainRouter {
     pub fn new(
         base: axum::Router,
         app: axum::Router,
-        user: axum::Router,
+        publication: axum::Router,
         domain: impl Into<String>,
         main_domain: impl Into<String>,
     ) -> Self {
-        Self { base, app, user, domain: domain.into(), main_domain: main_domain.into() }
+        Self { base, app, publication, domain: domain.into(), main_domain: main_domain.into() }
     }
 
     fn classify(&self, host: &str) -> SubdomainKind {
@@ -70,7 +91,7 @@ impl SubdomainRouter {
             if sub.is_empty() || sub.contains('.') {
                 SubdomainKind::Base
             } else {
-                SubdomainKind::User(sub.to_string())
+                SubdomainKind::Publication(sub.to_string())
             }
         } else {
             SubdomainKind::Base
@@ -104,9 +125,9 @@ impl Service<Request<Body>> for SubdomainRouter {
                 let mut router = self.app.clone();
                 Box::pin(async move { router.call(req).await })
             }
-            SubdomainKind::User(username) => {
-                req.extensions_mut().insert(UsernameSubdomain(username));
-                let mut router = self.user.clone();
+            SubdomainKind::Publication(slug) => {
+                req.extensions_mut().insert(PublicationSlug(slug));
+                let mut router = self.publication.clone();
                 Box::pin(async move { router.call(req).await })
             }
             SubdomainKind::Redirect => {

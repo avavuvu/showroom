@@ -1,14 +1,14 @@
 use axum::{
-    Form, extract::State, response::{IntoResponse, Redirect, Response},
+    Extension, Form, extract::State, response::{IntoResponse, Redirect, Response},
 };
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 use argon2::password_hash::{rand_core::OsRng, SaltString};
 use axum_extra::extract::cookie::CookieJar;
 use validator::Validate;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, Set};
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, Set, TransactionTrait};
 use serde::Deserialize;
 use crate::{
-    auth::{cookies, jwt}, htmx, models::{refresh_token, user::{self, Entity as User}}, state::AppState
+    auth::{context::UserContext, cookies, jwt}, htmx, models::{publication::{self, Entity as Publication}, refresh_token, user::{self, Entity as User}}, state::AppState, views::{self, PageContext}
 };
 
 fn alphanumeric(value: &str) -> Result<(), validator::ValidationError> {
@@ -42,6 +42,29 @@ pub struct SignupForm {
     pub password: String,
 }
 
+pub async fn login_page(
+    State(state): State<AppState>,
+    Extension(ctx): Extension<UserContext>,
+) -> Response {
+    if ctx.is_authenticated() {
+        return Redirect::to(&state.urls.app()).into_response();
+    }
+
+    views::auth::login(&PageContext::public(&ctx, state.urls.clone())).into_response()
+}
+
+#[cfg(debug_assertions)]
+pub async fn signup_page(
+    State(state): State<AppState>,
+    Extension(ctx): Extension<UserContext>,
+) -> Response {
+    if ctx.is_authenticated() {
+        return Redirect::to(&state.urls.app()).into_response();
+    }
+
+    views::auth::signup(&PageContext::public(&ctx, state.urls.clone())).into_response()
+}
+
 pub async fn login(
     State(state): State<AppState>,
     jar: CookieJar,
@@ -69,27 +92,10 @@ pub async fn login(
 
     let user = user.unwrap();
 
-    let claims = jwt::Claims::new(&user.email, &user.id, &user.handle);
-    let jwt_token = match jwt::generate(state.jwt_secret.as_bytes(), claims) {
-        Ok(t) => t,
-        Err(_) => return htmx::fragments::error("Something went wrong, please try again").into_response(),
-    };
-
-    let refresh_token_value = uuid::Uuid::new_v4().to_string();
-    let new_refresh = refresh_token::ActiveModel {
-        id: Set(uuid::Uuid::new_v4().to_string()),
-        user_id: Set(user.id),
-        token: Set(refresh_token_value.clone()),
-        expires_at: Set((chrono::Utc::now() + chrono::Duration::days(30)).into()),
-        created_at: Set(chrono::Utc::now().into()),
-    };
-    new_refresh.insert(&state.db).await.unwrap();
-
-    let jar = jar
-        .add(cookies::make("jwt", jwt_token, 1, &state.urls.cookie()))
-        .add(cookies::make("refresh", refresh_token_value, 30 * 24, &state.urls.cookie()));
-
-    (jar, htmx::redirect("/")).into_response()
+    match issue_session(&state, jar, &user).await {
+        Ok(jar) => (jar, htmx::redirect(&state.urls.app())).into_response(),
+        Err(response) => response,
+    }
 }
 
 pub async fn signup(
@@ -101,6 +107,11 @@ pub async fn signup(
         return htmx::oob_only(htmx::fragments::from_errors(errors));
     }
 
+    let slug = form.handle.to_lowercase();
+    if let Err(message) = publication::validate_slug(&slug) {
+        return htmx::fragments::field_errors(&[("handle", Some(message))]).into_response();
+    }
+
     let email_taken = User::find()
         .filter(user::Column::Email.eq(&form.email))
         .one(&state.db)
@@ -108,8 +119,8 @@ pub async fn signup(
         .unwrap()
         .is_some();
 
-    let handle_taken = User::find()
-        .filter(user::Column::Handle.eq(&form.handle))
+    let handle_taken = Publication::find()
+        .filter(publication::Column::Slug.eq(&slug))
         .one(&state.db)
         .await
         .unwrap()
@@ -128,37 +139,67 @@ pub async fn signup(
         .unwrap()
         .to_string();
 
+    let now = chrono::Utc::now().fixed_offset();
+    let user_id = uuid::Uuid::new_v4().to_string();
+
     let new_user = user::ActiveModel {
-        id: Set(uuid::Uuid::new_v4().to_string()),
+        id: Set(user_id.clone()),
         email: Set(form.email.clone()),
-        handle: Set(form.handle.clone()),
         password: Set(hash),
-        created_at: Set(chrono::Utc::now().into()),
+        created_at: Set(now),
         ..Default::default()
     };
-    let user = new_user.insert(&state.db).await.unwrap();
 
-    let claims = jwt::Claims::new(&user.email, &user.id, &user.handle);
-    let jwt_token = match jwt::generate(state.jwt_secret.as_bytes(), claims) {
-        Ok(t) => t,
-        Err(_) => return htmx::fragments::error("Something went wrong, please try again").into_response(),
+    let default_room = publication::ActiveModel {
+        id: Set(uuid::Uuid::new_v4().to_string()),
+        owner_id: Set(user_id),
+        slug: Set(slug.clone()),
+        name: Set(format!("{slug}'s room")),
+        description: Set(None),
+        theme: Set(None),
+        is_default: Set(true),
+        created_at: Set(now),
+        updated_at: Set(now),
     };
+
+    let user = match state.db.transaction::<_, user::Model, sea_orm::DbErr>(|txn| {
+        Box::pin(async move {
+            let user = new_user.insert(txn).await?;
+            default_room.insert(txn).await?;
+            Ok(user)
+        })
+    }).await {
+        Ok(user) => user,
+        Err(e) => {
+            eprintln!("[signup] {e}");
+            return htmx::fragments::error("Something went wrong, please try again").into_response();
+        }
+    };
+
+    match issue_session(&state, jar, &user).await {
+        Ok(jar) => (jar, htmx::redirect(&state.urls.app())).into_response(),
+        Err(response) => response,
+    }
+}
+
+async fn issue_session(state: &AppState, jar: CookieJar, user: &user::Model) -> Result<CookieJar, Response> {
+    let claims = jwt::Claims::new(&user.email, &user.id);
+    let jwt_token = jwt::generate(state.jwt_secret.as_bytes(), claims)
+        .map_err(|_| htmx::fragments::error("Something went wrong, please try again").into_response())?;
 
     let refresh_token_value = uuid::Uuid::new_v4().to_string();
     let new_refresh = refresh_token::ActiveModel {
         id: Set(uuid::Uuid::new_v4().to_string()),
-        user_id: Set(user.id),
+        user_id: Set(user.id.clone()),
         token: Set(refresh_token_value.clone()),
         expires_at: Set((chrono::Utc::now() + chrono::Duration::days(30)).into()),
         created_at: Set(chrono::Utc::now().into()),
     };
     new_refresh.insert(&state.db).await.unwrap();
 
-    let jar = jar
+    Ok(jar
         .add(cookies::make("jwt", jwt_token, 1, &state.urls.cookie()))
-        .add(cookies::make("refresh", refresh_token_value, 30 * 24, &state.urls.cookie()));
-
-    (jar, htmx::redirect("/login")).into_response()
+        .add(cookies::make("refresh", refresh_token_value, 30 * 24, &state.urls.cookie())))
 }
 
 pub async fn logout(State(state): State<AppState>, jar: CookieJar) -> Response {

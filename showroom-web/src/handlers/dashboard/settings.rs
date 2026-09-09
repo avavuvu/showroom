@@ -16,7 +16,7 @@ use validator::Validate;
 use crate::{
     auth::{extractors::AuthenticatedUser, jwt},
     mailer,
-    models::user,
+    models::{publication, user},
     state::AppState,
     views::{self, PageContext},
 };
@@ -25,7 +25,9 @@ pub async fn get_settings(
     State(state): State<AppState>,
     AuthenticatedUser(user): AuthenticatedUser,
 ) -> Markup {
-    views::dashboard::settings::index(&PageContext::from_user(&user, state.urls.clone()))
+    let publications = publication::for_owner(&user.id, &state.db).await.unwrap_or_default();
+    let ctx = PageContext::from_user(&user, state.urls.clone()).with_publications(publications);
+    views::dashboard::settings::index(&ctx)
 }
 
 pub async fn request_password_change(

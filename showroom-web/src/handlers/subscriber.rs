@@ -8,10 +8,8 @@ use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, DbErr, EntityTrai
 use serde::Deserialize;
 
 use crate::{
-    htmx, mailer, models::{
-        subscriber::{self, Entity as Subscriber},
-        user::{self, Entity as User},
-    }, services::subdomain::UsernameSubdomain, state::AppState, views,
+    htmx, mailer, models::{publication, subscriber::{self, Entity as Subscriber}},
+    services::subdomain::CurrentPublication, state::AppState, views,
 };
 
 #[derive(Deserialize, Validate)]
@@ -28,31 +26,23 @@ pub struct TokenQuery {
 
 pub async fn subscribe(
     State(state): State<AppState>,
-    UsernameSubdomain(handle): UsernameSubdomain,
+    CurrentPublication(publication): CurrentPublication,
     Form(form): Form<SubscribeForm>,
 ) -> Response {
     if let Err(errors) = form.validate() {
         return htmx::oob_only(htmx::fragments::from_errors(errors));
     }
 
-    let user = match User::find()
-        .filter(user::Column::Handle.eq(&handle))
-        .one(&state.db)
-        .await
-    {
-        Ok(Some(u)) => u,
-        _ => return views::subscriber::subscribe_error("Something went wrong, please try again").into_response(),
-    };
-
-    insert_or_resend(&state, &user.id, &form, &handle).await
+    insert_or_resend(&state, &publication, &form).await
 }
 
 pub async fn confirm(
     State(state): State<AppState>,
-    UsernameSubdomain(handle): UsernameSubdomain,
+    CurrentPublication(publication): CurrentPublication,
     Query(params): Query<TokenQuery>,
 ) -> Result<Redirect, StatusCode> {
     let subscriber = Subscriber::find_by_id(&params.token)
+        .filter(subscriber::Column::PublicationId.eq(&publication.id))
         .one(&state.db)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
@@ -66,29 +56,31 @@ pub async fn confirm(
 
     Ok(Redirect::to(&format!(
         "{}?from=confirmation",
-        state.urls.user(&handle)
+        state.urls.publication(&publication.slug)
     )))
 }
 
 pub async fn unsubscribe(
     State(state): State<AppState>,
-    UsernameSubdomain(handle): UsernameSubdomain,
+    CurrentPublication(publication): CurrentPublication,
     Query(params): Query<TokenQuery>,
 ) -> Result<Markup, StatusCode> {
-    Subscriber::delete_by_id(&params.token)
+    Subscriber::delete_many()
+        .filter(subscriber::Column::Token.eq(&params.token))
+        .filter(subscriber::Column::PublicationId.eq(&publication.id))
         .exec(&state.db)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    Ok(views::subscriber::unsubscribed(&handle))
+    Ok(views::subscriber::unsubscribed(&publication.name))
 }
 
-async fn insert_or_resend(state: &AppState, user_id: &str, form: &SubscribeForm, handle: &str) -> Response {
+async fn insert_or_resend(state: &AppState, publication: &publication::Model, form: &SubscribeForm) -> Response {
     let token = nanoid!(21);
 
     let subscriber_response = (subscriber::ActiveModel {
         token: Set(token.clone()),
-        user_id: Set(user_id.to_string()),
+        publication_id: Set(publication.id.clone()),
         name: Set(form.name.clone()),
         email: Set(form.email.clone()),
         is_confirmed: Set(false),
@@ -98,33 +90,33 @@ async fn insert_or_resend(state: &AppState, user_id: &str, form: &SubscribeForm,
         .await;
 
     match subscriber_response {
-        Ok(_) => send_confirmation(state, &form.email, form.name.as_deref(), &token, handle).await,
+        Ok(_) => send_confirmation(state, &form.email, form.name.as_deref(), &token, publication).await,
 
         Err(DbErr::RecordNotInserted) |
         Err(DbErr::Exec(_)) |
-        Err(DbErr::Query(_)) => resend_if_unconfirmed(state, &form.email, user_id, handle).await,
+        Err(DbErr::Query(_)) => resend_if_unconfirmed(state, &form.email, publication).await,
 
         Err(e) => views::subscriber::subscribe_error(&format!("Something went wrong, please try again: {e}")).into_response(),
     }
 }
 
-async fn resend_if_unconfirmed(state: &AppState, email: &str, user_id: &str, handle: &str) -> Response {
+async fn resend_if_unconfirmed(state: &AppState, email: &str, publication: &publication::Model) -> Response {
     let existing = Subscriber::find()
         .filter(subscriber::Column::Email.eq(email))
-        .filter(subscriber::Column::UserId.eq(user_id))
+        .filter(subscriber::Column::PublicationId.eq(&publication.id))
         .one(&state.db)
         .await;
 
     match existing {
         Ok(Some(sub)) if !sub.is_confirmed => {
-            send_confirmation(state, &sub.email, sub.name.as_deref(), &sub.token, handle).await
+            send_confirmation(state, &sub.email, sub.name.as_deref(), &sub.token, publication).await
         }
         _ => views::subscriber::subscribe_exists().into_response(),
     }
 }
 
-async fn send_confirmation(state: &AppState, email: &str, name: Option<&str>, token: &str, handle: &str) -> Response {
-    let confirmation_response = mailer::send_confirmation(&state.ses, email, name, token, handle, &state.urls)
+async fn send_confirmation(state: &AppState, email: &str, name: Option<&str>, token: &str, publication: &publication::Model) -> Response {
+    let confirmation_response = mailer::send_confirmation(&state.ses, email, name, token, publication, &state.urls)
         .await;
 
     if let Err(e) = confirmation_response {

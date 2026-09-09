@@ -7,7 +7,7 @@ pub fn input(id: &str, name: &str, kind: &str, autocomplete: &str, placeholder: 
                 input
                     id=(id)
                     name=(name)
-                    type=(kind)s
+                    type=(kind)
                     autocomplete=(autocomplete)
                     placeholder=(placeholder)
                     required?[is_required];

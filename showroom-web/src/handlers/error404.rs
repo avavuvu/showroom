@@ -3,7 +3,7 @@ use maud::Markup;
 
 use crate::{
     auth::{context::UserContext, extractors::AuthenticatedUser},
-    services::subdomain::UsernameSubdomain,
+    services::subdomain::CurrentPublication,
     state::AppState,
     views::{pages::error404, PageContext},
 };
@@ -24,12 +24,17 @@ pub async fn app_404(
     (StatusCode::NOT_FOUND, error404::app_404(&page_ctx))
 }
 
-pub async fn user_404(
+pub async fn publication_404(
     State(state): State<AppState>,
-    UsernameSubdomain(handle): UsernameSubdomain,
+    publication: Result<CurrentPublication, StatusCode>,
     Extension(ctx): Extension<UserContext>,
 ) -> (StatusCode, Markup) {
-    let page_ctx = PageContext::public(&ctx, state.urls.clone())
-        .with_page_owner(&handle);
-    (StatusCode::NOT_FOUND, error404::user_404(&page_ctx))
+    let page_ctx = PageContext::public(&ctx, state.urls.clone());
+
+    let page = match publication {
+        Ok(CurrentPublication(publication)) => error404::publication_404(&page_ctx.with_publication(publication)),
+        Err(_) => error404::lander_404(&page_ctx),
+    };
+
+    (StatusCode::NOT_FOUND, page)
 }

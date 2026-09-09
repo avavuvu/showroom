@@ -6,10 +6,9 @@ use crate::views::layouts::{ViewContext, base};
 
 pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     let props = serde_json::json!({ "newsletterId": newsletter.id }).to_string();
-    let back_url = ctx.urls.app();
+    let back_url = ctx.dashboard_url();
     let view_or_preview_button = if newsletter.sent_at.is_some() {
-        let user = ctx.user.as_ref().expect("User must be authenticated");
-        let view_url = format!("{}/{}", ctx.urls.user(&user.handle), newsletter.slug);
+        let view_url = format!("{}/{}", ctx.publication_url(), newsletter.slug);
 
         button(
             html!("View"),
@@ -18,7 +17,7 @@ pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
             Some("button-primary")
         )
     } else {
-        let send_url = format!("{}/send/{}", ctx.urls.app(), newsletter.id);
+        let send_url = format!("{}/send/{}", ctx.dashboard_url(), newsletter.id);
 
         button(
             html!( "Publish" ),

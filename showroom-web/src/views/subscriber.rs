@@ -29,13 +29,13 @@ pub fn subscribe_error(message: &str) -> Markup {
     }
 }
 
-pub fn unsubscribed(handle: &str) -> Markup {
+pub fn unsubscribed(publication_name: &str) -> Markup {
     base(
         &ViewContext::page("Confirmed"),
         html! {
         div {
             h1 { "Sorry to see you go" }
-            p { "You've been unsubscribed from " (handle) "." }
+            p { "You've been unsubscribed from " (publication_name) "." }
         }
     })
 }

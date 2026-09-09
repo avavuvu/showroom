@@ -12,13 +12,9 @@ pub fn login(ctx: &PageContext) -> Markup {
                 form.flow
                     method="POST"
                     action="/login"
-                    novalidate?[true]
                     hx-post="/login"
-                    hx-trigger="validated"
                     hx-target="#login-error"
                     hx-swap="innerHTML"
-                    x-data="form()"
-                    x-on:submit="validate($event)"
                 {
                     (input("email", "email", "email", "email", "you@example.com", true))
                     (password_input("password", "Password"))
@@ -47,13 +43,9 @@ pub fn signup(ctx: &PageContext) -> Markup {
                 form.flow
                     method="POST"
                     action="/signup"
-                    novalidate?[true]
                     hx-post="/signup"
-                    hx-trigger="validated"
                     hx-target="#signup-error"
                     hx-swap="innerHTML"
-                    x-data="form()"
-                    x-on:submit="validate($event)"
                 {
                     (input("email", "email", "email", "email", "you@example.com", true))
                     (handle_input())

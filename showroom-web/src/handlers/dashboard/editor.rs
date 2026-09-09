@@ -1,31 +1,43 @@
 use axum::{Json, extract::{Path, State}, http::StatusCode};
 use maud::Markup;
-use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter};
+use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 use slugify::slugify;
 use serde_json::Value;
 use crate::{
-    auth::extractors::AuthenticatedUser,
-    models::newsletter::{self, Entity as Newsletter},
+    auth::extractors::{AuthenticatedUser, OwnedPublication},
+    models::{newsletter::{self, Entity as Newsletter}, publication::Entity as Publication},
     state::AppState,
-    views::{self, PageContext},
+    views,
 };
 
 pub async fn get_edit(
     State(state): State<AppState>,
-    AuthenticatedUser(user): AuthenticatedUser,
-    Path(id): Path<String>,
+    owned: OwnedPublication,
+    Path((_, id)): Path<(String, String)>,
 ) -> Result<Markup, StatusCode> {
     let newsletter = Newsletter::find_by_id(&id)
-        .filter(newsletter::Column::UserId.eq(&user.id))
+        .filter(newsletter::Column::PublicationId.eq(&owned.publication.id))
         .one(&state.db)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .ok_or(StatusCode::NOT_FOUND)?;
 
-    let page_ctx = PageContext::from_user(&user, state.urls.clone());
+    Ok(views::dashboard::edit(&owned.into_context(state.urls.clone()), &newsletter))
+}
 
-    Ok(views::dashboard::edit(&page_ctx, &newsletter))
+async fn find_owned_newsletter(id: &str, user_id: &str, db: &DatabaseConnection) -> Result<newsletter::Model, StatusCode> {
+    let (newsletter, publication) = Newsletter::find_by_id(id)
+        .find_also_related(Publication)
+        .one(db)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .ok_or(StatusCode::NOT_FOUND)?;
+
+    match publication {
+        Some(p) if p.owner_id == user_id => Ok(newsletter),
+        _ => Err(StatusCode::NOT_FOUND),
+    }
 }
 
 pub async fn get_edit_json(
@@ -33,12 +45,7 @@ pub async fn get_edit_json(
     AuthenticatedUser(user): AuthenticatedUser,
     Path(id): Path<String>,
 ) -> Result<Json<NewsletterResponse>, StatusCode> {
-    let newsletter = Newsletter::find_by_id(&id)
-        .filter(newsletter::Column::UserId.eq(&user.id))
-        .one(&state.db)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::NOT_FOUND)?;
+    let newsletter = find_owned_newsletter(&id, &user.id, &state.db).await?;
 
     let response = NewsletterResponse {
         title: newsletter.title,
@@ -62,12 +69,7 @@ pub async fn put_edit_json(
     Path(id): Path<String>,
     Json(body): Json<NewsletterResponse>,
 ) -> Result<StatusCode, StatusCode> {
-    let newsletter = Newsletter::find_by_id(&id)
-        .filter(newsletter::Column::UserId.eq(&user.id))
-        .one(&state.db)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::NOT_FOUND)?;
+    let newsletter = find_owned_newsletter(&id, &user.id, &state.db).await?;
 
     let mut active: newsletter::ActiveModel = newsletter.into();
     active.title = Set(body.title.clone());

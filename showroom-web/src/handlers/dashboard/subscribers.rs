@@ -11,15 +11,15 @@ use sea_orm::{
 };
 
 use crate::{
-    auth::extractors::AuthenticatedUser,
+    auth::extractors::OwnedPublication,
     models::subscriber::{self, Entity as Subscriber},
     state::AppState,
-    views::{self, PageContext},
+    views,
 };
 
-async fn fetch_subscribers(user_id: &str, db: &sea_orm::DatabaseConnection) -> Vec<subscriber::Model> {
+async fn fetch_subscribers(publication_id: &str, db: &sea_orm::DatabaseConnection) -> Vec<subscriber::Model> {
     Subscriber::find()
-        .filter(subscriber::Column::UserId.eq(user_id))
+        .filter(subscriber::Column::PublicationId.eq(publication_id))
         .filter(subscriber::Column::IsConfirmed.eq(true))
         .order_by_desc(subscriber::Column::CreatedAt)
         .all(db)
@@ -29,17 +29,15 @@ async fn fetch_subscribers(user_id: &str, db: &sea_orm::DatabaseConnection) -> V
 
 pub async fn get_subscribers(
     State(state): State<AppState>,
-    AuthenticatedUser(user): AuthenticatedUser,
+    owned: OwnedPublication,
 ) -> Markup {
-    let subscribers = fetch_subscribers(&user.id, &state.db).await;
-    views::dashboard::subscribers::index(&PageContext::from_user(&user, state.urls.clone()), &subscribers)
+    let subscribers = fetch_subscribers(&owned.publication.id, &state.db).await;
+    views::dashboard::subscribers::index(&owned.into_context(state.urls.clone()), &subscribers)
 }
-
-
 
 pub async fn import_subscribers(
     State(state): State<AppState>,
-    AuthenticatedUser(user): AuthenticatedUser,
+    OwnedPublication { publication, .. }: OwnedPublication,
     mut multipart: Multipart,
 ) -> Response {
     while let Ok(Some(field)) = multipart.next_field().await {
@@ -102,8 +100,8 @@ pub async fn import_subscribers(
                 .unwrap_or_else(|| chrono::Utc::now().fixed_offset());
 
             models.push(subscriber::ActiveModel {
-                token:        Set(nanoid!(21)),
-                user_id:      Set(user.id.clone()),
+                token:          Set(nanoid!(21)),
+                publication_id: Set(publication.id.clone()),
                 name:         Set(name),
                 email:        Set(email),
                 is_confirmed: Set(true),
@@ -114,7 +112,7 @@ pub async fn import_subscribers(
         if !models.is_empty() {
             let _ = Subscriber::insert_many(models)
                 .on_conflict(
-                    OnConflict::columns([subscriber::Column::UserId, subscriber::Column::Email])
+                    OnConflict::columns([subscriber::Column::PublicationId, subscriber::Column::Email])
                         .do_nothing()
                         .to_owned()
                 )
@@ -122,7 +120,7 @@ pub async fn import_subscribers(
                 .await;
         }
 
-        let subscribers = fetch_subscribers(&user.id, &state.db).await;
+        let subscribers = fetch_subscribers(&publication.id, &state.db).await;
         return views::dashboard::subscribers::import_result(&subscribers, skipped).into_response();
     }
 
