@@ -1,9 +1,9 @@
 use maud::{Markup, html};
-use crate::views::{context::PageContext, layouts::{ViewContext, shell, view_context::Metadata}};
+use crate::views::{context::PageContext, layouts::{Metadata, page, shell}};
 
 pub fn about(ctx: &PageContext) -> Markup {
     shell(
-        ViewContext::page("About")
+        page("About")
             .seo(Metadata::website("About Showroom, a newsletter service for people like you")),
         ctx, html! {
         main.article-layout .prose {

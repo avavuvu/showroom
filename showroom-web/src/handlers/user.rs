@@ -1,8 +1,9 @@
 use axum::{extract::{Path, State}, http::StatusCode, Extension};
 use maud::Markup;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+use boutique::UserContext;
 use crate::{
-    auth::context::UserContext, models::newsletter::{self, Entity as Newsletter},
+    models::newsletter::{self, Entity as Newsletter},
     services::subdomain::CurrentPublication, state::AppState, views::{self, pages::error404, PageContext},
 };
 

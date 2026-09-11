@@ -1,10 +1,10 @@
 use maud::{Markup, html};
 use crate::views::context::PageContext;
-use crate::views::layouts::{ViewContext, dashboard_shell};
+use crate::views::layouts::{page, dashboard_shell};
 
 pub fn new_form(ctx: &PageContext, slug: &str, name: &str, error: Option<&str>) -> Markup {
     dashboard_shell(
-        ViewContext::page("New publication").class("settings".into()),
+        page("New publication").class("settings".into()),
         ctx,
         html! {
             section.settings-section {
@@ -37,7 +37,7 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
     let dashboard_url = ctx.dashboard_url();
 
     dashboard_shell(
-        ViewContext::page("Settings").class("settings".into()),
+        page("Settings").class("settings".into()),
         ctx,
         html! {
             section.settings-section {

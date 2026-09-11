@@ -1,11 +1,11 @@
 use maud::{Markup, html};
-use crate::views::{components::layout::header::header, context::PageContext, layouts::{ViewContext, view_context::Metadata}};
+use crate::views::{components::layout::header::header, context::PageContext, layouts::{page, Metadata}};
 use super::layouts::base;
 
 pub fn index(ctx: &PageContext) -> Markup {
     base(
-        &ViewContext::new("Showroom")
-            .js("ascii")
+        &page("Showroom")
+            .module("/assets/ascii.js")
             .seo(Metadata::website("A newsletter platform for the little guy")),
         html! {
         (header(ctx))

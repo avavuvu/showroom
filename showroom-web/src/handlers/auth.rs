@@ -1,14 +1,13 @@
 use axum::{
-    Extension, Form, extract::State, response::{IntoResponse, Redirect, Response},
+    Extension, Form, extract::{Query, State}, response::{IntoResponse, Redirect, Response},
 };
-use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
-use argon2::password_hash::{rand_core::OsRng, SaltString};
 use axum_extra::extract::cookie::CookieJar;
+use boutique::{UserContext, htmx, reset, session::{self, LoginError}};
 use validator::Validate;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, Set, TransactionTrait};
+use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter, TransactionTrait};
 use serde::Deserialize;
 use crate::{
-    auth::{context::UserContext, cookies, jwt}, htmx, models::{publication::{self, Entity as Publication}, refresh_token, user::{self, Entity as User}}, state::AppState, views::{self, PageContext}
+    mailer, models::{publication::{self, Entity as Publication}, user::{self, Entity as User}}, state::AppState, views::{self, PageContext}
 };
 
 fn alphanumeric(value: &str) -> Result<(), validator::ValidationError> {
@@ -40,6 +39,10 @@ pub struct SignupForm {
     pub handle: String,
     #[validate(length(min = 8, message = "Password must be at least 8 characters"))]
     pub password: String,
+}
+
+fn something_went_wrong() -> Response {
+    htmx::fragments::error("Something went wrong, please try again").into_response()
 }
 
 pub async fn login_page(
@@ -74,27 +77,23 @@ pub async fn login(
         return htmx::oob_only(htmx::fragments::from_errors(errors));
     }
 
-    let user = User::find()
-        .filter(user::Column::Email.eq(&form.email))
-        .one(&state.db)
-        .await
-        .unwrap();
+    let user = match session::authenticate(&state.auth, &form.email, &form.password).await {
+        Ok(user) => user,
+        Err(LoginError::InvalidCredentials) => {
+            return htmx::fragments::error("Incorrect email or password").into_response();
+        }
+        Err(LoginError::Database(e)) => {
+            eprintln!("[login] {e}");
+            return something_went_wrong();
+        }
+    };
 
-    let valid = user.as_ref().map_or(false, |u| {
-        PasswordHash::new(&u.password)
-            .map(|hash| Argon2::default().verify_password(form.password.as_bytes(), &hash).is_ok())
-            .unwrap_or(false)
-    });
-
-    if !valid {
-        return htmx::fragments::error("Incorrect email or password").into_response();
-    }
-
-    let user = user.unwrap();
-
-    match issue_session(&state, jar, &user).await {
+    match session::issue(&state.auth, jar, &user).await {
         Ok(jar) => (jar, htmx::redirect(&state.urls.app())).into_response(),
-        Err(response) => response,
+        Err(e) => {
+            eprintln!("[login] {e:?}");
+            something_went_wrong()
+        }
     }
 }
 
@@ -133,26 +132,18 @@ pub async fn signup(
         ]).into_response();
     }
 
-    let salt = SaltString::generate(&mut OsRng);
-    let hash = Argon2::default()
-        .hash_password(form.password.as_bytes(), &salt)
-        .unwrap()
-        .to_string();
-
-    let now = chrono::Utc::now().fixed_offset();
-    let user_id = uuid::Uuid::new_v4().to_string();
-
-    let new_user = user::ActiveModel {
-        id: Set(user_id.clone()),
-        email: Set(form.email.clone()),
-        password: Set(hash),
-        created_at: Set(now),
-        ..Default::default()
+    let new_user = match session::new_user(&form.email, &form.password) {
+        Ok(user) => user,
+        Err(e) => {
+            eprintln!("[signup] {e}");
+            return something_went_wrong();
+        }
     };
 
+    let now = chrono::Utc::now().fixed_offset();
     let default_room = publication::ActiveModel {
         id: Set(uuid::Uuid::new_v4().to_string()),
-        owner_id: Set(user_id),
+        owner_id: new_user.id.clone(),
         slug: Set(slug.clone()),
         name: Set(format!("{slug}'s room")),
         description: Set(None),
@@ -172,39 +163,106 @@ pub async fn signup(
         Ok(user) => user,
         Err(e) => {
             eprintln!("[signup] {e}");
-            return htmx::fragments::error("Something went wrong, please try again").into_response();
+            return something_went_wrong();
         }
     };
 
-    match issue_session(&state, jar, &user).await {
+    match session::issue(&state.auth, jar, &user).await {
         Ok(jar) => (jar, htmx::redirect(&state.urls.app())).into_response(),
-        Err(response) => response,
+        Err(e) => {
+            eprintln!("[signup] {e:?}");
+            something_went_wrong()
+        }
     }
 }
 
-async fn issue_session(state: &AppState, jar: CookieJar, user: &user::Model) -> Result<CookieJar, Response> {
-    let claims = jwt::Claims::new(&user.email, &user.id);
-    let jwt_token = jwt::generate(state.jwt_secret.as_bytes(), claims)
-        .map_err(|_| htmx::fragments::error("Something went wrong, please try again").into_response())?;
-
-    let refresh_token_value = uuid::Uuid::new_v4().to_string();
-    let new_refresh = refresh_token::ActiveModel {
-        id: Set(uuid::Uuid::new_v4().to_string()),
-        user_id: Set(user.id.clone()),
-        token: Set(refresh_token_value.clone()),
-        expires_at: Set((chrono::Utc::now() + chrono::Duration::days(30)).into()),
-        created_at: Set(chrono::Utc::now().into()),
-    };
-    new_refresh.insert(&state.db).await.unwrap();
-
-    Ok(jar
-        .add(cookies::make("jwt", jwt_token, 1, &state.urls.cookie()))
-        .add(cookies::make("refresh", refresh_token_value, 30 * 24, &state.urls.cookie())))
+pub async fn logout(State(state): State<AppState>, jar: CookieJar) -> Response {
+    let jar = session::revoke(&state.auth, jar).await;
+    (jar, Redirect::to(&state.urls.base())).into_response()
 }
 
-pub async fn logout(State(state): State<AppState>, jar: CookieJar) -> Response {
-    let jar = jar
-        .remove(cookies::remove("jwt", &state.urls.cookie()))
-        .remove(cookies::remove("refresh", &state.urls.cookie()));
-    (jar, Redirect::to(&state.urls.base())).into_response()
+#[derive(Deserialize, Validate)]
+pub struct ForgotPasswordForm {
+    #[validate(email(message = "Enter a valid email address"))]
+    pub email: String,
+}
+
+pub async fn forgot_password_page(
+    State(state): State<AppState>,
+    Extension(ctx): Extension<UserContext>,
+) -> Response {
+    views::auth::forgot_password(&PageContext::public(&ctx, state.urls.clone())).into_response()
+}
+
+pub async fn forgot_password(
+    State(state): State<AppState>,
+    Form(form): Form<ForgotPasswordForm>,
+) -> Response {
+    if let Err(errors) = form.validate() {
+        return htmx::oob_only(htmx::fragments::from_errors(errors));
+    }
+
+    match reset::request(&state.auth, &form.email).await {
+        Ok(Some((user, token))) => {
+            let reset_url = format!("{}/reset-password?token={}", state.urls.base(), token);
+            if let Err(e) = mailer::send_password_reset(&state.ses, &user.email, &reset_url, &state.urls).await {
+                eprintln!("[forgot-password] email failed for {}: {e}", user.email);
+                return something_went_wrong();
+            }
+        }
+        Ok(None) => {}
+        Err(e) => {
+            eprintln!("[forgot-password] {e:?}");
+            return something_went_wrong();
+        }
+    }
+
+    views::auth::forgot_password_sent().into_response()
+}
+
+#[derive(Deserialize)]
+pub struct TokenQuery {
+    pub token: String,
+}
+
+pub async fn reset_password_page(
+    State(state): State<AppState>,
+    Extension(ctx): Extension<UserContext>,
+    Query(params): Query<TokenQuery>,
+) -> Response {
+    let page_ctx = PageContext::public(&ctx, state.urls.clone());
+
+    match reset::verify_token(&state.auth, &params.token).await {
+        Ok(_) => views::auth::reset_password(&page_ctx, &params.token).into_response(),
+        Err(_) => views::auth::reset_password_invalid(&page_ctx).into_response(),
+    }
+}
+
+#[derive(Deserialize, Validate)]
+pub struct ResetPasswordForm {
+    pub token: String,
+    #[validate(length(min = 8, message = "Password must be at least 8 characters"))]
+    pub password: String,
+    #[validate(must_match(other = "password", message = "Passwords do not match"))]
+    pub password_confirm: String,
+}
+
+pub async fn reset_password(
+    State(state): State<AppState>,
+    Form(form): Form<ResetPasswordForm>,
+) -> Response {
+    if let Err(errors) = form.validate() {
+        return htmx::oob_only(htmx::fragments::from_errors(errors));
+    }
+
+    match reset::complete(&state.auth, &form.token, &form.password).await {
+        Ok(_) => htmx::redirect(&format!("{}/login", state.urls.base())),
+        Err(reset::ResetError::InvalidToken) => {
+            htmx::fragments::error("This link is invalid or has already been used").into_response()
+        }
+        Err(e) => {
+            eprintln!("[reset-password] {e:?}");
+            something_went_wrong()
+        }
+    }
 }

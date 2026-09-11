@@ -6,7 +6,6 @@ mod config;
 mod middleware;
 mod mailer;
 mod handlers;
-mod htmx;
 mod models;
 mod router;
 mod routers;
@@ -14,6 +13,8 @@ mod renderer;
 mod services;
 mod state;
 mod views;
+
+use boutique::htmx;
 
 #[derive(Clone)]
 struct AppEnv {

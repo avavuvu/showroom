@@ -1,5 +1,5 @@
 use maud::{Markup, PreEscaped, html};
-use crate::{models::newsletter::Model as Newsletter, renderer::html::render, views::{components::forms::subscribe::subscribe_form, context::PageContext, layouts::{Metadata, ViewContext, shell}}};
+use crate::{models::newsletter::Model as Newsletter, renderer::html::render, views::{components::forms::subscribe::subscribe_form, context::PageContext, layouts::{Metadata, page, shell}}};
 
 pub fn profile(ctx: &PageContext, newsletters: &[Newsletter]) -> Markup {
     let publication = ctx.publication();
@@ -11,7 +11,7 @@ pub fn profile(ctx: &PageContext, newsletters: &[Newsletter]) -> Markup {
         &publication_url);
 
     shell(
-        ViewContext::page(&publication.name)
+        page(&publication.name)
             .htmx()
             .seo(metadata),
         ctx,
@@ -40,7 +40,7 @@ pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
         &publication_url);
 
     shell(
-        ViewContext::page(&newsletter.title)
+        page(&newsletter.title)
             .htmx()
             .seo(metadata),
         ctx,

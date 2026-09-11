@@ -2,7 +2,7 @@ use maud::{Markup, html};
 use crate::models::newsletter;
 use crate::views::components::ui::*;
 use crate::views::context::PageContext;
-use crate::views::layouts::{ViewContext, dashboard_shell};
+use crate::views::layouts::{page, dashboard_shell};
 
 pub fn index(ctx: &PageContext, newsletters: Vec<newsletter::Model>) -> Markup {
     let publication_url = ctx.publication_url();
@@ -10,7 +10,7 @@ pub fn index(ctx: &PageContext, newsletters: Vec<newsletter::Model>) -> Markup {
     let (published, drafts): (Vec<_>, Vec<_>) = newsletters.into_iter().partition(|n| n.sent_at.is_some());
 
     dashboard_shell(
-        ViewContext::page(&ctx.publication().name).alpine().htmx().class("overview".into()),
+        page(&ctx.publication().name).htmx().class("overview".into()),
         ctx,
         html! {
         div.dashboard-content {

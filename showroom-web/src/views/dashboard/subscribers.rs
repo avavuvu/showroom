@@ -1,12 +1,12 @@
 use maud::{Markup, html};
 use crate::{
-    models::subscriber::Model as Subscriber, views::{context::PageContext, layouts::{ViewContext, dashboard_shell}},
+    models::subscriber::Model as Subscriber, views::{context::PageContext, layouts::{page, dashboard_shell}},
 };
 
 pub fn index(ctx: &PageContext, subscribers: &[Subscriber]) -> Markup {
     dashboard_shell(
-        ViewContext::page("Subscribers")
-            .alpine()
+        page("Subscribers")
+            
             .htmx()
             .class("subscribers".into()),
         ctx,

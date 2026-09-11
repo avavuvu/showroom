@@ -1,4 +1,5 @@
-use crate::{auth::context::UserContext, models::{publication, user}, state::Urls};
+use boutique::UserContext;
+use crate::{models::{publication, user}, state::Urls};
 
 pub struct ViewerUser {
     pub id: String,

@@ -1,5 +1,5 @@
 use maud::{Markup, html};
-use crate::views::layouts::ViewContext;
+use crate::views::layouts::page;
 
 use super::layouts::base;
 
@@ -31,7 +31,7 @@ pub fn subscribe_error(message: &str) -> Markup {
 
 pub fn unsubscribed(publication_name: &str) -> Markup {
     base(
-        &ViewContext::page("Confirmed"),
+        &page("Confirmed"),
         html! {
         div {
             h1 { "Sorry to see you go" }

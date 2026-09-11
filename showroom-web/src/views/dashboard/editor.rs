@@ -2,7 +2,7 @@ use maud::{Markup, html};
 use crate::models::newsletter;
 use crate::views::components::ui::*;
 use crate::views::context::PageContext;
-use crate::views::layouts::{ViewContext, base};
+use crate::views::layouts::{ALPINE_ENTRY, ISLANDS_ENTRY, base, page};
 
 pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     let props = serde_json::json!({ "newsletterId": newsletter.id }).to_string();
@@ -28,7 +28,7 @@ pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     };
 
     base(
-        &ViewContext::page("Edit").alpine().htmx().islands(),
+        &page("Edit").htmx().alpine(ALPINE_ENTRY).islands(ISLANDS_ENTRY),
         html! {
         div.edit-view {
             @if newsletter.sent_at.is_some() {

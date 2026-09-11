@@ -9,6 +9,8 @@ pub fn create_router(state: AppState) -> Router {
         .route("/about", get(handlers::passthrough(about)))
         .route("/login", get(handlers::auth::login_page).post(handlers::auth::login))
         .route("/logout", post(handlers::auth::logout))
+        .route("/forgot-password", get(handlers::auth::forgot_password_page).post(handlers::auth::forgot_password))
+        .route("/reset-password", get(handlers::auth::reset_password_page).post(handlers::auth::reset_password))
         .merge(super::sitemap::create_router());
 
     #[cfg(debug_assertions)]

@@ -7,6 +7,7 @@ I have dubbed in Ava's Max Stack
 - Islands: Vue
 - Client-side Interactivity: Alpine.js
 - Server-side Interactivity: HTMX
+- Auth, layouts, and vendored JS: `boutique` crate
 
 ## To do:
 - [x] edit page fetch

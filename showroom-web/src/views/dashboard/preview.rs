@@ -3,7 +3,7 @@ use crate::models::newsletter;
 use crate::renderer::email::{ThemeVariables, render_email};
 use crate::views::components::ui::*;
 use crate::views::context::PageContext;
-use crate::views::layouts::{ViewContext, newsletter_template, base};
+use crate::views::layouts::{page, newsletter_template, base};
 
 pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     let publication = ctx.publication();
@@ -27,7 +27,7 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     );
 
     base(
-        &ViewContext::page(&newsletter.title),
+        &page(&newsletter.title),
         html! {
         div.preview-view {
             header {

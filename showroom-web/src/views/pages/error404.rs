@@ -1,8 +1,8 @@
 use maud::{Markup, html};
-use crate::views::{context::PageContext, layouts::{ViewContext, base, shell}};
+use crate::views::{context::PageContext, layouts::{page, shell}};
 
 pub fn lander_404(ctx: &PageContext) -> Markup {
-    shell(ViewContext::page("404"), ctx, html! {
+    shell(page("404"), ctx, html! {
         main.article-layout .flow .prose {
             h1 { "404" }
             p { "Page not found." }
@@ -12,7 +12,7 @@ pub fn lander_404(ctx: &PageContext) -> Markup {
 }
 
 pub fn app_404(ctx: &PageContext) -> Markup {
-    shell(ViewContext::page("404"), ctx, html! {
+    shell(page("404"), ctx, html! {
         main.article-layout .flow .prose {
             h1 { "404" }
             p { "Page not found." }
@@ -22,7 +22,7 @@ pub fn app_404(ctx: &PageContext) -> Markup {
 }
 
 pub fn publication_404(ctx: &PageContext) -> Markup {
-    shell(ViewContext::page("404"), ctx, html! {
+    shell(page("404"), ctx, html! {
         main.article-layout .flow .prose {
             h1 { "404" }
             p { "Page not found." }

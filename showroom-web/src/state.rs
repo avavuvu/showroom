@@ -1,4 +1,6 @@
 use aws_sdk_sesv2::Client as SesClient;
+use axum::extract::FromRef;
+use boutique::{AuthConfig, AuthState};
 use sea_orm::DatabaseConnection;
 use crate::config::cloudinary::CloudinaryConfig;
 
@@ -61,13 +63,31 @@ impl Urls {
     pub fn email(&self, slug: &str) -> String {
         format!("{}@{}", slug, self.main_domain)
     }
+
+    pub fn auth_config(&self) -> AuthConfig {
+        AuthConfig::new(format!("{}/login", self.base()), self.cookie())
+            .secure_cookies(self.secure)
+    }
 }
 
 #[derive(Clone)]
 pub struct AppState {
     pub db: DatabaseConnection,
     pub urls: Urls,
-    pub jwt_secret: String,
+    pub auth: AuthState,
     pub ses: SesClient,
     pub cloudinary: CloudinaryConfig,
+}
+
+impl AppState {
+    pub fn new(db: DatabaseConnection, ses: SesClient, cloudinary: CloudinaryConfig, urls: Urls, jwt_secret: String) -> Self {
+        let auth = AuthState::new(db.clone(), jwt_secret, urls.auth_config());
+        Self { db, urls, auth, ses, cloudinary }
+    }
+}
+
+impl FromRef<AppState> for AuthState {
+    fn from_ref(state: &AppState) -> Self {
+        state.auth.clone()
+    }
 }

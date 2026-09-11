@@ -1,8 +1,8 @@
 use axum::{extract::State, http::StatusCode, Extension};
 use maud::Markup;
 
+use boutique::{AuthenticatedUser, UserContext};
 use crate::{
-    auth::{context::UserContext, extractors::AuthenticatedUser},
     services::subdomain::CurrentPublication,
     state::AppState,
     views::{pages::error404, PageContext},
