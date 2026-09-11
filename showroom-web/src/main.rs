@@ -26,10 +26,22 @@ struct AppEnv {
     jwt_secret: String,
 }
 
+#[allow(unused)]
+fn ensure_ssl(url: &str) -> String {
+    if url.contains("sslmode") {
+        url.to_string()
+    } else if url.contains('?') {
+        format!("{}&sslmode=require", url)
+    } else {
+        format!("{}?sslmode=require", url)
+    }
+}
+
 async fn setup() -> AppEnv {
     dotenvy::dotenv().ok();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+
     #[cfg(not(debug_assertions))]
     let database_url = ensure_ssl(&database_url);
     let db = Database::connect(&database_url)
