@@ -807,6 +807,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "boutique"
+version = "0.1.0"
+dependencies = [
+ "argon2",
+ "axum",
+ "axum-extra",
+ "chrono",
+ "jsonwebtoken",
+ "maud",
+ "sea-orm",
+ "sea-orm-migration",
+ "serde",
+ "time",
+ "uuid",
+ "validator",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3625,17 +3643,16 @@ checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
 name = "showroom-web"
 version = "0.1.0"
 dependencies = [
- "argon2",
  "aws-config",
  "aws-sdk-sesv2",
  "axum",
  "axum-extra",
+ "boutique",
  "chrono",
  "csv",
  "dioxus-devtools",
  "dotenvy",
  "hex",
- "jsonwebtoken",
  "maud",
  "nanoid",
  "sea-orm",
@@ -3643,7 +3660,6 @@ dependencies = [
  "serde_json",
  "sha1",
  "slugify",
- "time",
  "tokio",
  "tower",
  "tower-http",

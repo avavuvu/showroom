@@ -1,0 +1,22 @@
+[package]
+name = "boutique"
+version = "0.1.0"
+edition = "2026"
+publish = false
+
+[features]
+migration = ["dep:sea-orm-migration"]
+
+[dependencies]
+axum = "0.8"
+axum-extra = { version = "0.10", features = ["cookie"] }
+sea-orm = { version = "1", features = ["sqlx-postgres", "runtime-tokio-rustls", "macros"] }
+sea-orm-migration = { version = "1", optional = true }
+serde = { version = "1", features = ["derive"] }
+argon2 = "0.5"
+jsonwebtoken = "9"
+chrono = "0.4"
+time = "0.3"
+uuid = { version = "1", features = ["v4"] }
+maud = { version = "0.27", features = ["axum"] }
+validator = "0.20"
