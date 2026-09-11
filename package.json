@@ -4,6 +4,7 @@
     "scripts": {
         "dev": "cd showroom-web && npm run dev",
         "dev:js": "cd showroom-web && npm run dev:js",
-        "build": "cd showroom-web && npm install && npm run build"
+        "build": "cd showroom-web && npm install --include=dev && npm run build"
+
     }
 }

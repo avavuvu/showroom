@@ -7,6 +7,7 @@ mod m20250101_000004_schema_updates;
 mod m20260627_000005_add_rendered_to_newsletters;
 mod m20260627_000006_change_sent_to_sent_at;
 mod m20260627_000007_create_subscribers_table;
+mod m20260909_125444_create_publications;
 
 pub struct Migrator;
 
@@ -21,6 +22,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20260627_000005_add_rendered_to_newsletters::Migration),
             Box::new(m20260627_000006_change_sent_to_sent_at::Migration),
             Box::new(m20260627_000007_create_subscribers_table::Migration),
+            Box::new(m20260909_125444_create_publications::Migration),
         ]
     }
 }

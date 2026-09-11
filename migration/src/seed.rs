@@ -8,7 +8,7 @@ use fake::Fake;
 use nanoid::nanoid;
 use sea_orm::{ActiveValue::Set, Database, EntityTrait};
 use serde_json::json;
-use showroom_web::models::{newsletter, user};
+use showroom_web::models::{newsletter, publication, user};
 use std::env;
 
 fn slugify(s: &str) -> String {
@@ -59,7 +59,6 @@ async fn main() {
 
         user::Entity::insert(user::ActiveModel {
             id: Set(user_id.clone()),
-            handle: Set(username.clone()),
             email: Set(email.clone()),
             password: Set(password.clone()),
             created_at: Set(now),
@@ -71,6 +70,25 @@ async fn main() {
 
         println!("  user: {username} <{email}>");
 
+        let publication_id = nanoid!(14);
+
+        publication::Entity::insert(publication::ActiveModel {
+            id: Set(publication_id.clone()),
+            owner_id: Set(user_id.clone()),
+            slug: Set(username.to_lowercase()),
+            name: Set(format!("{username}'s room")),
+            description: Set(None),
+            theme: Set(None),
+            is_default: Set(true),
+            created_at: Set(now),
+            updated_at: Set(now),
+        })
+        .exec(&db)
+        .await
+        .expect("Failed to insert publication");
+
+        println!("    publication: {publication_id}");
+
         for _ in 0..5 {
             let word1: String = BsNoun().fake();
             let word2: String = BsNoun().fake();
@@ -79,7 +97,7 @@ async fn main() {
 
             newsletter::Entity::insert(newsletter::ActiveModel {
                 id: Set(nanoid!(14)),
-                user_id: Set(user_id.clone()),
+                publication_id: Set(publication_id.clone()),
                 title: Set(title.clone()),
                 slug: Set(slugify(&title)),
                 subtitle: Set(None),
