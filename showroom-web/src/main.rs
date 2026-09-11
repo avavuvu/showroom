@@ -26,6 +26,7 @@ struct AppEnv {
     jwt_secret: String,
 }
 
+// this is used in prod, cargo misses that
 #[allow(unused)]
 fn ensure_ssl(url: &str) -> String {
     if url.contains("sslmode") {

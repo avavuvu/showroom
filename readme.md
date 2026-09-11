@@ -24,3 +24,6 @@ Showroom fullstack backend/frontend
 
 ## /migration
 Database migrations/seeders crate
+
+## /boutique
+Server/session library
