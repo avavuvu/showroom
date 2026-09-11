@@ -1,46 +1,25 @@
-use axum::middleware;
-use sea_orm::DatabaseConnection;
-use tower_http::services::{ServeDir, ServeFile};
-use tower_livereload::LiveReloadLayer;
-use crate::{config::cloudinary::CloudinaryConfig, middleware::https_redirect::https_redirect, routers::*, state::{AppState, Urls}, services::subdomain::SubdomainRouter};
+use boutique::Server;
+use crate::{routers::*, services::subdomain::SubdomainRouter, state::AppState};
 
-pub fn create_service(db: DatabaseConnection, ses: aws_sdk_sesv2::Client, cloudinary: CloudinaryConfig, domain: &str, port: &str, main_domain: &str, jwt_secret: String) -> axum::Router {
-    let state = AppState::new(db, ses, cloudinary, Urls::new(domain, port, main_domain), jwt_secret);
-
-    #[cfg(debug_assertions)]
-    let serve = |dir: &str| {
-        use axum::http::{HeaderValue, header};
-        use tower::ServiceBuilder;
-        use tower_http::set_header::SetResponseHeaderLayer;
-        ServiceBuilder::new()
-            .layer(SetResponseHeaderLayer::overriding(
-                header::CACHE_CONTROL,
-                HeaderValue::from_static("no-store"),
-            ))
-            .service(ServeDir::new(dir))
-    };
-
-    #[cfg(not(debug_assertions))]
-    let serve = |dir: &str| ServeDir::new(dir);
-
+pub fn create_server(state: &AppState) -> (Server, SubdomainRouter) {
     let lander_router = lander::create_router(state.clone());
     let app_router = app::create_router(state.clone());
     let user_router = user::create_router(state.clone());
 
-    let router = axum::Router::new()
-        .merge(boutique::assets::router())
-        .route_service("/favicon.ico", ServeFile::new("public/favicon.ico"))
-        .nest_service("/css", serve("resources/css"))
-        .nest_service("/assets", serve("public/assets"))
-        .nest_service("/icons", serve("public/icons"))
-        .fallback_service(SubdomainRouter::new(lander_router, app_router, user_router, domain, main_domain))
-        .layer(middleware::from_fn_with_state(state.auth.clone(), boutique::middleware::base));
+    let routes = SubdomainRouter::new(
+        lander_router,
+        app_router,
+        user_router,
+        state.urls.domain(),
+        state.urls.main_domain(),
+    );
 
-    #[cfg(debug_assertions)]
-    let router = router.layer(LiveReloadLayer::new());
+    let server = Server::new(state.auth.clone())
+        .file("/favicon.ico", "public/favicon.ico")
+        .static_dir("/css", "resources/css")
+        .static_dir("/assets", "public/assets")
+        .static_dir("/icons", "public/icons")
+        .debug(cfg!(debug_assertions));
 
-    #[cfg(not(debug_assertions))]
-    let router = router.layer(axum::middleware::from_fn(https_redirect));
-
-    router
+    (server, routes)
 }

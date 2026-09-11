@@ -19,8 +19,6 @@ validator = { version = "0.20", features = ["derive"] }
 maud = { version = "0.27", features = ["axum"] }
 tokio = { version = "1", features = ["full"] }
 tower = "0.5"
-tower-http = { version = "0.6", features = ["fs", "set-header"] }
-tower-livereload = "0.10"
 axum-extra = { version = "0.10", features = ["cookie"] }
 dotenvy = "0.15"
 nanoid = "0.4"

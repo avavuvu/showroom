@@ -3,7 +3,6 @@ use aws_config::{BehaviorVersion, Region};
 use sea_orm::{Database, DatabaseConnection};
 mod auth;
 mod config;
-mod middleware;
 mod mailer;
 mod handlers;
 mod models;
@@ -25,16 +24,6 @@ struct AppEnv {
     domain: String,
     main_domain: String,
     jwt_secret: String,
-}
-
-fn ensure_ssl(url: &str) -> String {
-    if url.contains("sslmode") {
-        url.to_string()
-    } else if url.contains('?') {
-        format!("{}&sslmode=require", url)
-    } else {
-        format!("{}?sslmode=require", url)
-    }
 }
 
 async fn setup() -> AppEnv {
@@ -64,25 +53,22 @@ async fn setup() -> AppEnv {
 }
 
 async fn server(env: AppEnv) {
-    let app = router::create_service(
+    let state = state::AppState::new(
         env.db,
         env.ses,
         env.cloudinary,
-        &env.domain,
-        &env.port,
-        &env.main_domain,
+        state::Urls::new(&env.domain, &env.port, &env.main_domain),
         env.jwt_secret,
     );
 
-    let address = format!("0.0.0.0:{}", env.port);
-    let listener = tokio::net::TcpListener::bind(&address).await.unwrap();
+    let (server, routes) = router::create_server(&state);
 
     #[cfg(feature = "local")]
     println!("listening on http://localtest.me:{}", env.port);
     #[cfg(not(feature = "local"))]
-    println!("listening on http://{address}");
+    println!("listening on http://0.0.0.0:{}", env.port);
 
-    axum::serve(listener, app.into_make_service()).await.unwrap();
+    server.serve(routes, &env.port).await;
 }
 
 #[cfg(feature = "local")]
