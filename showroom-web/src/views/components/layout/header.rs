@@ -1,5 +1,6 @@
 use maud::{Markup, html};
-use crate::views::{components::ui::*, context::PageContext};
+use boutique::components::Button;
+use crate::views::context::PageContext;
 
 pub fn header(ctx: &PageContext) -> Markup {
     let login_text = if cfg!(debug_assertions) {
@@ -17,13 +18,13 @@ pub fn header(ctx: &PageContext) -> Markup {
             }
             div.auth {
                 @if ctx.is_authenticated() {
-                    (button(html!{"Log out"}, ButtonElement::Form, &format!("{}/logout", ctx.urls.base()), None))
-                    (button(html!{"Dashboard"}, ButtonElement::A, &ctx.urls.app(), None))
+                    (Button::post(html!{"Log out"}, format!("{}/logout", ctx.urls.base())))
+                    (Button::link(html!{"Dashboard"}, ctx.urls.app()))
                 } @else {
                     @if cfg!(debug_assertions) {
-                        (button(html!{"Get started"}, ButtonElement::A, &format!("{}/signup", ctx.urls.base()), None))
+                        (Button::link(html!{"Get started"}, format!("{}/signup", ctx.urls.base())))
                     }
-                    (button(html!{(login_text)}, ButtonElement::A, &format!("{}/login", ctx.urls.base()), None))
+                    (Button::link(html!{(login_text)}, format!("{}/login", ctx.urls.base())))
                 }
             }
         }

@@ -1,10 +1,14 @@
 pub mod fragments;
 
 use axum::{
-    http::{HeaderValue, StatusCode},
+    http::{HeaderMap, HeaderValue, StatusCode},
     response::{IntoResponse, Response},
 };
-use maud::Markup;
+use maud::{Markup, html};
+
+pub fn is_htmx(headers: &HeaderMap) -> bool {
+    headers.contains_key("hx-request")
+}
 
 pub fn redirect(path: &str) -> Response {
     (
@@ -14,6 +18,12 @@ pub fn redirect(path: &str) -> Response {
         .into_response()
 }
 
+pub fn partial(target: &str, content: Markup) -> Markup {
+    html! {
+        hx-partial hx-target=(target) hx-swap="outerHTML" { (content) }
+    }
+}
+
 pub fn oob_only(markup: Markup) -> Response {
-    ([("HX-Reswap", "none")], markup).into_response()
+    markup.into_response()
 }

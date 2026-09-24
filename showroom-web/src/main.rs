@@ -1,7 +1,6 @@
 use std::env;
 use aws_config::{BehaviorVersion, Region};
 use sea_orm::{Database, DatabaseConnection};
-mod auth;
 mod config;
 mod mailer;
 mod handlers;
@@ -84,19 +83,8 @@ async fn server(env: AppEnv) {
     server.serve(routes, &env.port).await;
 }
 
-#[cfg(feature = "local")]
 #[tokio::main]
 async fn main() {
     let env = setup().await;
-    dioxus_devtools::serve_subsecond_with_args(
-        env,
-        |e| async { server(e).await },
-    ).await;
-}
-
-#[cfg(not(feature = "local"))]
-#[tokio::main]
-async fn main() {
-    let env = setup().await;
-    server(env).await;
+    boutique::run(env, server).await;
 }

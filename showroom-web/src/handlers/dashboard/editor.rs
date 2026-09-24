@@ -4,8 +4,9 @@ use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnectio
 use serde::{Deserialize, Serialize};
 use slugify::slugify;
 use serde_json::Value;
+use boutique::AuthenticatedUser;
 use crate::{
-    auth::extractors::{AuthenticatedUser, OwnedPublication},
+    services::publication::OwnedPublication,
     models::{newsletter::{self, Entity as Newsletter}, publication::Entity as Publication},
     state::AppState,
     views,

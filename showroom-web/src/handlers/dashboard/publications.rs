@@ -6,8 +6,9 @@ use maud::Markup;
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, ModelTrait, QueryFilter, TransactionTrait};
 use serde::Deserialize;
 
+use boutique::AuthenticatedUser;
 use crate::{
-    auth::extractors::{AuthenticatedUser, OwnedPublication},
+    services::publication::OwnedPublication,
     models::{
         newsletter::{self, Entity as Newsletter},
         publication::{self, Entity as Publication},

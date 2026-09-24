@@ -1,8 +1,8 @@
 use maud::{DOCTYPE, Markup, html};
 
-use crate::views::view_context::{Metadata, ViewContext};
+use crate::views::head::{Metadata, Head};
 
-pub fn base(context: &ViewContext, content: Markup) -> Markup {
+pub fn base(context: &Head, content: Markup) -> Markup {
     html! {
         (DOCTYPE)
         html lang="en" {
@@ -13,6 +13,9 @@ pub fn base(context: &ViewContext, content: Markup) -> Markup {
                     link rel="icon" type="image/x-icon" href=(favicon);
                 }
                 title { (context.title) }
+                @for (href, mime) in &context.preloads {
+                    link rel="preload" as="font" type=(mime) href=(href) crossorigin;
+                }
                 @for href in &context.stylesheets {
                     link rel="stylesheet" href=(href);
                 }

@@ -1,6 +1,7 @@
 use axum::{Json, extract::State};
 use serde::Serialize;
-use crate::{auth::extractors::AuthenticatedUser, state::AppState};
+use boutique::AuthenticatedUser;
+use crate::state::AppState;
 
 #[derive(Serialize)]
 pub struct SignatureResponse {

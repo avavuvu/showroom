@@ -6,13 +6,13 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
+use boutique::AuthenticatedUser;
+
 use crate::{
     models::{publication, user},
     state::{AppState, Urls},
     views::PageContext,
 };
-
-pub use boutique::AuthenticatedUser;
 
 pub struct OwnedPublication {
     pub user: user::Model,

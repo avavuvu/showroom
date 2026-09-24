@@ -10,12 +10,13 @@ use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use crate::{
     context::UserContext,
     cookies, jwt,
-    models::{refresh_token::{self, Entity as RefreshToken}, user::Entity as User},
+    models::refresh_token::{self, Entity as RefreshToken},
     state::AuthState,
+    store::{self, AuthUser},
 };
 
-pub async fn base(
-    State(state): State<AuthState>,
+pub async fn base<U: AuthUser>(
+    State(state): State<AuthState<U>>,
     mut request: Request<axum::body::Body>,
     next: Next,
 ) -> Response {
@@ -45,11 +46,11 @@ pub async fn base(
             .flatten();
 
         if let Some(record) = record {
-            if let Ok(Some(user)) = User::find_by_id(&record.user_id).one(&state.db).await {
-                let claims = jwt::Claims::new(&user.id, &user.email, state.config.jwt_ttl_hours);
+            if let Ok(Some(user)) = store::find_by_id::<U>(&state.db, &record.user_id).await {
+                let claims = jwt::Claims::new(user.id(), user.email(), state.config.jwt_ttl_hours);
                 if let Ok(token) = jwt::generate(state.secret(), &claims) {
-                    context.user_id = Some(user.id);
-                    context.email = Some(user.email);
+                    context.user_id = Some(user.id().to_string());
+                    context.email = Some(user.email().to_string());
                     jar = jar.add(cookies::make(cookies::JWT, token, state.config.jwt_ttl_hours, &state.config));
                 }
             }
@@ -61,8 +62,8 @@ pub async fn base(
     (jar, response).into_response()
 }
 
-pub async fn required_auth(
-    State(state): State<AuthState>,
+pub async fn required_auth<U: AuthUser>(
+    State(state): State<AuthState<U>>,
     Extension(ctx): Extension<UserContext>,
     request: Request<axum::body::Body>,
     next: Next,

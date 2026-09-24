@@ -65,7 +65,9 @@ impl Urls {
     }
 
     pub fn auth_config(&self) -> AuthConfig {
-        AuthConfig::new(format!("{}/login", self.base()), self.cookie())
+        AuthConfig::default()
+            .login_url(format!("{}/login", self.base()))
+            .cookie_domain(self.cookie())
             .secure_cookies(self.secure)
     }
 }
@@ -81,7 +83,7 @@ pub struct AppState {
 
 impl AppState {
     pub fn new(db: DatabaseConnection, ses: SesClient, cloudinary: CloudinaryConfig, urls: Urls, jwt_secret: String) -> Self {
-        let auth = AuthState::new(db.clone(), jwt_secret, urls.auth_config());
+        let auth = AuthState::with_config(db.clone(), jwt_secret, urls.auth_config());
         Self { db, urls, auth, ses, cloudinary }
     }
 }

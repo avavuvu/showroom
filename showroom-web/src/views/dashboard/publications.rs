@@ -1,5 +1,5 @@
 use maud::{Markup, html};
-use crate::views::context::PageContext;
+use boutique::components::Button;use crate::views::context::PageContext;
 use crate::views::layouts::{page, dashboard_shell};
 
 pub fn new_form(ctx: &PageContext, slug: &str, name: &str, error: Option<&str>) -> Markup {
@@ -25,7 +25,7 @@ pub fn new_form(ctx: &PageContext, slug: &str, name: &str, error: Option<&str>) 
                         }
                         p.hint { "Lowercase letters, numbers and hyphens. This cannot be changed later." }
                     }
-                    button.button.button-primary type="submit" { "Create publication" }
+                    (Button::submit(html! { "Create publication" }).primary())
                 }
             }
         }
@@ -58,7 +58,7 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
                         "Address"
                         input type="text" value={ (publication.slug) "." (ctx.urls.domain()) } disabled;
                     }
-                    button.button.button-primary type="submit" { "Save" }
+                    (Button::submit(html! { "Save" }).primary())
                 }
             }
 
@@ -73,7 +73,7 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
                     p.hint { "This removes the publication, its newsletters and its subscribers. This cannot be undone." }
                     form method="POST" action={ (dashboard_url) "/delete" }
                         onsubmit="return confirm('Delete this publication and everything in it?')" {
-                        button.button.button-danger type="submit" { "Delete " (publication.name) }
+                        (Button::submit(html! { "Delete " (publication.name) }).danger())
                     }
                 }
             }

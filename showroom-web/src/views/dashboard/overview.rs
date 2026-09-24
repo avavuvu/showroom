@@ -1,6 +1,6 @@
 use maud::{Markup, html};
 use crate::models::newsletter;
-use crate::views::components::ui::*;
+use boutique::components::Button;
 use crate::views::context::PageContext;
 use crate::views::layouts::{page, dashboard_shell};
 
@@ -18,12 +18,7 @@ pub fn index(ctx: &PageContext, newsletters: Vec<newsletter::Model>) -> Markup {
                 section.newsletter-section.drafts {
                     header.section-header {
                         h2 { "Drafts" }
-                        (button(
-                            html! { "New newsletter" },
-                            ButtonElement::Form,
-                            &format!("{}/newsletters", dashboard_url),
-                            Some("button-primary")
-                        ))
+                        (Button::post(html! { "New newsletter" }, format!("{}/newsletters", dashboard_url)).primary())
                     }
                     (newsletter_list(&drafts, &publication_url, &dashboard_url, "No drafts. Start a new newsletter."))
                 }

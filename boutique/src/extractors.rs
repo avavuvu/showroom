@@ -3,25 +3,26 @@ use axum::{
     http::request::Parts,
     response::{IntoResponse, Redirect, Response},
 };
-use sea_orm::EntityTrait;
 
 use crate::{
     context::UserContext,
-    models::user::{self, Entity as User},
+    models::user,
     state::AuthState,
+    store::{self, AuthUser},
 };
 
-pub struct AuthenticatedUser(pub user::Model);
+pub struct AuthenticatedUser<U: AuthUser = user::Model>(pub U);
 
-impl<S> FromRequestParts<S> for AuthenticatedUser
+impl<St, U> FromRequestParts<St> for AuthenticatedUser<U>
 where
-    S: Send + Sync,
-    AuthState: FromRef<S>,
+    St: Send + Sync,
+    U: AuthUser,
+    AuthState<U>: FromRef<St>,
 {
     type Rejection = Response;
 
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let auth = AuthState::from_ref(state);
+    async fn from_request_parts(parts: &mut Parts, state: &St) -> Result<Self, Self::Rejection> {
+        let auth = AuthState::<U>::from_ref(state);
         let to_login = || Redirect::to(&auth.config.login_url).into_response();
 
         let user_id = parts
@@ -30,8 +31,7 @@ where
             .and_then(|ctx| ctx.user_id.clone())
             .ok_or_else(to_login)?;
 
-        let user = User::find_by_id(&user_id)
-            .one(&auth.db)
+        let user = store::find_by_id::<U>(&auth.db, &user_id)
             .await
             .map_err(|_| to_login())?
             .ok_or_else(to_login)?;

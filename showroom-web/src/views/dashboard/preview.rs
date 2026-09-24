@@ -1,7 +1,7 @@
 use maud::{Markup, html};
 use crate::models::newsletter;
 use crate::renderer::email::{ThemeVariables, render_email};
-use crate::views::components::ui::*;
+use boutique::components::Button;
 use crate::views::context::PageContext;
 use crate::views::layouts::{page, newsletter_template, base};
 
@@ -32,21 +32,11 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
         div.preview-view {
             header {
                 div.left {
-                    (button(
-                        html!( "Back" ),
-                        ButtonElement::A,
-                        &back_url,
-                        Some("button-secondary"))
-                    )
+                    (Button::link(html!("Back"), back_url).secondary())
                 }
 
                 div {
-                    (button(
-                        html!( "Send" ),
-                        ButtonElement::Form,
-                        &send_url,
-                        Some("button-primary"))
-                    )
+                    (Button::post(html!("Send"), send_url).primary())
                 }
             }
 

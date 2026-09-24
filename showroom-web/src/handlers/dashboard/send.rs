@@ -2,7 +2,7 @@ use axum::{extract::{Path, State}, http::StatusCode, response::Redirect};
 use maud::Markup;
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, ModelTrait, QueryFilter};
 use crate::{
-    auth::extractors::OwnedPublication,
+    services::publication::OwnedPublication,
     models::newsletter::{self, Entity as Newsletter},
     models::subscriber::{self, Entity as Subscriber},
     mailer,

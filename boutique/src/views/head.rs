@@ -1,24 +1,45 @@
 use crate::assets;
 
-pub struct ViewContext {
+pub struct Head {
     pub title: String,
     pub scripts: Vec<String>,
+    pub preloads: Vec<(String, &'static str)>,
     pub stylesheets: Vec<String>,
     pub favicon: Option<String>,
     pub metadata: Option<Metadata>,
     pub class: Option<String>,
+    alpine_entry: String,
+    islands_entry: String,
 }
 
-impl ViewContext {
+impl Head {
     pub fn new(title: impl Into<String>) -> Self {
         Self {
             title: title.into(),
             scripts: Vec::new(),
             stylesheets: Vec::new(),
+            preloads: Vec::new(),
             favicon: None,
             metadata: None,
             class: None,
+            alpine_entry: "/assets/alpine.js".into(),
+            islands_entry: "/assets/islands.js".into(),
         }
+    }
+
+    pub fn preload_font(mut self, href: impl Into<String>) -> Self {
+        self.preloads.push((href.into(), "font/woff2"));
+        self
+    }
+
+    pub fn alpine_entry(mut self, src: impl Into<String>) -> Self {
+        self.alpine_entry = src.into();
+        self
+    }
+
+    pub fn islands_entry(mut self, src: impl Into<String>) -> Self {
+        self.islands_entry = src.into();
+        self
     }
 
     pub fn module(mut self, src: impl Into<String>) -> Self {
@@ -41,13 +62,15 @@ impl ViewContext {
     }
 
     /// the compat extension must load after htmx and before alpine
-    pub fn alpine(self, app_entry: impl Into<String>) -> Self {
-        self.module(assets::ALPINE_PATH).module(app_entry)
+    pub fn alpine(self) -> Self {
+        let entry = self.alpine_entry.clone();
+        self.module(assets::ALPINE_PATH).module(entry)
     }
 
     /// the loader must come before the app entry that calls `mountIslands`
-    pub fn islands(self, app_entry: impl Into<String>) -> Self {
-        self.module(assets::ISLANDS_PATH).module(app_entry)
+    pub fn islands(self) -> Self {
+        let entry = self.islands_entry.clone();
+        self.module(assets::ISLANDS_PATH).module(entry)
     }
 
     pub fn seo(mut self, metadata: Metadata) -> Self {

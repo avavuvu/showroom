@@ -3,7 +3,7 @@ use nanoid::nanoid;
 use maud::Markup;
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, ModelTrait, QueryFilter};
 use crate::{
-    auth::extractors::OwnedPublication,
+    services::publication::OwnedPublication,
     models::newsletter::{self, Entity as Newsletter},
     state::AppState,
     views,

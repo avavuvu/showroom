@@ -55,9 +55,14 @@
         }
     }
 
-    .shell.handle {
+    & .shell.prefixed {
         display: inline-flex;
         align-items: center;
+
+        & .prefix {
+            color: var(--color-muted);
+        }
+
         & input {
             padding-left: 0;
         }

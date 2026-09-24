@@ -10,17 +10,17 @@ use std::convert::Infallible;
 use tower::{Service, ServiceBuilder};
 use tower_http::{services::{ServeDir, ServeFile}, set_header::SetResponseHeaderLayer};
 
-use crate::{assets, middleware::base, state::AuthState};
+use crate::{assets, middleware::base, models::user, state::AuthState, store::AuthUser};
 
-pub struct Server {
-    auth: AuthState,
+pub struct Server<U: AuthUser = user::Model> {
+    auth: AuthState<U>,
     static_dirs: Vec<(String, String)>,
     files: Vec<(String, String)>,
     debug: bool,
 }
 
-impl Server {
-    pub fn new(auth: AuthState) -> Self {
+impl<U: AuthUser> Server<U> {
+    pub fn new(auth: AuthState<U>) -> Self {
         Self {
             auth,
             static_dirs: Vec::new(),

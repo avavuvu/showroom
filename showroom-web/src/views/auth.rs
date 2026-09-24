@@ -1,9 +1,10 @@
 use maud::{Markup, html};
-use crate::views::{PageContext, components::forms::{handle_input::handle_input, input::input, password_input::password_input}, layouts::{ALPINE_ENTRY, page, shell}};
+use boutique::components::{Button, Input};
+use crate::views::{PageContext, layouts::{page, shell}};
 
 pub fn login(ctx: &PageContext) -> Markup {
     shell(
-        page("Login").htmx().alpine(ALPINE_ENTRY),
+        page("Login").htmx().alpine(),
         ctx, html! {
         div.article-layout {
             div.auth-form {
@@ -16,9 +17,9 @@ pub fn login(ctx: &PageContext) -> Markup {
                     hx-target="#login-error"
                     hx-swap="innerHTML"
                 {
-                    (input("email", "email", "email", "email", "you@example.com", true))
-                    (password_input("password", "Password"))
-                    button.button-primary type="submit" { "Sign in" }
+                    (Input::email("email").placeholder("you@example.com").required())
+                    (Input::password("password").label("Password").required())
+                    (Button::submit(html! { "Sign in" }).primary())
                     p {
                         a.link href="/forgot-password" { "Forgot your password?" }
                     }
@@ -36,7 +37,7 @@ pub fn login(ctx: &PageContext) -> Markup {
 
 pub fn signup(ctx: &PageContext) -> Markup {
     shell(
-        page("Get started").htmx().alpine(ALPINE_ENTRY),
+        page("Get started").htmx().alpine(),
         ctx,
         html! {
         div.article-layout {
@@ -50,10 +51,10 @@ pub fn signup(ctx: &PageContext) -> Markup {
                     hx-target="#signup-error"
                     hx-swap="innerHTML"
                 {
-                    (input("email", "email", "email", "email", "you@example.com", true))
-                    (handle_input())
-                    (password_input("password", "Password"))
-                    button.button-primary type="submit" { "Create account" }
+                    (Input::email("email").placeholder("you@example.com").required())
+                    (Input::text("handle").prefix("@").placeholder("yourhandle").autocomplete("username").required())
+                    (Input::password("password").label("Password").autocomplete("new-password").required())
+                    (Button::submit(html! { "Create account" }).primary())
 
                     p {
                         "Already have an account? "
@@ -82,8 +83,8 @@ pub fn forgot_password(ctx: &PageContext) -> Markup {
                     hx-target="#forgot-password"
                     hx-swap="outerHTML"
                 {
-                    (input("email", "email", "email", "email", "you@example.com", true))
-                    button.button-primary type="submit" { "Send reset link" }
+                    (Input::email("email").placeholder("you@example.com").required())
+                    (Button::submit(html! { "Send reset link" }).primary())
                     p {
                         a.link href="/login" { "Back to login" }
                     }
@@ -104,7 +105,7 @@ pub fn forgot_password_sent() -> Markup {
 
 pub fn reset_password(ctx: &PageContext, token: &str) -> Markup {
     shell(
-        page("Set new password").htmx().alpine(ALPINE_ENTRY),
+        page("Set new password").htmx().alpine(),
         ctx,
         html! {
         div.article-layout {
@@ -119,9 +120,9 @@ pub fn reset_password(ctx: &PageContext, token: &str) -> Markup {
                     hx-swap="innerHTML"
                 {
                     input type="hidden" name="token" value=(token);
-                    (password_input("password", "New password"))
-                    (password_input("password_confirm", "Confirm password"))
-                    button.button-primary type="submit" { "Change password" }
+                    (Input::password("password").label("New password").autocomplete("new-password").required())
+                    (Input::password("password_confirm").label("Confirm password").autocomplete("new-password").required())
+                    (Button::submit(html! { "Change password" }).primary())
                 }
             }
         }

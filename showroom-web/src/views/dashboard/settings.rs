@@ -1,5 +1,6 @@
 use maud::{Markup, html};
-use crate::views::{components::ui::*, context::PageContext, layouts::{page, dashboard_shell}};
+use boutique::components::Button;
+use crate::views::{context::PageContext, layouts::{page, dashboard_shell}};
 
 pub fn index(ctx: &PageContext) -> Markup {
     let domain = ctx.urls.domain();
@@ -22,12 +23,7 @@ pub fn index(ctx: &PageContext) -> Markup {
                         }
                     }
                 }
-                (button(
-                    html! { "New publication" },
-                    ButtonElement::A,
-                    &format!("{}/new", ctx.urls.app()),
-                    Some("button-primary")
-                ))
+                (Button::link(html! { "New publication" }, format!("{}/new", ctx.urls.app())).primary())
             }
 
             section.settings-section {
@@ -38,7 +34,7 @@ pub fn index(ctx: &PageContext) -> Markup {
                     hx-target="#change-password-result"
                     hx-swap="innerHTML" {
                     div id="change-password-result" {}
-                    button.button.button-secondary type="submit" { "Send reset email" }
+                    (Button::submit(html! { "Send reset email" }).secondary())
                 }
             }
         }

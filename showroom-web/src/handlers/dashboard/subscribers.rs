@@ -11,7 +11,7 @@ use sea_orm::{
 };
 
 use crate::{
-    auth::extractors::OwnedPublication,
+    services::publication::OwnedPublication,
     models::subscriber::{self, Entity as Subscriber},
     state::AppState,
     views,

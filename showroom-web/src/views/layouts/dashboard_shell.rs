@@ -1,7 +1,7 @@
 use maud::{Markup, html};
-use crate::views::{context::PageContext, layouts::{ViewContext, base}};
+use crate::views::{context::PageContext, layouts::{Head, base}};
 
-pub fn dashboard_shell(view: ViewContext, ctx: &PageContext, content: Markup) -> Markup {
+pub fn dashboard_shell(view: Head, ctx: &PageContext, content: Markup) -> Markup {
     let user = ctx.user.as_ref().expect("user is defined");
     let domain = ctx.urls.domain();
 
