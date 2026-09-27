@@ -1,9 +1,8 @@
 use axum::{Extension, Form, extract::State, response::{IntoResponse, Redirect, Response}};
-use boutique::{UserContext, htmx, session::{self, LoginError}};
+use boutique::{AppError, AppResult, UserContext, htmx, session::{self, LoginError}};
 use serde::Deserialize;
 use validator::Validate;
 
-use super::something_went_wrong;
 use crate::{state::AppState, views::{self, PageContext}};
 
 #[derive(Deserialize, Validate)]
@@ -28,19 +27,12 @@ pub async fn login_page(
 pub async fn login(
     State(state): State<AppState>,
     Form(form): Form<LoginForm>,
-) -> Response {
-    if let Err(errors) = form.validate() {
-        return htmx::oob_only(htmx::fragments::from_errors(errors));
-    }
+) -> AppResult {
+    form.validate()?;
 
     match session::login(&state.auth, &form.email, &form.password).await {
-        Ok((_, session)) => (session, htmx::redirect(&state.urls.app())).into_response(),
-        Err(LoginError::InvalidCredentials) => {
-            htmx::fragments::error("Incorrect email or password").into_response()
-        }
-        Err(e) => {
-            eprintln!("[login] {e:?}");
-            something_went_wrong()
-        }
+        Ok((_, session)) => Ok((session, htmx::redirect(&state.urls.app())).into_response()),
+        Err(LoginError::InvalidCredentials) => Err(AppError::message("Incorrect email or password")),
+        Err(e) => Err(AppError::internal("login", e)),
     }
 }

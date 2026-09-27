@@ -1,8 +1,8 @@
 use axum::{
     extract::{Multipart, State},
-    http::StatusCode,
-    response::{IntoResponse, Response},
+    response::IntoResponse,
 };
+use boutique::{AppError, AppResult};
 use maud::Markup;
 use nanoid::nanoid;
 use sea_orm::{
@@ -39,28 +39,23 @@ pub async fn import_subscribers(
     State(state): State<AppState>,
     OwnedPublication { publication, .. }: OwnedPublication,
     mut multipart: Multipart,
-) -> Response {
+) -> AppResult {
     while let Ok(Some(field)) = multipart.next_field().await {
         if field.name() != Some("file") {
             continue;
         }
 
-        let bytes = match field.bytes().await {
-            Ok(b) => b,
-            Err(_) => return StatusCode::BAD_REQUEST.into_response(),
-        };
+        let bytes = field.bytes().await.map_err(|_| AppError::BadRequest)?;
 
-        let content = match String::from_utf8(bytes.to_vec()) {
-            Ok(s) => s,
-            Err(_) => return (StatusCode::BAD_REQUEST, "File must be UTF-8").into_response(),
-        };
+        let content = String::from_utf8(bytes.to_vec())
+            .map_err(|_| AppError::message("File must be UTF-8"))?;
 
         let mut reader = csv::Reader::from_reader(content.as_bytes());
 
-        let headers = match reader.headers() {
-            Ok(h) => h.clone(),
-            Err(_) => return (StatusCode::BAD_REQUEST, "Could not read CSV headers").into_response(),
-        };
+        let headers = reader
+            .headers()
+            .map_err(|_| AppError::message("Could not read CSV headers"))?
+            .clone();
 
         let email_index = headers.iter().position(|h| h.trim().eq_ignore_ascii_case("email"));
         let name_index  = headers.iter().position(|h| h.trim().eq_ignore_ascii_case("name"));
@@ -69,10 +64,7 @@ pub async fn import_subscribers(
             h.eq_ignore_ascii_case("created_at") || h.eq_ignore_ascii_case("subscribed_at")
         });
 
-        let email_index = match email_index {
-            Some(i) => i,
-            None => return (StatusCode::BAD_REQUEST, "CSV must have an 'email' column").into_response(),
-        };
+        let email_index = email_index.ok_or_else(|| AppError::message("CSV must have an 'email' column"))?;
 
         let mut models  = Vec::new();
         let mut skipped = 0usize;
@@ -121,8 +113,8 @@ pub async fn import_subscribers(
         }
 
         let subscribers = fetch_subscribers(&publication.id, &state.db).await;
-        return views::dashboard::subscribers::import_result(&subscribers, skipped).into_response();
+        return Ok(views::dashboard::subscribers::import_result(&subscribers, skipped).into_response());
     }
 
-    (StatusCode::BAD_REQUEST, "No file received").into_response()
+    Err(AppError::message("No file received"))
 }

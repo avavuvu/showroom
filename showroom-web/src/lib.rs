@@ -1,4 +1,3 @@
-pub mod config;
 pub mod renderer;
 pub mod models;
 pub mod services;

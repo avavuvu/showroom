@@ -8,8 +8,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-boutique = { path = "../../../dev/boutique/boutique" }
-bq_components = { path = "../../../dev/boutique/bq_components" }
+boutique = { git = "https://github.com/avavuvu/boutique.git", rev = "20954e3d10efe371db2a20ab0bcf21a5baf72f85", features = ["cloudinary"] }
+bq_components = { git = "https://github.com/avavuvu/boutique.git", rev = "20954e3d10efe371db2a20ab0bcf21a5baf72f85" }
 axum = { version = "0.8.9", features = ["multipart"] }
 sea-orm = { version = "1", features = ["sqlx-postgres", "runtime-tokio-rustls", "macros"] }
 serde = { version = "1.0.228", features = ["derive"] }
@@ -29,5 +29,3 @@ aws-sdk-sesv2 = "1"
 
 slugify = "0.1.0"
 csv = "1"
-sha1 = "0.10"
-hex = "0.4"

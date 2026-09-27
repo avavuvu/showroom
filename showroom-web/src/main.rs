@@ -1,7 +1,6 @@
 use std::env;
 use aws_config::{BehaviorVersion, Region};
 use sea_orm::{Database, DatabaseConnection};
-mod config;
 mod mailer;
 mod handlers;
 mod models;
@@ -12,13 +11,13 @@ mod services;
 mod state;
 mod views;
 
-use boutique::htmx;
+use boutique::cloudinary::Cloudinary;
 
 #[derive(Clone)]
 struct AppEnv {
     db: DatabaseConnection,
     ses: aws_sdk_sesv2::Client,
-    cloudinary: config::cloudinary::CloudinaryConfig,
+    cloudinary: Cloudinary,
     port: String,
     domain: String,
     main_domain: String,
@@ -59,7 +58,7 @@ async fn setup() -> AppEnv {
         .await;
     let ses = aws_sdk_sesv2::Client::new(&aws_config);
 
-    let cloudinary = config::cloudinary::CloudinaryConfig::from_env();
+    let cloudinary = Cloudinary::from_env().expect("CLOUDINARY_URL must be set");
 
     AppEnv { db, ses, cloudinary, port, domain, main_domain, jwt_secret }
 }

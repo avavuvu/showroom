@@ -6,7 +6,7 @@ use maud::Markup;
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, ModelTrait, QueryFilter, TransactionTrait};
 use serde::Deserialize;
 
-use boutique::AuthenticatedUser;
+use boutique::{AppError, AppResult, AuthenticatedUser};
 use crate::{
     services::publication::OwnedPublication,
     models::{
@@ -32,18 +32,14 @@ async fn account_context(user: &user::Model, state: &AppState) -> PageContext {
 pub async fn index(
     State(state): State<AppState>,
     AuthenticatedUser(user): AuthenticatedUser,
-) -> Response {
-    let publications = match publication::for_owner(&user.id, &state.db).await {
-        Ok(publications) => publications,
-        Err(e) => {
-            eprintln!("[publications] failed to load publications for {}: {e}", user.id);
-            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
-        }
-    };
+) -> AppResult<Redirect> {
+    let publications = publication::for_owner(&user.id, &state.db)
+        .await
+        .map_err(|e| AppError::internal(&format!("failed to load publications for {}", user.id), e))?;
 
     match publications.iter().find(|p| p.is_default).or(publications.first()) {
-        Some(room) => Redirect::to(&state.urls.dashboard(&room.slug)).into_response(),
-        None => Redirect::to(&format!("{}/new", state.urls.app())).into_response(),
+        Some(room) => Ok(Redirect::to(&state.urls.dashboard(&room.slug))),
+        None => Ok(Redirect::to(&format!("{}/new", state.urls.app()))),
     }
 }
 
@@ -131,12 +127,12 @@ pub async fn update_settings(
     State(state): State<AppState>,
     owned: OwnedPublication,
     Form(form): Form<SettingsForm>,
-) -> Response {
+) -> AppResult {
     let name = form.name.trim().to_string();
     let description = form.description.map(|d| d.trim().to_string()).filter(|d| !d.is_empty());
 
     if name.is_empty() {
-        return views::dashboard::publications::settings(&owned.into_context(state.urls.clone()), Some("A name is required")).into_response();
+        return Ok(views::dashboard::publications::settings(&owned.into_context(state.urls.clone()), Some("A name is required")).into_response());
     }
 
     let slug = owned.publication.slug.clone();
@@ -145,24 +141,20 @@ pub async fn update_settings(
     active.description = Set(description);
     active.updated_at = Set(chrono::Utc::now().fixed_offset());
 
-    match active.update(&state.db).await {
-        Ok(_) => Redirect::to(&format!("{}/settings", state.urls.dashboard(&slug))).into_response(),
-        Err(e) => {
-            eprintln!("[publications] update failed: {e}");
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
-        }
-    }
+    active.update(&state.db).await?;
+
+    Ok(Redirect::to(&format!("{}/settings", state.urls.dashboard(&slug))).into_response())
 }
 
 pub async fn delete(
     State(state): State<AppState>,
     OwnedPublication { publication, .. }: OwnedPublication,
-) -> Response {
+) -> AppResult<Redirect> {
     if publication.is_default {
-        return (StatusCode::FORBIDDEN, "Your room cannot be deleted").into_response();
+        return Err(AppError::Status(StatusCode::FORBIDDEN));
     }
 
-    let result = state.db.transaction::<_, (), sea_orm::DbErr>(|txn| {
+    state.db.transaction::<_, (), sea_orm::DbErr>(|txn| {
         Box::pin(async move {
             Subscriber::delete_many()
                 .filter(subscriber::Column::PublicationId.eq(&publication.id))
@@ -175,13 +167,7 @@ pub async fn delete(
             publication.delete(txn).await?;
             Ok(())
         })
-    }).await;
+    }).await.map_err(|e| AppError::internal("publications delete", e))?;
 
-    match result {
-        Ok(_) => Redirect::to(&state.urls.app()).into_response(),
-        Err(e) => {
-            eprintln!("[publications] delete failed: {e}");
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
-        }
-    }
+    Ok(Redirect::to(&state.urls.app()))
 }

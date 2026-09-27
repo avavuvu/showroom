@@ -1,9 +1,8 @@
 use axum::{Extension, Form, extract::{Query, State}, response::{IntoResponse, Response}};
-use boutique::{UserContext, htmx, reset};
+use boutique::{AppError, AppResult, UserContext, htmx, reset};
 use serde::Deserialize;
 use validator::Validate;
 
-use super::something_went_wrong;
 use crate::{mailer, state::AppState, views::{self, PageContext}};
 
 #[derive(Deserialize, Validate)]
@@ -22,27 +21,21 @@ pub async fn forgot_password_page(
 pub async fn forgot_password(
     State(state): State<AppState>,
     Form(form): Form<ForgotPasswordForm>,
-) -> Response {
-    if let Err(errors) = form.validate() {
-        return htmx::oob_only(htmx::fragments::from_errors(errors));
-    }
+) -> AppResult {
+    form.validate()?;
 
     match reset::request(&state.auth, &form.email).await {
         Ok(Some((user, token))) => {
             let reset_url = format!("{}/reset-password?token={}", state.urls.base(), token);
-            if let Err(e) = mailer::send_password_reset(&state.ses, &user.email, &reset_url, &state.urls).await {
-                eprintln!("[forgot-password] email failed for {}: {e}", user.email);
-                return something_went_wrong();
-            }
+            mailer::send_password_reset(&state.ses, &user.email, &reset_url, &state.urls)
+                .await
+                .map_err(|e| AppError::internal(&format!("forgot-password email failed for {}", user.email), e))?;
         }
         Ok(None) => {}
-        Err(e) => {
-            eprintln!("[forgot-password] {e:?}");
-            return something_went_wrong();
-        }
+        Err(e) => return Err(AppError::internal("forgot-password", e)),
     }
 
-    views::auth::forgot_password_sent().into_response()
+    Ok(views::auth::forgot_password_sent().into_response())
 }
 
 #[derive(Deserialize)]
@@ -75,19 +68,12 @@ pub struct ResetPasswordForm {
 pub async fn reset_password(
     State(state): State<AppState>,
     Form(form): Form<ResetPasswordForm>,
-) -> Response {
-    if let Err(errors) = form.validate() {
-        return htmx::oob_only(htmx::fragments::from_errors(errors));
-    }
+) -> AppResult {
+    form.validate()?;
 
     match reset::complete(&state.auth, &form.token, &form.password).await {
-        Ok(_) => htmx::redirect(&format!("{}/login", state.urls.base())),
-        Err(reset::ResetError::InvalidToken) => {
-            htmx::fragments::error("This link is invalid or has already been used").into_response()
-        }
-        Err(e) => {
-            eprintln!("[reset-password] {e:?}");
-            something_went_wrong()
-        }
+        Ok(_) => Ok(htmx::redirect(&format!("{}/login", state.urls.base()))),
+        Err(reset::ResetError::InvalidToken) => Err(AppError::message("This link is invalid or has already been used")),
+        Err(e) => Err(AppError::internal("reset-password", e)),
     }
 }

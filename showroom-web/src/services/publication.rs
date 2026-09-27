@@ -2,11 +2,11 @@ use std::collections::HashMap;
 
 use axum::{
     extract::{FromRequestParts, Path},
-    http::{StatusCode, request::Parts},
+    http::request::Parts,
     response::{IntoResponse, Response},
 };
 
-use boutique::AuthenticatedUser;
+use boutique::{AppError, AuthenticatedUser};
 
 use crate::{
     models::{publication, user},
@@ -36,18 +36,18 @@ impl FromRequestParts<AppState> for OwnedPublication {
 
         let Path(params) = Path::<HashMap<String, String>>::from_request_parts(parts, state)
             .await
-            .map_err(|_| StatusCode::NOT_FOUND.into_response())?;
-        let slug = params.get("slug").ok_or_else(|| StatusCode::NOT_FOUND.into_response())?;
+            .map_err(|_| AppError::NotFound.into_response())?;
+        let slug = params.get("slug").ok_or_else(|| AppError::NotFound.into_response())?;
 
         let publications = publication::for_owner(&user.id, &state.db)
             .await
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())?;
+            .map_err(|e| AppError::from(e).into_response())?;
 
         let publication = publications
             .iter()
             .find(|p| &p.slug == slug)
             .cloned()
-            .ok_or_else(|| StatusCode::NOT_FOUND.into_response())?;
+            .ok_or_else(|| AppError::NotFound.into_response())?;
 
         Ok(OwnedPublication { user, publication, publications })
     }

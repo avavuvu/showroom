@@ -1,4 +1,5 @@
-use axum::{Json, extract::{Path, State}, http::StatusCode};
+use axum::{Json, extract::{Path, State}};
+use boutique::{AppError, AppResult};
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, QueryOrder};
 use serde::Serialize;
 
@@ -29,14 +30,13 @@ pub struct NewsletterResponse {
 pub async fn get_newsletters(
     State(state): State<AppState>,
     CurrentPublication(publication): CurrentPublication,
-) -> Result<Json<Vec<NewsletterSummary>>, StatusCode> {
+) -> AppResult<Json<Vec<NewsletterSummary>>> {
     let newsletters = Newsletter::find()
         .filter(newsletter::Column::PublicationId.eq(&publication.id))
         .filter(newsletter::Column::SentAt.is_not_null())
         .order_by_desc(newsletter::Column::SentAt)
         .all(&state.db)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .await?;
 
     let summaries = newsletters.into_iter().map(|n| NewsletterSummary {
         title: n.title,
@@ -52,15 +52,14 @@ pub async fn get_newsletter(
     State(state): State<AppState>,
     CurrentPublication(publication): CurrentPublication,
     Path(slug): Path<String>,
-) -> Result<Json<NewsletterResponse>, StatusCode> {
+) -> AppResult<Json<NewsletterResponse>> {
     let newsletter = Newsletter::find()
         .filter(newsletter::Column::PublicationId.eq(&publication.id))
         .filter(newsletter::Column::Slug.eq(&slug))
         .filter(newsletter::Column::SentAt.is_not_null())
         .one(&state.db)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::NOT_FOUND)?;
+        .await?
+        .ok_or(AppError::NotFound)?;
 
     let date = newsletter
         .sent_at

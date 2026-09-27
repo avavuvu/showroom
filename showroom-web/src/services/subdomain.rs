@@ -4,6 +4,7 @@ use axum::{
     http::{StatusCode, Request, request::Parts},
     response::Response,
 };
+use boutique::AppError;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use std::convert::Infallible;
 use std::future::Future;
@@ -17,21 +18,21 @@ use crate::{models::publication::{self, Entity as Publication}, state::AppState}
 pub struct PublicationSlug(pub String);
 
 impl<S: Send + Sync> FromRequestParts<S> for PublicationSlug {
-    type Rejection = StatusCode;
+    type Rejection = AppError;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         parts
             .extensions
             .get::<PublicationSlug>()
             .cloned()
-            .ok_or(StatusCode::NOT_FOUND)
+            .ok_or(AppError::NotFound)
     }
 }
 
 pub struct CurrentPublication(pub publication::Model);
 
 impl FromRequestParts<AppState> for CurrentPublication {
-    type Rejection = StatusCode;
+    type Rejection = AppError;
 
     async fn from_request_parts(parts: &mut Parts, state: &AppState) -> Result<Self, Self::Rejection> {
         let PublicationSlug(slug) = PublicationSlug::from_request_parts(parts, state).await?;
@@ -39,10 +40,9 @@ impl FromRequestParts<AppState> for CurrentPublication {
         Publication::find()
             .filter(publication::Column::Slug.eq(&slug))
             .one(&state.db)
-            .await
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+            .await?
             .map(CurrentPublication)
-            .ok_or(StatusCode::NOT_FOUND)
+            .ok_or(AppError::NotFound)
     }
 }
 

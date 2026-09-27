@@ -3,3 +3,5 @@
 node_modules
 */target
 showroom-web/public
+
+.cargo/config.toml

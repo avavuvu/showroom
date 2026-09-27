@@ -2,7 +2,7 @@ use aws_sdk_sesv2::Client as SesClient;
 use axum::extract::FromRef;
 use boutique::{AuthConfig, AuthState};
 use sea_orm::DatabaseConnection;
-use crate::config::cloudinary::CloudinaryConfig;
+use boutique::cloudinary::Cloudinary;
 
 #[derive(Clone)]
 pub struct Urls {
@@ -78,11 +78,11 @@ pub struct AppState {
     pub urls: Urls,
     pub auth: AuthState,
     pub ses: SesClient,
-    pub cloudinary: CloudinaryConfig,
+    pub cloudinary: Cloudinary,
 }
 
 impl AppState {
-    pub fn new(db: DatabaseConnection, ses: SesClient, cloudinary: CloudinaryConfig, urls: Urls, jwt_secret: String) -> Self {
+    pub fn new(db: DatabaseConnection, ses: SesClient, cloudinary: Cloudinary, urls: Urls, jwt_secret: String) -> Self {
         let auth = AuthState::with_config(db.clone(), jwt_secret, urls.auth_config());
         Self { db, urls, auth, ses, cloudinary }
     }

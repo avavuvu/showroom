@@ -10,10 +10,3 @@ pub use signup::signup;
 
 #[cfg(debug_assertions)]
 pub use signup::signup_page;
-
-use axum::response::{IntoResponse, Response};
-use boutique::htmx;
-
-fn something_went_wrong() -> Response {
-    htmx::fragments::error("Something went wrong, please try again").into_response()
-}

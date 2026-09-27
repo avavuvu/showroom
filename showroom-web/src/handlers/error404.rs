@@ -1,7 +1,7 @@
 use axum::{extract::State, http::StatusCode, Extension};
 use maud::Markup;
 
-use boutique::{AuthenticatedUser, UserContext};
+use boutique::{AppError, AuthenticatedUser, UserContext};
 use crate::{
     services::subdomain::CurrentPublication,
     state::AppState,
@@ -26,7 +26,7 @@ pub async fn app_404(
 
 pub async fn publication_404(
     State(state): State<AppState>,
-    publication: Result<CurrentPublication, StatusCode>,
+    publication: Result<CurrentPublication, AppError>,
     Extension(ctx): Extension<UserContext>,
 ) -> (StatusCode, Markup) {
     let page_ctx = PageContext::public(&ctx, state.urls.clone());

@@ -1,6 +1,7 @@
 use axum::{
-    Form, extract::{Query, State}, http::StatusCode, response::{Redirect, Response, IntoResponse},
+    Form, extract::{Query, State}, response::{Redirect, Response, IntoResponse},
 };
+use boutique::{AppError, AppResult};
 use validator::Validate;
 use maud::Markup;
 use nanoid::nanoid;
@@ -8,7 +9,7 @@ use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, DbErr, EntityTrai
 use serde::Deserialize;
 
 use crate::{
-    htmx, mailer, models::{publication, subscriber::{self, Entity as Subscriber}},
+    mailer, models::{publication, subscriber::{self, Entity as Subscriber}},
     services::subdomain::CurrentPublication, state::AppState, views,
 };
 
@@ -28,31 +29,26 @@ pub async fn subscribe(
     State(state): State<AppState>,
     CurrentPublication(publication): CurrentPublication,
     Form(form): Form<SubscribeForm>,
-) -> Response {
-    if let Err(errors) = form.validate() {
-        return htmx::oob_only(htmx::fragments::from_errors(errors));
-    }
+) -> AppResult {
+    form.validate()?;
 
-    insert_or_resend(&state, &publication, &form).await
+    Ok(insert_or_resend(&state, &publication, &form).await)
 }
 
 pub async fn confirm(
     State(state): State<AppState>,
     CurrentPublication(publication): CurrentPublication,
     Query(params): Query<TokenQuery>,
-) -> Result<Redirect, StatusCode> {
+) -> AppResult<Redirect> {
     let subscriber = Subscriber::find_by_id(&params.token)
         .filter(subscriber::Column::PublicationId.eq(&publication.id))
         .one(&state.db)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::NOT_FOUND)?;
+        .await?
+        .ok_or(AppError::NotFound)?;
 
     let mut active: subscriber::ActiveModel = subscriber.into();
     active.is_confirmed = Set(true);
-    active.update(&state.db)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    active.update(&state.db).await?;
 
     Ok(Redirect::to(&format!(
         "{}?from=confirmation",
@@ -64,13 +60,12 @@ pub async fn unsubscribe(
     State(state): State<AppState>,
     CurrentPublication(publication): CurrentPublication,
     Query(params): Query<TokenQuery>,
-) -> Result<Markup, StatusCode> {
+) -> AppResult<Markup> {
     Subscriber::delete_many()
         .filter(subscriber::Column::Token.eq(&params.token))
         .filter(subscriber::Column::PublicationId.eq(&publication.id))
         .exec(&state.db)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .await?;
 
     Ok(views::subscriber::unsubscribed(&publication.name))
 }

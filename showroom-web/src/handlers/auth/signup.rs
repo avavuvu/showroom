@@ -1,10 +1,9 @@
 use axum::{Extension, Form, extract::State, response::{IntoResponse, Redirect, Response}};
-use boutique::{UserContext, htmx, session};
+use boutique::{AppError, AppResult, UserContext, htmx, session};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter, TransactionTrait};
 use serde::Deserialize;
 use validator::Validate;
 
-use super::something_went_wrong;
 use crate::{
     models::{publication::{self, Entity as Publication}, user::{self, Entity as User}},
     state::AppState,
@@ -49,44 +48,39 @@ pub async fn signup_page(
 pub async fn signup(
     State(state): State<AppState>,
     Form(form): Form<SignupForm>,
-) -> Response {
-    if let Err(errors) = form.validate() {
-        return htmx::oob_only(htmx::fragments::from_errors(errors));
-    }
+) -> AppResult {
+    form.validate()?;
 
     let slug = form.handle.to_lowercase();
     if let Err(message) = publication::validate_slug(&slug) {
-        return htmx::fragments::field_errors(&[("handle", Some(message))]).into_response();
+        return Err(AppError::field("handle", message));
     }
 
     let email_taken = User::find()
         .filter(user::Column::Email.eq(&form.email))
         .one(&state.db)
-        .await
-        .unwrap()
+        .await?
         .is_some();
 
     let handle_taken = Publication::find()
         .filter(publication::Column::Slug.eq(&slug))
         .one(&state.db)
-        .await
-        .unwrap()
+        .await?
         .is_some();
 
     if email_taken || handle_taken {
-        return htmx::fragments::field_errors(&[
-            ("email", email_taken.then_some("An account with this email already exists")),
-            ("handle", handle_taken.then_some("This handle is already taken")),
-        ]).into_response();
+        let mut fields = Vec::new();
+        if email_taken {
+            fields.push(("email", "An account with this email already exists".to_string()));
+        }
+        if handle_taken {
+            fields.push(("handle", "This handle is already taken".to_string()));
+        }
+        return Err(AppError::Fields(fields));
     }
 
-    let new_user = match session::new_user(&form.email, &form.password) {
-        Ok(user) => user,
-        Err(e) => {
-            eprintln!("[signup] {e}");
-            return something_went_wrong();
-        }
-    };
+    let new_user = session::new_user(&form.email, &form.password)
+        .map_err(|e| AppError::internal("signup password hash", e))?;
 
     let now = chrono::Utc::now().fixed_offset();
     let default_room = publication::ActiveModel {
@@ -101,25 +95,17 @@ pub async fn signup(
         updated_at: Set(now),
     };
 
-    let user = match state.db.transaction::<_, user::Model, sea_orm::DbErr>(|txn| {
+    let user = state.db.transaction::<_, user::Model, sea_orm::DbErr>(|txn| {
         Box::pin(async move {
             let user = new_user.insert(txn).await?;
             default_room.insert(txn).await?;
             Ok(user)
         })
-    }).await {
-        Ok(user) => user,
-        Err(e) => {
-            eprintln!("[signup] {e}");
-            return something_went_wrong();
-        }
-    };
+    }).await.map_err(|e| AppError::internal("signup", e))?;
 
-    match session::issue(&state.auth, &user).await {
-        Ok(session) => (session, htmx::redirect(&state.urls.app())).into_response(),
-        Err(e) => {
-            eprintln!("[signup] {e:?}");
-            something_went_wrong()
-        }
-    }
+    let session = session::issue(&state.auth, &user)
+        .await
+        .map_err(|e| AppError::internal("signup session", e))?;
+
+    Ok((session, htmx::redirect(&state.urls.app())).into_response())
 }

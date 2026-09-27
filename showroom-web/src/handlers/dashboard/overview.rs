@@ -1,4 +1,5 @@
-use axum::{extract::{Path, State}, http::StatusCode, response::{IntoResponse, Redirect, Response}};
+use axum::{extract::{Path, State}, http::StatusCode, response::Redirect};
+use boutique::{AppError, AppResult};
 use nanoid::nanoid;
 use maud::Markup;
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, ModelTrait, QueryFilter};
@@ -27,7 +28,7 @@ pub async fn index(
 pub async fn post_newsletters(
     State(state): State<AppState>,
     OwnedPublication { publication, .. }: OwnedPublication,
-) -> Response {
+) -> AppResult<Redirect> {
     let id = nanoid!(14);
     let now = chrono::Utc::now().fixed_offset();
 
@@ -44,30 +45,23 @@ pub async fn post_newsletters(
         rendered: Set(None)
     };
 
-    match new_newsletter.insert(&state.db).await {
-        Ok(newsletter) => Redirect::to(&format!("{}/edit/{}", state.urls.dashboard(&publication.slug), newsletter.id)).into_response(),
-        Err(e) => {
-            eprintln!("{e}");
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
-        },
-    }
+    let newsletter = new_newsletter.insert(&state.db).await?;
+
+    Ok(Redirect::to(&format!("{}/edit/{}", state.urls.dashboard(&publication.slug), newsletter.id)))
 }
 
 pub async fn delete_newsletter(
     State(state): State<AppState>,
     OwnedPublication { publication, .. }: OwnedPublication,
     Path((_, id)): Path<(String, String)>,
-) -> StatusCode {
-    let result = Newsletter::find_by_id(&id)
+) -> AppResult<StatusCode> {
+    let newsletter = Newsletter::find_by_id(&id)
         .filter(newsletter::Column::PublicationId.eq(&publication.id))
         .one(&state.db)
-        .await;
+        .await?
+        .ok_or(AppError::NotFound)?;
 
-    match result {
-        Ok(Some(newsletter)) => {
-            let _ = newsletter.delete(&state.db).await;
-            StatusCode::OK
-        }
-        _ => StatusCode::NOT_FOUND,
-    }
+    newsletter.delete(&state.db).await?;
+
+    Ok(StatusCode::OK)
 }
