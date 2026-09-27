@@ -9,8 +9,8 @@ edition = "2024"
 build = "build.rs"
 
 [dependencies]
-boutique = { git = "https://github.com/avavuvu/boutique.git", rev = "4c89ec487f87545d75553c7d807d879128d9e779", features = ["cloudinary"] }
-bq_components = { git = "https://github.com/avavuvu/boutique.git", rev = "4c89ec487f87545d75553c7d807d879128d9e779" }
+boutique = { git = "https://github.com/avavuvu/boutique.git", rev = "ed4b8940acaad762ee7514d374d3f9a2d8e279ec", features = ["cloudinary"] }
+bq_components = { git = "https://github.com/avavuvu/boutique.git", rev = "ed4b8940acaad762ee7514d374d3f9a2d8e279ec" }
 axum = { version = "0.8.9", features = ["multipart"] }
 sea-orm = { version = "1", features = ["sqlx-postgres", "runtime-tokio-rustls", "macros"] }
 serde = { version = "1.0.228", features = ["derive"] }

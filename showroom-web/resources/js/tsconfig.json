@@ -12,5 +12,5 @@
             "@bq/*": ["../../../../dev/boutique/*", "../../node_modules/boutique/*"]
         }
     },
-    "include": ["./**/*.ts", "./**/*.vue", "../../../../dev/boutique/bq_components/src"],
+    "include": ["./**/*.ts", "./**/*.vue", "../../../../dev/boutique/components/src"],
 }
