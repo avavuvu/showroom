@@ -9,7 +9,6 @@ export default defineConfig({
         emptyOutDir: false,
         rollupOptions: {
             input: {
-                alpine: "resources/js/alpine.ts",
                 ascii: "resources/js/ascii/index.ts",
                 islands: "resources/js/islands.ts",
             },

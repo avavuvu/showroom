@@ -1,4 +1,5 @@
 import { createApp, type Component } from "vue";
+import "./save-status";
 
 declare global {
     function mountIslands(

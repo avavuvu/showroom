@@ -4,7 +4,7 @@ use crate::views::{PageContext, layouts::{page, shell}};
 
 pub fn login(ctx: &PageContext) -> Markup {
     shell(
-        page("Login").htmx().alpine(),
+        page("Login").htmx(),
         ctx, html! {
         div.article-layout {
             div.auth-form {
@@ -37,7 +37,7 @@ pub fn login(ctx: &PageContext) -> Markup {
 
 pub fn signup(ctx: &PageContext) -> Markup {
     shell(
-        page("Get started").htmx().alpine(),
+        page("Get started").htmx(),
         ctx,
         html! {
         div.article-layout {
@@ -105,7 +105,7 @@ pub fn forgot_password_sent() -> Markup {
 
 pub fn reset_password(ctx: &PageContext, token: &str) -> Markup {
     shell(
-        page("Set new password").htmx().alpine(),
+        page("Set new password").htmx(),
         ctx,
         html! {
         div.article-layout {

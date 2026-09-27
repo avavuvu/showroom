@@ -8,8 +8,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-boutique = { git = "https://github.com/avavuvu/boutique.git", rev = "20954e3d10efe371db2a20ab0bcf21a5baf72f85", features = ["cloudinary"] }
-bq_components = { git = "https://github.com/avavuvu/boutique.git", rev = "20954e3d10efe371db2a20ab0bcf21a5baf72f85" }
+boutique = { git = "https://github.com/avavuvu/boutique.git", rev = "6ac8593083d3bf60408e13761c4214927ec0d1a9", features = ["cloudinary"] }
+bq_components = { git = "https://github.com/avavuvu/boutique.git", rev = "6ac8593083d3bf60408e13761c4214927ec0d1a9" }
 axum = { version = "0.8.9", features = ["multipart"] }
 sea-orm = { version = "1", features = ["sqlx-postgres", "runtime-tokio-rustls", "macros"] }
 serde = { version = "1.0.228", features = ["derive"] }

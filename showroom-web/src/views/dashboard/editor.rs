@@ -14,7 +14,7 @@ pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     };
 
     base(
-        &page("Edit").htmx().alpine().islands(),
+        &page("Edit").htmx().islands(),
         html! {
         div.edit-view {
             @if newsletter.sent_at.is_some() {
@@ -27,7 +27,7 @@ pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
                 div.left {
                     (Button::link(html!("Back"), back_url).secondary())
 
-                    span.save-status x-data="saveStatus()" x-text="status" { "Saved" }
+                    sr-save-status.save-status { "Saved" }
 
                 }
 
