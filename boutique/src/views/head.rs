@@ -8,6 +8,7 @@ pub struct Head {
     pub favicon: Option<String>,
     pub metadata: Option<Metadata>,
     pub class: Option<String>,
+    pub theme: Option<String>,
     alpine_entry: String,
     islands_entry: String,
 }
@@ -22,6 +23,7 @@ impl Head {
             favicon: None,
             metadata: None,
             class: None,
+            theme: None,
             alpine_entry: "/assets/alpine.js".into(),
             islands_entry: "/assets/islands.js".into(),
         }
@@ -80,6 +82,12 @@ impl Head {
 
     pub fn class(mut self, name: String) -> Self {
         self.class = Some(name);
+        self
+    }
+
+    /// rendered as `data-theme` on `<html>`, for css theme blocks
+    pub fn theme(mut self, name: impl Into<String>) -> Self {
+        self.theme = Some(name.into());
         self
     }
 }

@@ -5,7 +5,7 @@ use crate::views::head::{Metadata, Head};
 pub fn base(context: &Head, content: Markup) -> Markup {
     html! {
         (DOCTYPE)
-        html lang="en" {
+        html lang="en" class=[context.class.as_deref()] data-theme=[context.theme.as_deref()] {
             head {
                 meta charset="UTF-8";
                 meta name="viewport" content="width=device-width, initial-scale=1.0";
