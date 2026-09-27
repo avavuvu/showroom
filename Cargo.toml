@@ -1,3 +1,3 @@
 [workspace]
-members = ["boutique", "showroom-web", "migration"]
+members = ["showroom-web", "migration"]
 resolver = "2"

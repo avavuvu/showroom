@@ -1,5 +1,5 @@
 use maud::{Markup, html};
-use boutique::components::{Button, Input};
+use bq_components::{Button, Input};
 use crate::views::{PageContext, layouts::{page, shell}};
 
 pub fn login(ctx: &PageContext) -> Markup {

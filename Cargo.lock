@@ -808,7 +808,7 @@ dependencies = [
 
 [[package]]
 name = "boutique"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "argon2",
  "axum",
@@ -818,7 +818,6 @@ dependencies = [
  "jsonwebtoken",
  "maud",
  "sea-orm",
- "sea-orm-migration",
  "serde",
  "time",
  "tokio",
@@ -826,6 +825,13 @@ dependencies = [
  "tower-http",
  "uuid",
  "validator",
+]
+
+[[package]]
+name = "bq_components"
+version = "0.2.0"
+dependencies = [
+ "maud",
 ]
 
 [[package]]
@@ -3652,6 +3658,7 @@ dependencies = [
  "axum",
  "axum-extra",
  "boutique",
+ "bq_components",
  "chrono",
  "csv",
  "dotenvy",

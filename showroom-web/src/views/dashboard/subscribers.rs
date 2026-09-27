@@ -1,5 +1,5 @@
 use maud::{Markup, html};
-use boutique::components::Button;use crate::{
+use bq_components::Button;use crate::{
     models::subscriber::Model as Subscriber, views::{context::PageContext, layouts::{page, dashboard_shell}},
 };
 

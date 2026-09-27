@@ -1,5 +1,5 @@
 use maud::{Markup, html};
-use boutique::components::Button;
+use bq_components::Button;
 use crate::views::context::PageContext;
 
 pub fn header(ctx: &PageContext) -> Markup {

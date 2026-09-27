@@ -1,5 +1,5 @@
 use maud::{Markup, html};
-use boutique::components::Button;use crate::views::context::PageContext;
+use bq_components::Button;use crate::views::context::PageContext;
 use crate::views::layouts::{page, dashboard_shell};
 
 pub fn new_form(ctx: &PageContext, slug: &str, name: &str, error: Option<&str>) -> Markup {

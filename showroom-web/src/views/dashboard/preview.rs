@@ -1,7 +1,7 @@
 use maud::{Markup, html};
 use crate::models::newsletter;
 use crate::renderer::email::{ThemeVariables, render_email};
-use boutique::components::Button;
+use bq_components::Button;
 use crate::views::context::PageContext;
 use crate::views::layouts::{page, newsletter_template, base};
 

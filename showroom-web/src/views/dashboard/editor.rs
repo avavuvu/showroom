@@ -1,6 +1,6 @@
 use maud::{Markup, html};
 use crate::models::newsletter;
-use boutique::components::Button;
+use bq_components::Button;
 use crate::views::context::PageContext;
 use crate::views::layouts::{base, page};
 

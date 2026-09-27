@@ -1,6 +1,6 @@
 use maud::{Markup, html};
 
-use boutique::components::{Button, Input};
+use bq_components::{Button, Input};
 
 pub fn subscribe_form(publication_url: &str, publication_name: &str) -> Markup {
     let subscribe_to_url = &format!("{}/subscribe", publication_url);

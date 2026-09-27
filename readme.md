@@ -25,5 +25,5 @@ Showroom fullstack backend/frontend
 ## /migration
 Database migrations/seeders crate
 
-## /boutique
-Server/session library
+## boutique
+Server/session library and shared components. Lives in its own repository at `../../dev/boutique` (path dependency).
