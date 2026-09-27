@@ -1,9 +1,9 @@
 .prose {
-    --prose-font-body: "Times", "Times New Roman", serif;
-    --prose-font-title: "Playfair Display", "Georgia", serif;
-    --prose-color-link: #92ca3a;
-    --prose-color-blockquote-border: #92ca3a;
-    --prose-color-pullquote-border: #000000;
+    --prose-font-body: var(--font-body);
+    --prose-font-title: var(--font-title);
+    --prose-color-link: var(--color-primary);
+    --prose-color-blockquote-border: var(--color-primary);
+    --prose-color-pullquote-border: var(--color-text);
     --prose-color-surface-subtle: #cccccc;
     --prose-color-rule: #cccccc;
 

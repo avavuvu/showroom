@@ -20,7 +20,9 @@ _Newsletters for people like you_
 ```
 
 ## /showroom-web
-Showroom fullstack backend/frontend
+Showroom fullstack backend/frontend.
+
+CSS and JS are built by Vite into `showroom-web/public/build` with a manifest; pages reference entries by name (`Head::entry("site")`). Static files are served straight from `resources/static`. Shared component CSS comes from `bq_components` via the `@bq` alias.
 
 ## /migration
 Database migrations/seeders crate

@@ -5,7 +5,7 @@ use super::layouts::base;
 pub fn index(ctx: &PageContext) -> Markup {
     base(
         &page("Showroom")
-            .module("/assets/ascii.js")
+            .entry("ascii")
             .seo(Metadata::website("A newsletter platform for the little guy")),
         html! {
         (header(ctx))

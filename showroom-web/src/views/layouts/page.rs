@@ -1,8 +1,9 @@
-use boutique::views::Head;
+use boutique::{assets::manifest, views::Head};
 
 pub fn page(title: impl Into<String>) -> Head {
-    Head::new(title)
-        .favicon("/favicon.ico")
-        .stylesheet("/css/app.css")
-        .stylesheet("/css/prose.css")
+    let head = Head::new(title).favicon("/favicon.ico").entry("site");
+    match manifest::url("islands") {
+        Some(src) => head.islands_entry(src),
+        None => head,
+    }
 }

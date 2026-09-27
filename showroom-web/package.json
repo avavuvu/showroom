@@ -9,6 +9,7 @@
     },
     "devDependencies": {
         "@vitejs/plugin-vue": "^6.0.7",
+        "boutique": "github:avavuvu/boutique#009486ce077a5e21e5bee8b3aae8d8216742c388",
         "concurrently": "^10.0.3",
         "typescript": "~6.0.3",
         "vite": "^7.3.3"

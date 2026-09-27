@@ -6,10 +6,11 @@ local = ["boutique/devtools"]
 name = "showroom-web"
 version = "0.1.0"
 edition = "2024"
+build = "build.rs"
 
 [dependencies]
-boutique = { git = "https://github.com/avavuvu/boutique.git", rev = "6ac8593083d3bf60408e13761c4214927ec0d1a9", features = ["cloudinary"] }
-bq_components = { git = "https://github.com/avavuvu/boutique.git", rev = "6ac8593083d3bf60408e13761c4214927ec0d1a9" }
+boutique = { git = "https://github.com/avavuvu/boutique.git", rev = "009486ce077a5e21e5bee8b3aae8d8216742c388", features = ["cloudinary"] }
+bq_components = { git = "https://github.com/avavuvu/boutique.git", rev = "009486ce077a5e21e5bee8b3aae8d8216742c388" }
 axum = { version = "0.8.9", features = ["multipart"] }
 sea-orm = { version = "1", features = ["sqlx-postgres", "runtime-tokio-rustls", "macros"] }
 serde = { version = "1.0.228", features = ["derive"] }

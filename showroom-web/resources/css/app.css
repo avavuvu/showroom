@@ -4,7 +4,6 @@
 @import "components/subscribe_form.css";
 @import "components/footer.css";
 @import "components/auth.css";
-@import "components/button.css";
 @import "views/lander.css";
 @import "views/edit.css";
 @import "views/preview.css";
@@ -13,19 +12,22 @@
 @import "views/subscribers.css";
 
 :root {
+    --ink: #000000;
+    --paper: #ffffff;
+    --brand: #92ca3a;
     --font-body: "Times", "Times New Roman", serif;
     --font-title: "Playfair Display", "Georgia", serif;
-    --color-primary: #92ca3a;
-    --color-surface: #ffffff;
+
+    --color-surface: var(--paper);
+    --color-text: var(--ink);
+    --color-border: var(--ink);
+    --color-primary: var(--brand);
     --color-error: #af1d27;
-    --color-muted: #aaa;
-    --color-surface-muted: #eee;
-    --color-foreground: black;
-
+    --color-muted: color-mix(in srgb, var(--ink) 33%, var(--paper));
+    --color-surface-muted: color-mix(in srgb, var(--ink) 7%, var(--paper));
     --color-placeholder: var(--color-muted);
-    --color-border: var(--color-foreground);
 
-    font-family: var(--prose-font-body);
+    font-family: var(--font-body);
 }
 
 html,
