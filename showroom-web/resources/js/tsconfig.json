@@ -9,7 +9,7 @@
         "jsxImportSource": "vue",
         "baseUrl": ".",
         "paths": {
-            "@bq/*": ["../../../../dev/boutique/bq_components/src/*", "../../node_modules/boutique/bq_components/src/*"]
+            "@bq/*": ["../../../../dev/boutique/*", "../../node_modules/boutique/*"]
         }
     },
     "include": ["./**/*.ts", "./**/*.vue", "../../../../dev/boutique/bq_components/src"],

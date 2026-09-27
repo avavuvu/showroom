@@ -3,10 +3,10 @@ import vue from "@vitejs/plugin-vue";
 import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
 
-const localBoutique = fileURLToPath(new URL("../../../dev/boutique/bq_components/src", import.meta.url));
+const localBoutique = fileURLToPath(new URL("../../../dev/boutique", import.meta.url));
 const boutique = existsSync(localBoutique)
     ? localBoutique
-    : fileURLToPath(new URL("./node_modules/boutique/bq_components/src", import.meta.url));
+    : fileURLToPath(new URL("./node_modules/boutique", import.meta.url));
 
 export default defineConfig({
     publicDir: false,
