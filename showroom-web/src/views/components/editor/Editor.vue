@@ -3,11 +3,11 @@ import { useEditor, EditorContent } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
 import UnderlineExtension from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
-import ImageBlock from "../editor/image/ImageBlock";
-import { LinkMenuExtension } from "../editor/link/LinkMenu";
+import ImageBlock from "./image/ImageBlock";
+import { LinkMenuExtension } from "./link/LinkMenu";
 import { onMounted, ref, watch } from "vue";
-import Toolbar from "../editor/Toolbar.vue";
-import { useSave } from "../editor/useSave";
+import Toolbar from "./Toolbar.vue";
+import { useSave } from "./useSave";
 import { onKeyStroke, useEventListener } from "@vueuse/core";
 
 const props = defineProps<{

@@ -5,6 +5,8 @@
     "scripts": {
         "dev:js": "concurrently -n vite,dx -c cyan,yellow \"vite build --watch\" \"~/.cargo/bin/dx serve --hot-patch --features local --package showroom-web\"",
         "build": "vite build",
+        "setups": "cargo check -q -p showroom-web",
+        "setups:check": "npm run setups && git diff --exit-code -- bindings && test -z \"$(git ls-files --others --exclude-standard -- bindings)\"",
         "dev": "~/.cargo/bin/dx serve --hot-patch --features local --package showroom-web"
     },
     "devDependencies": {

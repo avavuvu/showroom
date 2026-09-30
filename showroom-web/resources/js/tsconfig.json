@@ -9,8 +9,9 @@
         "jsxImportSource": "vue",
         "baseUrl": ".",
         "paths": {
-            "@bq/*": ["../../../../dev/boutique/*", "../../node_modules/boutique/*"]
+            "@bq/*": ["../../../../../dev/boutique/*", "../../node_modules/boutique/*"],
+            "@setups": ["../../bindings/setups.ts"]
         }
     },
-    "include": ["./**/*.ts", "./**/*.vue", "../../../../dev/boutique/components/src"],
+    "include": ["./**/*.ts", "./**/*.vue", "../../src/**/*.ts", "../../src/**/*.vue", "../../bindings/**/*.ts", "../../../../../dev/boutique/components/src"],
 }
