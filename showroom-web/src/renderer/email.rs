@@ -1,43 +1,18 @@
 use serde_json::Value;
 
-#[derive(Clone, Debug)]
-pub struct ThemeVariables {
-    pub font_body: String,
-    pub font_title: String,
-    pub color_text: String,
-    pub color_border: String,
-    pub color_primary: String,
-    pub color_surface: String,
-    pub color_surface_muted: String,
-    pub color_muted: String,
-}
-
-impl Default for ThemeVariables {
-    fn default() -> Self {
-        Self {
-            font_body:                 r#""Times", "Times New Roman", serif"#.into(),
-            font_title:                r#""Playfair Display", "Georgia", serif"#.into(),
-            color_text:                "#000000".into(),
-            color_border:              "#000000".into(),
-            color_primary:             "#92ca3a".into(),
-            color_surface:             "#ffffff".into(),
-            color_surface_muted:       "#eee".into(),
-            color_muted:               "#aaa".into(),
-        }
-    }
-}
+use crate::theme::{EmailTheme, FONT_BODY, FONT_TITLE};
 
 pub enum EmailBlock {
     Content(String),
     FullWidthImage { src: String, alt: String },
 }
 
-pub fn render_email(content: &Value, theme: ThemeVariables) -> Vec<EmailBlock> {
+pub fn render_email(content: &Value, theme: EmailTheme) -> Vec<EmailBlock> {
     Renderer { theme }.render_blocks(content)
 }
 
 struct Renderer {
-    theme: ThemeVariables,
+    theme: EmailTheme,
 }
 
 impl Renderer {
@@ -81,13 +56,12 @@ impl Renderer {
 
     fn paragraph_style(&self) -> String {
         self.s(format!(
-            "margin: 0 0 16px 0; font-family: {}; font-size: 16px; line-height: 1.5;",
-            self.theme.font_body
+            "margin: 0 0 16px 0; font-family: {FONT_BODY}; font-size: 16px; line-height: 1.5;"
         ))
     }
 
     fn heading_style(&self, level: u64) -> String {
-        let font = if level <= 3 { &self.theme.font_title } else { &self.theme.font_body };
+        let font = if level <= 3 { FONT_TITLE } else { FONT_BODY };
         let size = match level { 1 => 22, 2 => 19, 3 => 18, _ => 16 };
         self.s(format!(
             "font-family: {font}; font-size: {size}px; font-weight: bold; \
@@ -104,16 +78,15 @@ impl Renderer {
 
     fn list_item_style(&self) -> String {
         self.s(format!(
-            "font-family: {}; font-size: 16px; line-height: 1.5; margin-bottom: 4px;",
-            self.theme.font_body
+            "font-family: {FONT_BODY}; font-size: 16px; line-height: 1.5; margin-bottom: 4px;"
         ))
     }
 
     fn blockquote_style(&self) -> String {
         self.s(format!(
             "border-left: 3px solid {}; padding: 0 0 0 16px; margin: 0 0 16px 0; \
-             font-family: {}; font-size: 16px; line-height: 1.5;",
-            self.theme.color_primary, self.theme.font_body
+             font-family: {FONT_BODY}; font-size: 16px; line-height: 1.5;",
+            self.theme.primary
         ))
     }
 
@@ -122,14 +95,14 @@ impl Renderer {
             "font-family: monospace, monospace; font-size: 14px; \
              background-color: {}; border: 1px solid {}; padding: 16px; margin: 0 0 16px 0; \
              display: block; white-space: pre-wrap; word-wrap: break-word;",
-            self.theme.color_surface_muted, self.theme.color_border,
+            self.theme.surface_muted, self.theme.border,
         ))
     }
 
     fn hr_style(&self) -> String {
         self.s(format!(
             "border: 0; border-top: 1px solid {}; margin: 32px 0;",
-            self.theme.color_surface_muted
+            self.theme.surface_muted
         ))
     }
 
@@ -139,14 +112,14 @@ impl Renderer {
     }
 
     fn link_style(&self) -> String {
-        self.s(format!("color: {}; text-decoration: underline;", self.theme.color_primary))
+        self.s(format!("color: {}; text-decoration: underline;", self.theme.primary))
     }
 
     fn code_mark_style(&self) -> String {
         self.s(format!(
             "font-family: monospace, monospace; font-size: 14px; \
              background-color: {}; padding: 2px 4px;",
-            self.theme.color_surface_muted
+            self.theme.surface_muted
         ))
     }
 

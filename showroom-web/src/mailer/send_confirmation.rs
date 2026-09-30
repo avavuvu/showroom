@@ -15,7 +15,7 @@ pub async fn send_confirmation(
 
     let subject = convert_ses_content(format!("Confirm your subscription to {}", publication.name));
 
-    let html = convert_ses_content(confirmation_html(subscriber_name, &confirm_url, &publication.name));
+    let html = convert_ses_content(confirmation_html(subscriber_name, &confirm_url, &publication.name, publication.theme().email()));
     let text = convert_ses_content(confirmation_text(subscriber_name, &confirm_url, &publication.name));
 
     let body = Body::builder().html(html).text(text).build();

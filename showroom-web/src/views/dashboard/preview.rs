@@ -1,6 +1,6 @@
 use maud::{Markup, html};
 use crate::models::newsletter;
-use crate::renderer::email::{ThemeVariables, render_email};
+use crate::renderer::email::render_email;
 use bq_components::Button;
 use crate::views::context::PageContext;
 use crate::views::layouts::{page, newsletter_template, base};
@@ -13,7 +13,8 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
 
     let date = newsletter.created_at.format("%B %-d, %Y").to_string();
 
-    let content = render_email(&newsletter.content, ThemeVariables::default());
+    let theme = publication.theme().email();
+    let content = render_email(&newsletter.content, theme);
 
     let template = newsletter_template(
         &newsletter.title,
@@ -22,7 +23,7 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
         &date,
         &publication_url,
         &publication_url,
-        None,
+        theme,
         content,
     );
 

@@ -1,7 +1,7 @@
 use maud::{DOCTYPE, Markup, PreEscaped, html};
 use serde::Serialize;
 
-use crate::renderer::email::{EmailBlock, ThemeVariables};
+use crate::{renderer::email::EmailBlock, theme::{Color, EmailTheme, FONT_BODY, FONT_TITLE}};
 
 #[allow(dead_code)]
 pub enum Align {
@@ -22,8 +22,7 @@ impl Align {
     }
 }
 
-pub fn base_email_layout(title: &str, preheader: Option<&str>, theme: Option<ThemeVariables>, content: Markup) -> Markup {
-    let theme = theme.unwrap_or_default();
+pub fn base_email_layout(title: &str, preheader: Option<&str>, theme: EmailTheme, content: Markup) -> Markup {
 
     html! {
         (DOCTYPE)
@@ -33,7 +32,7 @@ pub fn base_email_layout(title: &str, preheader: Option<&str>, theme: Option<The
                 meta name="viewport" content="width=device-width, initial-scale=1.0";
                 title { (title) }
             }
-            body style=(format!("margin:0;padding:0;background-color:{};", theme.color_surface)) {
+            body style=(format!("margin:0;padding:0;background-color:{};", theme.surface)) {
                 @if let Some(pre) = preheader {
                     div style="display:none;max-height:0;overflow:hidden;mso-hide:all;" {
                         (pre)
@@ -42,10 +41,10 @@ pub fn base_email_layout(title: &str, preheader: Option<&str>, theme: Option<The
                 }
 
 
-                table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style=(format!("background-color:{};", theme.color_surface)) {
+                table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style=(format!("background-color:{};", theme.surface)) {
                     tr {
                         td align="center" style="padding:40px 20px;" {
-                            table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style=(format!("max-width:600px;width:100%;background-color:{};", theme.color_surface)) {
+                            table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style=(format!("max-width:600px;width:100%;background-color:{};", theme.surface)) {
                                 (content)
                             }
                         }
@@ -58,10 +57,10 @@ pub fn base_email_layout(title: &str, preheader: Option<&str>, theme: Option<The
 
 const GUTTER: &str = "40";
 
-pub fn email_section(content: &str, padding_top: &str, padding_bottom: &str, align: Option<Align>, theme: &ThemeVariables) -> Markup {
+pub fn email_section(content: &str, padding_top: &str, padding_bottom: &str, align: Option<Align>, theme: &EmailTheme) -> Markup {
     let mut style = format!(
-        "padding-top:{padding_top};padding-bottom:{padding_bottom};font-family:{};font-size:14px;color:{};",
-        theme.font_body, theme.color_text
+        "padding-top:{padding_top};padding-bottom:{padding_bottom};font-family:{FONT_BODY};font-size:14px;color:{};",
+        theme.text
     );
     if let Some(a) = align {
         style.push_str(&format!("text-align:{};", a.as_str()));
@@ -78,10 +77,10 @@ pub fn email_section(content: &str, padding_top: &str, padding_bottom: &str, ali
     }
 }
 
-pub fn email_p(content: Markup, theme: &ThemeVariables, color_override: Option<&str>) -> Markup {
+pub fn email_p(content: Markup, theme: &EmailTheme, color_override: Option<Color>) -> Markup {
     let style = format!(
-        "margin:0 0 16px;font-family:{};font-size:14px;line-height:1.5;color:{};",
-        theme.font_body, color_override.unwrap_or(&theme.color_text)
+        "margin:0 0 16px;font-family:{FONT_BODY};font-size:14px;line-height:1.5;color:{};",
+        color_override.unwrap_or(theme.text)
     );
 
     html! {
@@ -89,10 +88,10 @@ pub fn email_p(content: Markup, theme: &ThemeVariables, color_override: Option<&
     }
 }
 
-pub fn email_a(content: Markup, theme: &ThemeVariables, href: &str, color_override: Option<&str>) -> Markup {
+pub fn email_a(content: Markup, theme: &EmailTheme, href: &str, color_override: Option<Color>) -> Markup {
     let style = format!(
-        "font-family:{};color:{};text-decoration:underline;",
-        theme.font_body, color_override.unwrap_or(&theme.color_primary)
+        "font-family:{FONT_BODY};color:{};text-decoration:underline;",
+        color_override.unwrap_or(theme.primary)
     );
 
     html! {
@@ -110,11 +109,11 @@ fn full_width_image_section(src: &str, alt: &str) -> Markup {
     }
 }
 
-pub fn email_button(label: &str, href: &str, theme: &ThemeVariables) -> Markup {
-    let td_style = format!("border-radius:4px;background-color:{};", theme.color_text);
+pub fn email_button(label: &str, href: &str, theme: &EmailTheme) -> Markup {
+    let td_style = format!("border-radius:4px;background-color:{};", theme.text);
     let a_style = format!(
-        "display:inline-block;padding:12px 24px;font-family:{};font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;",
-        theme.font_body
+        "display:inline-block;padding:12px 24px;font-family:{FONT_BODY};font-size:14px;font-weight:600;color:{};text-decoration:none;",
+        theme.surface
     );
 
     html! {
@@ -128,8 +127,7 @@ pub fn email_button(label: &str, href: &str, theme: &ThemeVariables) -> Markup {
     }
 }
 
-pub fn confirmation_html(name: Option<&str>, confirm_url: &str, publication_name: &str) -> Markup {
-    let theme = ThemeVariables::default();
+pub fn confirmation_html(name: Option<&str>, confirm_url: &str, publication_name: &str, theme: EmailTheme) -> Markup {
 
     let content = html! {
         @if let Some(n) = name {
@@ -148,14 +146,14 @@ pub fn confirmation_html(name: Option<&str>, confirm_url: &str, publication_name
     let footer = html! {
         (email_p(
             html! { "If you did not request this, you can safely ignore this email." },
-            &theme, Some(&theme.color_muted)
+            &theme, Some(theme.muted)
         ))
     };
 
     base_email_layout(
         "Confirm your subscription",
         Some("Please confirm your subscription."),
-        Some(theme.clone()),
+        theme,
         html! {
             (email_section(&content.0, "32px", "32px", None, &theme))
             (email_section(&button.0, "32px", "32px", Some(Align::Center), &theme))
@@ -187,10 +185,9 @@ pub fn newsletter_template(
     date: &str,
     read_online_url: &str,
     publication_url: &str,
-    theme: Option<ThemeVariables>,
+    theme: EmailTheme,
     mut content: Vec<EmailBlock>,
 ) -> Markup {
-    let theme = theme.unwrap_or_default();
 
     match content.first_mut() {
         Some(EmailBlock::Content(s)) => *s = "{{greeting_html}}".to_string() + s,
@@ -204,15 +201,15 @@ pub fn newsletter_template(
                 html! { "Read in browser" },
                 &theme,
                 &read_online_url,
-                Some(&theme.color_muted)
+                Some(theme.muted)
             ))
-        }, &theme, Some(&theme.color_muted)))
+        }, &theme, Some(theme.muted)))
     };
 
     let info = html! {
         h1 style=(format!(
-            "margin:24px 0 8px;font-family:{};font-size:28px;font-weight:bold;color:{};line-height:1.2;",
-            theme.font_title, theme.color_text
+            "margin:24px 0 8px;font-family:{FONT_TITLE};font-size:28px;font-weight:bold;color:{};line-height:1.2;",
+            theme.text
         )) {
             (title)
         }
@@ -220,7 +217,7 @@ pub fn newsletter_template(
             (email_p(
                 html!{ (sub) },
                 &theme,
-                Some(&theme.color_muted)
+                Some(theme.muted)
             ))
         }
         (email_p (
@@ -268,7 +265,7 @@ pub fn newsletter_template(
     base_email_layout(
         title,
         subtitle,
-        Some(theme.clone()),
+        theme,
         html! {
             (email_section(&header.0, "32px", "24px", Some(Align::Right), &theme))
             (email_section(&info.0, "0", "0", None, &theme))

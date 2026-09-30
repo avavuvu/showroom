@@ -1,5 +1,7 @@
 use sea_orm::{entity::prelude::*, QueryOrder};
 
+use crate::theme::Theme;
+
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
 #[sea_orm(table_name = "publications")]
 pub struct Model {
@@ -9,7 +11,7 @@ pub struct Model {
     pub slug: String,
     pub name: String,
     pub description: Option<String>,
-    pub theme: Option<Json>,
+    pub theme: Option<Theme>,
     pub is_default: bool,
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,
@@ -48,6 +50,12 @@ impl Related<super::subscriber::Entity> for Entity {
 }
 
 impl ActiveModelBehavior for ActiveModel {}
+
+impl Model {
+    pub fn theme(&self) -> Theme {
+        self.theme.unwrap_or_default()
+    }
+}
 
 pub async fn for_owner(owner_id: &str, db: &DatabaseConnection) -> Result<Vec<Model>, DbErr> {
     Entity::find()

@@ -64,7 +64,22 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
 
             section.settings-section {
                 h2 { "Style" }
-                p.hint { "The theme editor is not ready yet." }
+                @let theme = publication.theme();
+                form.settings-form method="POST" action={ (dashboard_url) "/settings/style" } {
+                    label {
+                        "Ink"
+                        input type="color" name="ink" value=(theme.ink);
+                    }
+                    label {
+                        "Paper"
+                        input type="color" name="paper" value=(theme.paper);
+                    }
+                    label {
+                        "Brand"
+                        input type="color" name="brand" value=(theme.brand);
+                    }
+                    (Button::submit(html! { "Save" }).primary())
+                }
             }
 
             @if !publication.is_default {
