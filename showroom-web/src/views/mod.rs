@@ -9,4 +9,4 @@ pub mod user;
 pub mod pages;
 pub mod sitemap;
 
-pub use context::PageContext;
+pub use context::{PageContext, Viewer};

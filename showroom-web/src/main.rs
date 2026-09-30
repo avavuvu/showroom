@@ -1,6 +1,7 @@
 use std::env;
 use aws_config::{BehaviorVersion, Region};
 use sea_orm::{Database, DatabaseConnection};
+mod auth;
 mod mailer;
 mod handlers;
 mod models;
@@ -9,6 +10,7 @@ mod routers;
 mod renderer;
 mod services;
 mod state;
+mod theme;
 mod views;
 
 use boutique::cloudinary::Cloudinary;
@@ -21,7 +23,7 @@ struct AppEnv {
     port: String,
     domain: String,
     main_domain: String,
-    jwt_secret: String,
+    secret: String,
 }
 
 // this is used in prod, cargo misses that
@@ -50,7 +52,7 @@ async fn setup() -> AppEnv {
     let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string());
     let domain = env::var("DOMAIN").unwrap_or_else(|_| "localtest.me".to_string());
     let main_domain = env::var("MAIN_DOMAIN").unwrap_or_else(|_| "localtest.me".to_string());
-    let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
+    let secret = env::var("SECRET_KEY").expect("SECRET_KEY must be set");
 
     let aws_config = aws_config::defaults(BehaviorVersion::latest())
         .region(Region::from_static("ap-southeast-2"))
@@ -60,7 +62,7 @@ async fn setup() -> AppEnv {
 
     let cloudinary = Cloudinary::from_env().expect("CLOUDINARY_URL must be set");
 
-    AppEnv { db, ses, cloudinary, port, domain, main_domain, jwt_secret }
+    AppEnv { db, ses, cloudinary, port, domain, main_domain, secret }
 }
 
 async fn server(env: AppEnv) {
@@ -69,7 +71,7 @@ async fn server(env: AppEnv) {
         env.ses,
         env.cloudinary,
         state::Urls::new(&env.domain, &env.port, &env.main_domain),
-        env.jwt_secret,
+        env.secret,
     );
 
     let (server, routes) = router::create_server(&state);

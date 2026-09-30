@@ -1,9 +1,9 @@
-use axum::{Extension, Form, extract::{Query, State}, response::{IntoResponse, Response}};
-use boutique::{AppError, AppResult, UserContext, htmx, reset};
+use axum::{Form, extract::{Query, State}, response::{IntoResponse, Response}};
+use boutique::{AppError, AppResult, htmx, reset};
 use serde::Deserialize;
 use validator::Validate;
 
-use crate::{mailer, state::AppState, views::{self, PageContext}};
+use crate::{mailer, state::AppState, views::{self, PageContext, Viewer}};
 
 #[derive(Deserialize, Validate)]
 pub struct ForgotPasswordForm {
@@ -13,9 +13,9 @@ pub struct ForgotPasswordForm {
 
 pub async fn forgot_password_page(
     State(state): State<AppState>,
-    Extension(ctx): Extension<UserContext>,
+    viewer: Viewer,
 ) -> Response {
-    views::auth::forgot_password(&PageContext::public(&ctx, state.urls.clone())).into_response()
+    views::auth::forgot_password(&PageContext::public(viewer, state.urls.clone())).into_response()
 }
 
 pub async fn forgot_password(
@@ -45,10 +45,10 @@ pub struct TokenQuery {
 
 pub async fn reset_password_page(
     State(state): State<AppState>,
-    Extension(ctx): Extension<UserContext>,
+    viewer: Viewer,
     Query(params): Query<TokenQuery>,
 ) -> Response {
-    let page_ctx = PageContext::public(&ctx, state.urls.clone());
+    let page_ctx = PageContext::public(viewer, state.urls.clone());
 
     match reset::verify_token(&state.auth, &params.token).await {
         Ok(_) => views::auth::reset_password(&page_ctx, &params.token).into_response(),

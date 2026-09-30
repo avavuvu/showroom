@@ -1,9 +1,9 @@
-use axum::{Extension, Form, extract::State, response::{IntoResponse, Redirect, Response}};
-use boutique::{AppError, AppResult, UserContext, htmx, session::{self, LoginError}};
+use axum::{Form, extract::State, response::{IntoResponse, Redirect, Response}};
+use boutique::{AppError, AppResult, htmx, session::{self, LoginError}};
 use serde::Deserialize;
 use validator::Validate;
 
-use crate::{state::AppState, views::{self, PageContext}};
+use crate::{state::AppState, views::{self, PageContext, Viewer}};
 
 #[derive(Deserialize, Validate)]
 pub struct LoginForm {
@@ -15,13 +15,13 @@ pub struct LoginForm {
 
 pub async fn login_page(
     State(state): State<AppState>,
-    Extension(ctx): Extension<UserContext>,
+    viewer: Viewer,
 ) -> Response {
-    if ctx.is_authenticated() {
+    if viewer.is_some() {
         return Redirect::to(&state.urls.app()).into_response();
     }
 
-    views::auth::login(&PageContext::public(&ctx, state.urls.clone())).into_response()
+    views::auth::login(&PageContext::public(viewer, state.urls.clone())).into_response()
 }
 
 pub async fn login(

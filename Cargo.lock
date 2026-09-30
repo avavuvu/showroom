@@ -838,13 +838,16 @@ dependencies = [
  "axum-extra",
  "chrono",
  "dioxus-devtools",
+ "hmac 0.12.1",
  "jsonwebtoken",
  "maud",
+ "rand_core 0.6.4",
  "reqwest",
  "sea-orm",
  "serde",
  "serde_json",
  "sha1",
+ "sha2 0.10.9",
  "time",
  "tokio",
  "tower",
@@ -870,6 +873,15 @@ dependencies = [
  "heck 0.5.0",
  "proc-macro2",
  "quote",
+ "syn 2.0.119",
+]
+
+[[package]]
+name = "bq_setups"
+version = "0.2.0"
+dependencies = [
+ "heck 0.5.0",
+ "proc-macro2",
  "syn 2.0.119",
 ]
 
@@ -3857,6 +3869,7 @@ dependencies = [
  "axum-extra",
  "boutique",
  "bq_components",
+ "bq_setups",
  "chrono",
  "csv",
  "dotenvy",

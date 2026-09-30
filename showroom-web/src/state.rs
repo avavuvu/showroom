@@ -4,6 +4,8 @@ use boutique::{AuthConfig, AuthState};
 use sea_orm::DatabaseConnection;
 use boutique::cloudinary::Cloudinary;
 
+use crate::{auth, models::user};
+
 #[derive(Clone)]
 pub struct Urls {
     domain: String,      // room.lc — used for subdomain routing
@@ -76,19 +78,19 @@ impl Urls {
 pub struct AppState {
     pub db: DatabaseConnection,
     pub urls: Urls,
-    pub auth: AuthState,
+    pub auth: AuthState<user::Model>,
     pub ses: SesClient,
     pub cloudinary: Cloudinary,
 }
 
 impl AppState {
-    pub fn new(db: DatabaseConnection, ses: SesClient, cloudinary: Cloudinary, urls: Urls, jwt_secret: String) -> Self {
-        let auth = AuthState::with_config(db.clone(), jwt_secret, urls.auth_config());
+    pub fn new(db: DatabaseConnection, ses: SesClient, cloudinary: Cloudinary, urls: Urls, secret: String) -> Self {
+        let auth = AuthState::with_config(auth::Store::new(db.clone()), secret, urls.auth_config());
         Self { db, urls, auth, ses, cloudinary }
     }
 }
 
-impl FromRef<AppState> for AuthState {
+impl FromRef<AppState> for AuthState<user::Model> {
     fn from_ref(state: &AppState) -> Self {
         state.auth.clone()
     }

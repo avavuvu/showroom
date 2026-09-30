@@ -32,7 +32,7 @@ impl FromRequestParts<AppState> for OwnedPublication {
     type Rejection = Response;
 
     async fn from_request_parts(parts: &mut Parts, state: &AppState) -> Result<Self, Self::Rejection> {
-        let AuthenticatedUser(user) = AuthenticatedUser::from_request_parts(parts, state).await?;
+        let AuthenticatedUser(user) = AuthenticatedUser::<user::Model>::from_request_parts(parts, state).await?;
 
         let Path(params) = Path::<HashMap<String, String>>::from_request_parts(parts, state)
             .await

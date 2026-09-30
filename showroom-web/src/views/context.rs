@@ -1,5 +1,7 @@
-use boutique::UserContext;
+use boutique::AuthenticatedUser;
 use crate::{models::{publication, user}, state::Urls};
+
+pub type Viewer = Option<AuthenticatedUser<user::Model>>;
 
 pub struct ViewerUser {
     pub id: String,
@@ -18,11 +20,9 @@ impl PageContext {
         self.user.is_some()
     }
 
-    pub fn public(ctx: &UserContext, urls: Urls) -> Self {
+    pub fn public(viewer: Viewer, urls: Urls) -> Self {
         Self {
-            user: ctx.user_id.as_ref().zip(ctx.email.as_ref()).map(|(id, email)| {
-                ViewerUser { id: id.clone(), email: email.clone() }
-            }),
+            user: viewer.map(|AuthenticatedUser(user)| ViewerUser { id: user.id, email: user.email }),
             publication: None,
             publications: Vec::new(),
             urls,

@@ -1,5 +1,5 @@
-use axum::{Extension, Form, extract::State, response::{IntoResponse, Redirect, Response}};
-use boutique::{AppError, AppResult, UserContext, htmx, session};
+use axum::{Form, extract::State, response::{IntoResponse, Redirect, Response}};
+use boutique::{AppError, AppResult, htmx, session};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter, TransactionTrait};
 use serde::Deserialize;
 use validator::Validate;
@@ -7,7 +7,7 @@ use validator::Validate;
 use crate::{
     models::{publication::{self, Entity as Publication}, user::{self, Entity as User}},
     state::AppState,
-    views::{self, PageContext},
+    views::{self, PageContext, Viewer},
 };
 
 fn alphanumeric(value: &str) -> Result<(), validator::ValidationError> {
@@ -36,13 +36,13 @@ pub struct SignupForm {
 #[cfg(debug_assertions)]
 pub async fn signup_page(
     State(state): State<AppState>,
-    Extension(ctx): Extension<UserContext>,
+    viewer: Viewer,
 ) -> Response {
-    if ctx.is_authenticated() {
+    if viewer.is_some() {
         return Redirect::to(&state.urls.app()).into_response();
     }
 
-    views::auth::signup(&PageContext::public(&ctx, state.urls.clone())).into_response()
+    views::auth::signup(&PageContext::public(viewer, state.urls.clone())).into_response()
 }
 
 pub async fn signup(
@@ -79,7 +79,7 @@ pub async fn signup(
         return Err(AppError::Fields(fields));
     }
 
-    let new_user = session::new_user(&form.email, &form.password)
+    let new_user = user::new(&form.email, &form.password)
         .map_err(|e| AppError::internal("signup password hash", e))?;
 
     let now = chrono::Utc::now().fixed_offset();

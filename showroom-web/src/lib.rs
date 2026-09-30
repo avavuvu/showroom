@@ -1,8 +1,10 @@
+pub mod auth;
 pub mod renderer;
 pub mod models;
 pub mod services;
 pub mod state;
 pub mod mailer;
+pub mod theme;
 pub mod views;
 
 pub use boutique::htmx;

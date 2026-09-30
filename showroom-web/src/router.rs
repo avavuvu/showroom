@@ -1,10 +1,10 @@
 use boutique::{Server, assets::manifest};
-use crate::{routers::*, services::subdomain::SubdomainRouter, state::AppState};
+use crate::{models, routers::*, services::subdomain::SubdomainRouter, state::AppState};
 
 pub const BUILD_ROUTE: &str = "/build";
 pub const BUILD_DIR: &str = "public/build";
 
-pub fn create_server(state: &AppState) -> (Server, SubdomainRouter) {
+pub fn create_server(state: &AppState) -> (Server<models::user::Model>, SubdomainRouter) {
     manifest::init(BUILD_ROUTE, BUILD_DIR);
 
     let lander_router = lander::create_router(state.clone());

@@ -4,14 +4,14 @@ use maud::Markup;
 
 use crate::{
     mailer,
-    models::publication,
+    models::{publication, user},
     state::AppState,
     views::{self, PageContext},
 };
 
 pub async fn get_settings(
     State(state): State<AppState>,
-    AuthenticatedUser(user): AuthenticatedUser,
+    AuthenticatedUser(user): AuthenticatedUser<user::Model>,
 ) -> Markup {
     let publications = publication::for_owner(&user.id, &state.db).await.unwrap_or_default();
     let ctx = PageContext::from_user(&user, state.urls.clone()).with_publications(publications);
@@ -20,7 +20,7 @@ pub async fn get_settings(
 
 pub async fn request_password_change(
     State(state): State<AppState>,
-    AuthenticatedUser(user): AuthenticatedUser,
+    AuthenticatedUser(user): AuthenticatedUser<user::Model>,
 ) -> Markup {
     let token = match reset::token_for(&state.auth, &user) {
         Ok(t) => t,

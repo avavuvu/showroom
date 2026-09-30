@@ -6,8 +6,9 @@ use slugify::slugify;
 use serde_json::Value;
 use boutique::{AppError, AppResult, AuthenticatedUser};
 use crate::{
+
     services::publication::OwnedPublication,
-    models::{newsletter::{self, Entity as Newsletter}, publication::Entity as Publication},
+    models::{newsletter::{self, Entity as Newsletter}, publication::Entity as Publication, user},
     state::AppState,
     views,
 };
@@ -41,7 +42,7 @@ async fn find_owned_newsletter(id: &str, user_id: &str, db: &DatabaseConnection)
 
 pub async fn get_edit_json(
     State(state): State<AppState>,
-    AuthenticatedUser(user): AuthenticatedUser,
+    AuthenticatedUser(user): AuthenticatedUser<user::Model>,
     Path(id): Path<String>,
 ) -> AppResult<Json<NewsletterResponse>> {
     let newsletter = find_owned_newsletter(&id, &user.id, &state.db).await?;
@@ -64,7 +65,7 @@ pub struct NewsletterResponse {
 
 pub async fn put_edit_json(
     State(state): State<AppState>,
-    AuthenticatedUser(user): AuthenticatedUser,
+    AuthenticatedUser(user): AuthenticatedUser<user::Model>,
     Path(id): Path<String>,
     Json(body): Json<NewsletterResponse>,
 ) -> AppResult<StatusCode> {

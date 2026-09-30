@@ -1,8 +1,7 @@
-use axum::{extract::State, Extension};
+use axum::extract::State;
 use maud::Markup;
-use boutique::UserContext;
-use crate::{state::AppState, views::{self, PageContext}};
+use crate::{state::AppState, views::{self, PageContext, Viewer}};
 
-pub async fn index(State(state): State<AppState>, Extension(ctx): Extension<UserContext>) -> Markup {
-    views::home::index(&PageContext::public(&ctx, state.urls.clone()))
+pub async fn index(State(state): State<AppState>, viewer: Viewer) -> Markup {
+    views::home::index(&PageContext::public(viewer, state.urls.clone()))
 }

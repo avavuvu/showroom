@@ -16,6 +16,7 @@ use crate::{
         user,
     },
     state::AppState,
+    theme::{Color, Theme},
     views::{self, PageContext},
 };
 
@@ -31,7 +32,7 @@ async fn account_context(user: &user::Model, state: &AppState) -> PageContext {
 
 pub async fn index(
     State(state): State<AppState>,
-    AuthenticatedUser(user): AuthenticatedUser,
+    AuthenticatedUser(user): AuthenticatedUser<user::Model>,
 ) -> AppResult<Redirect> {
     let publications = publication::for_owner(&user.id, &state.db)
         .await
@@ -51,14 +52,14 @@ pub struct NewPublicationForm {
 
 pub async fn new_form(
     State(state): State<AppState>,
-    AuthenticatedUser(user): AuthenticatedUser,
+    AuthenticatedUser(user): AuthenticatedUser<user::Model>,
 ) -> Markup {
     views::dashboard::publications::new_form(&account_context(&user, &state).await, "", "", None)
 }
 
 pub async fn create(
     State(state): State<AppState>,
-    AuthenticatedUser(user): AuthenticatedUser,
+    AuthenticatedUser(user): AuthenticatedUser<user::Model>,
     Form(form): Form<NewPublicationForm>,
 ) -> Response {
     let ctx = account_context(&user, &state).await;
@@ -139,6 +140,33 @@ pub async fn update_settings(
     let mut active: publication::ActiveModel = owned.publication.into();
     active.name = Set(name);
     active.description = Set(description);
+    active.updated_at = Set(chrono::Utc::now().fixed_offset());
+
+    active.update(&state.db).await?;
+
+    Ok(Redirect::to(&format!("{}/settings", state.urls.dashboard(&slug))).into_response())
+}
+
+#[derive(Deserialize)]
+pub struct StyleForm {
+    pub ink: String,
+    pub paper: String,
+    pub brand: String,
+}
+
+pub async fn update_style(
+    State(state): State<AppState>,
+    owned: OwnedPublication,
+    Form(form): Form<StyleForm>,
+) -> AppResult {
+    let colors = (Color::parse(&form.ink), Color::parse(&form.paper), Color::parse(&form.brand));
+    let (Some(ink), Some(paper), Some(brand)) = colors else {
+        return Ok(views::dashboard::publications::settings(&owned.into_context(state.urls.clone()), Some("Colors must be in #rrggbb format")).into_response());
+    };
+
+    let slug = owned.publication.slug.clone();
+    let mut active: publication::ActiveModel = owned.publication.into();
+    active.theme = Set(Some(Theme { ink, paper, brand }));
     active.updated_at = Set(chrono::Utc::now().fixed_offset());
 
     active.update(&state.db).await?;
