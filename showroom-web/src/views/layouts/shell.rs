@@ -1,5 +1,5 @@
 use maud::{Markup, PreEscaped, html};
-use crate::views::{components::layout::{footer::footer, header::header}, context::PageContext, layouts::{Head, base}};
+use crate::{components::{footer, header}, views::{context::PageContext, layouts::{Head, base}}};
 
 pub fn shell(view: Head, page: &PageContext, content: Markup) -> Markup {
     base(

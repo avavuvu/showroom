@@ -1,6 +1,6 @@
 use maud::{Markup, html};
 use crate::models::newsletter;
-use bq_components::Button;
+use crate::components::button;
 use crate::views::context::PageContext;
 use crate::views::layouts::{page, dashboard_shell};
 
@@ -18,7 +18,7 @@ pub fn index(ctx: &PageContext, newsletters: Vec<newsletter::Model>) -> Markup {
                 section.newsletter-section.drafts {
                     header.section-header {
                         h2 { "Drafts" }
-                        (Button::post(html! { "New newsletter" }, format!("{}/newsletters", dashboard_url)).primary())
+                        (button(html! { "New newsletter" }).post(format!("{}/newsletters", dashboard_url)).primary())
                     }
                     (newsletter_list(&drafts, &publication_url, &dashboard_url, "No drafts. Start a new newsletter."))
                 }
@@ -86,13 +86,14 @@ fn newsletter_row(newsletter: &newsletter::Model, publication_url: &str, dashboa
                     a href=(view_url) { "View" }
                 }
                 a href=(edit_url) { "Edit" }
-                button.danger
-                    hx-delete={ (dashboard_url) "/newsletters/" (newsletter.id) }
-                    hx-target={ "#newsletter-" (newsletter.id) }
-                    hx-swap="delete"
-                    hx-status:4xx="swap:none"
-                    hx-status:5xx="swap:none"
-                    hx-confirm="Delete this newsletter?" { "Delete" }
+                (button(html! { "Delete" })
+                    .danger()
+                    .hx_delete(format!("{dashboard_url}/newsletters/{}", newsletter.id))
+                    .hx_target(format!("#newsletter-{}", newsletter.id))
+                    .hx_swap("delete")
+                    .hx_confirm("Delete this newsletter?")
+                    .hx_status_4xx("swap:none")
+                    .hx_status_5xx("swap:none"))
             }
         }
     }

@@ -1,5 +1,5 @@
 use maud::{Markup, PreEscaped, html};
-use crate::{models::newsletter::Model as Newsletter, renderer::html::render, views::{components::forms::subscribe::subscribe_form, context::PageContext, layouts::{Metadata, page, shell}}};
+use crate::{models::newsletter::Model as Newsletter, renderer::html::render, components::subscribe_form, views::{context::PageContext, layouts::{Metadata, page, shell}}};
 
 pub fn profile(ctx: &PageContext, newsletters: &[Newsletter]) -> Markup {
     let publication = ctx.publication();

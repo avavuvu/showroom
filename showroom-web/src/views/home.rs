@@ -1,5 +1,5 @@
 use maud::{Markup, html};
-use crate::views::{components::layout::header::header, context::PageContext, layouts::{page, Metadata}};
+use crate::{components::header, views::{context::PageContext, layouts::{page, Metadata}}};
 use super::layouts::base;
 
 pub fn index(ctx: &PageContext) -> Markup {

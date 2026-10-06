@@ -1,5 +1,5 @@
 use maud::{Markup, html};
-use bq_components::Button;
+use crate::components::button;
 use crate::views::context::PageContext;
 
 pub fn header(ctx: &PageContext) -> Markup {
@@ -18,13 +18,13 @@ pub fn header(ctx: &PageContext) -> Markup {
             }
             div.auth {
                 @if ctx.is_authenticated() {
-                    (Button::post(html!{"Log out"}, format!("{}/logout", ctx.urls.base())))
-                    (Button::link(html!{"Dashboard"}, ctx.urls.app()))
+                    (button(html!{"Log out"}).post(format!("{}/logout", ctx.urls.base())))
+                    (button(html!{"Dashboard"}).href(ctx.urls.app()))
                 } @else {
                     @if cfg!(debug_assertions) {
-                        (Button::link(html!{"Get started"}, format!("{}/signup", ctx.urls.base())))
+                        (button(html!{"Get started"}).href(format!("{}/signup", ctx.urls.base())))
                     }
-                    (Button::link(html!{(login_text)}, format!("{}/login", ctx.urls.base())))
+                    (button(html!{(login_text)}).href(format!("{}/login", ctx.urls.base())))
                 }
             }
         }

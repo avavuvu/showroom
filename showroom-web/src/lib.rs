@@ -5,6 +5,7 @@ pub mod services;
 pub mod state;
 pub mod mailer;
 pub mod theme;
+pub mod components;
 pub mod views;
 
 pub use boutique::htmx;

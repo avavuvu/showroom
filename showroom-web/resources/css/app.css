@@ -1,7 +1,4 @@
 @import "components/newsletter.css";
-@import "components/header.css";
-@import "components/subscribe_form.css";
-@import "components/footer.css";
 @import "components/auth.css";
 @import "views/lander.css";
 @import "views/edit.css";

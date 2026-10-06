@@ -6,6 +6,6 @@ setup!(SaveStatus);
 #[component]
 pub fn save_status() -> Markup {
     html! {
-        sr-save-status.save-status bq-setup=(SaveStatus) { "Saved" }
+        output.save-status aria-live="polite" bq-setup=(SaveStatus) { "Saved" }
     }
 }

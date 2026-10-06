@@ -11,6 +11,7 @@ mod renderer;
 mod services;
 mod state;
 mod theme;
+mod components;
 mod views;
 
 use boutique::cloudinary::Cloudinary;

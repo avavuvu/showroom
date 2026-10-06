@@ -1,5 +1,5 @@
 use maud::{Markup, html};
-use bq_components::Button;
+use crate::components::button;
 use crate::views::{context::PageContext, layouts::{page, dashboard_shell}};
 
 pub fn index(ctx: &PageContext) -> Markup {
@@ -23,7 +23,7 @@ pub fn index(ctx: &PageContext) -> Markup {
                         }
                     }
                 }
-                (Button::link(html! { "New publication" }, format!("{}/new", ctx.urls.app())).primary())
+                (button(html! { "New publication" }).href(format!("{}/new", ctx.urls.app())).primary())
             }
 
             section.settings-section {
@@ -34,7 +34,7 @@ pub fn index(ctx: &PageContext) -> Markup {
                     hx-target="#change-password-result"
                     hx-swap="innerHTML" {
                     div id="change-password-result" {}
-                    (Button::submit(html! { "Send reset email" }).secondary())
+                    (button(html! { "Send reset email" }).submit().secondary())
                 }
             }
         }

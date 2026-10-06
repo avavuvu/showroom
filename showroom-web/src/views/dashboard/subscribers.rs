@@ -1,12 +1,13 @@
 use maud::{Markup, html};
-use bq_components::Button;use crate::{
+use crate::components::{Kind, button, input};
+use crate::{
     models::subscriber::Model as Subscriber, views::{context::PageContext, layouts::{page, dashboard_shell}},
 };
 
 pub fn index(ctx: &PageContext, subscribers: &[Subscriber]) -> Markup {
     dashboard_shell(
         page("Subscribers")
-            
+
             .htmx()
             .class("subscribers".into()),
         ctx,
@@ -38,8 +39,8 @@ pub fn index(ctx: &PageContext, subscribers: &[Subscriber]) -> Markup {
                     hx-encoding="multipart/form-data"
                     hx-config="timeout:300000"
                     hx-status:4xx="target:#import-status swap:innerHTML" {
-                    input type="file" name="file" accept=".csv" required;
-                    (Button::submit(html! { "Import" }).primary())
+                    (input("file").kind(Kind::File).accept(".csv").required())
+                    (button(html! { "Import" }).submit().primary())
                 }
             }
         }
