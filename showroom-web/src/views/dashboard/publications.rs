@@ -1,5 +1,6 @@
-use maud::{Markup, html};
-use crate::components::{Kind, button, input, textarea};
+use boutique::html;
+use maud::Markup;
+use crate::components::{Button, Input, Kind, Textarea};
 use crate::views::context::PageContext;
 use crate::views::layouts::{page, dashboard_shell};
 
@@ -15,18 +16,20 @@ pub fn new_form(ctx: &PageContext, slug: &str, name: &str, error: Option<&str>) 
                     @if let Some(error) = error {
                         p.error { (error) }
                     }
-                    (input("name").label("Name").value(name).placeholder("My newsletter").required())
-                    (input("slug")
-                        .label("Address")
-                        .value(slug)
-                        .placeholder("my-newsletter")
-                        .suffix(&domain)
-                        .hint("Lowercase letters, numbers and hyphens. This cannot be changed later.")
-                        .pattern("[a-z0-9-]{3,40}")
-                        .min_length(3)
-                        .max_length(40)
-                        .required())
-                    (button(html! { "Create publication" }).submit().primary())
+                    Input("name", label = "Name") value=(name) placeholder="My newsletter" required;
+                    Input(
+                        "slug",
+                        label = "Address",
+                        suffix = &domain,
+                        hint = "Lowercase letters, numbers and hyphens. This cannot be changed later.",
+                    )
+                        value=(slug)
+                        placeholder="my-newsletter"
+                        pattern="[a-z0-9-]{3,40}"
+                        minlength="3"
+                        maxlength="40"
+                        required;
+                    Button(submit = true) .primary { "Create publication" }
                 }
             }
         }
@@ -50,20 +53,20 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
                     @if let Some(error) = error {
                         p.error { (error) }
                     }
-                    (input("name").label("Name").value(&publication.name).required())
-                    (textarea("description").label("Description").rows(3).value(publication.description.as_deref().unwrap_or("")))
-                    (input("address").label("Address").value(&address).disabled())
-                    (button(html! { "Save" }).submit().primary())
+                    Input("name", label = "Name") value=(publication.name) required;
+                    Textarea("description", label = "Description", value = publication.description.as_deref().unwrap_or("")) rows="3";
+                    Input("address", label = "Address") value=(address) disabled;
+                    Button(submit = true) .primary { "Save" }
                 }
             }
 
             section.settings-section {
                 h2 { "Style" }
                 form.settings-form method="POST" action={ (dashboard_url) "/settings/style" } {
-                    (input("ink").kind(Kind::Color).label("Ink").value(&ink))
-                    (input("paper").kind(Kind::Color).label("Paper").value(&paper))
-                    (input("brand").kind(Kind::Color).label("Brand").value(&brand))
-                    (button(html! { "Save" }).submit().primary())
+                    Input("ink", kind = Kind::Color, label = "Ink") value=(ink);
+                    Input("paper", kind = Kind::Color, label = "Paper") value=(paper);
+                    Input("brand", kind = Kind::Color, label = "Brand") value=(brand);
+                    Button(submit = true) .primary { "Save" }
                 }
             }
 
@@ -73,7 +76,7 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
                     p.hint { "This removes the publication, its newsletters and its subscribers. This cannot be undone." }
                     form method="POST" action={ (dashboard_url) "/delete" }
                         onsubmit="return confirm('Delete this publication and everything in it?')" {
-                        (button(html! { "Delete " (publication.name) }).submit().danger())
+                        Button(submit = true) .danger { "Delete " (publication.name) }
                     }
                 }
             }

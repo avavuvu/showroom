@@ -1,4 +1,5 @@
-use maud::{Markup, PreEscaped, html};
+use boutique::html;
+use maud::{Markup, PreEscaped};
 use crate::{components::{footer, header}, views::{context::PageContext, layouts::{Head, base}}};
 
 pub fn shell(view: Head, page: &PageContext, content: Markup) -> Markup {

@@ -1,6 +1,7 @@
-use maud::{Markup, html};
+use boutique::html;
+use maud::Markup;
 use crate::models::newsletter;
-use crate::components::button;
+use crate::components::Button;
 use crate::views::context::PageContext;
 use crate::views::layouts::{page, dashboard_shell};
 
@@ -18,7 +19,7 @@ pub fn index(ctx: &PageContext, newsletters: Vec<newsletter::Model>) -> Markup {
                 section.newsletter-section.drafts {
                     header.section-header {
                         h2 { "Drafts" }
-                        (button(html! { "New newsletter" }).post(format!("{}/newsletters", dashboard_url)).primary())
+                        Button(post = format!("{}/newsletters", dashboard_url)) .primary { "New newsletter" }
                     }
                     (newsletter_list(&drafts, &publication_url, &dashboard_url, "No drafts. Start a new newsletter."))
                 }
@@ -86,14 +87,17 @@ fn newsletter_row(newsletter: &newsletter::Model, publication_url: &str, dashboa
                     a href=(view_url) { "View" }
                 }
                 a href=(edit_url) { "Edit" }
-                (button(html! { "Delete" })
-                    .danger()
-                    .hx_delete(format!("{dashboard_url}/newsletters/{}", newsletter.id))
-                    .hx_target(format!("#newsletter-{}", newsletter.id))
-                    .hx_swap("delete")
-                    .hx_confirm("Delete this newsletter?")
-                    .hx_status_4xx("swap:none")
-                    .hx_status_5xx("swap:none"))
+                Button
+                    .danger
+                    hx-delete={ (dashboard_url) "/newsletters/" (newsletter.id) }
+                    hx-target={ "#newsletter-" (newsletter.id) }
+                    hx-swap="delete"
+                    hx-confirm="Delete this newsletter?"
+                    hx-status:4xx="swap:none"
+                    hx-status:5xx="swap:none"
+                {
+                    "Delete"
+                }
             }
         }
     }

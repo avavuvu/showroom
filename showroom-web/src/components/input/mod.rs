@@ -1,1 +1,1 @@
-pub use bq_components::{Kind, input, textarea};
+pub use bq_components::{Input, Kind, Textarea};

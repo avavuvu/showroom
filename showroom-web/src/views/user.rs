@@ -1,4 +1,5 @@
-use maud::{Markup, PreEscaped, html};
+use boutique::html;
+use maud::{Markup, PreEscaped};
 use crate::{models::newsletter::Model as Newsletter, renderer::html::render, components::subscribe_form, views::{context::PageContext, layouts::{Metadata, page, shell}}};
 
 pub fn profile(ctx: &PageContext, newsletters: &[Newsletter]) -> Markup {

@@ -1,4 +1,5 @@
-use maud::{Markup, html};
+use boutique::html;
+use maud::Markup;
 use crate::views::{context::PageContext, layouts::{Head, base}};
 
 pub fn dashboard_shell(view: Head, ctx: &PageContext, content: Markup) -> Markup {

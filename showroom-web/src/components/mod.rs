@@ -6,10 +6,10 @@ pub mod input;
 pub mod save_status;
 pub mod subscribe_form;
 
-pub use button::button;
-pub use editor::editor;
+pub use button::Button;
+pub use editor::Editor;
 pub use footer::footer;
 pub use header::header;
-pub use input::{Kind, input, textarea};
-pub use save_status::save_status;
+pub use input::{Input, Kind, Textarea};
+pub use save_status::SaveStatus;
 pub use subscribe_form::subscribe_form;

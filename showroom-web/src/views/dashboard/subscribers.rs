@@ -1,5 +1,6 @@
-use maud::{Markup, html};
-use crate::components::{Kind, button, input};
+use boutique::html;
+use maud::Markup;
+use crate::components::{Button, Input, Kind};
 use crate::{
     models::subscriber::Model as Subscriber, views::{context::PageContext, layouts::{page, dashboard_shell}},
 };
@@ -39,8 +40,8 @@ pub fn index(ctx: &PageContext, subscribers: &[Subscriber]) -> Markup {
                     hx-encoding="multipart/form-data"
                     hx-config="timeout:300000"
                     hx-status:4xx="target:#import-status swap:innerHTML" {
-                    (input("file").kind(Kind::File).accept(".csv").required())
-                    (button(html! { "Import" }).submit().primary())
+                    Input("file", kind = Kind::File) accept=".csv" required;
+                    Button(submit = true) .primary { "Import" }
                 }
             }
         }

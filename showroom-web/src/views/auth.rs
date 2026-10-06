@@ -1,5 +1,6 @@
-use maud::{Markup, html};
-use crate::components::{Kind, button, input};
+use boutique::html;
+use maud::Markup;
+use crate::components::{Button, Input, Kind};
 use crate::views::{PageContext, layouts::{page, shell}};
 
 pub fn login(ctx: &PageContext) -> Markup {
@@ -17,9 +18,9 @@ pub fn login(ctx: &PageContext) -> Markup {
                     hx-target="#login-error"
                     hx-swap="innerHTML"
                 {
-                    (input("email").kind(Kind::Email).placeholder("you@example.com").required())
-                    (input("password").kind(Kind::Password).label("Password").required())
-                    (button(html! { "Sign in" }).submit().primary())
+                    Input("email", kind = Kind::Email) placeholder="you@example.com" required;
+                    Input("password", kind = Kind::Password, label = "Password") required;
+                    Button(submit = true) .primary { "Sign in" }
                     p {
                         a.link href="/forgot-password" { "Forgot your password?" }
                     }
@@ -51,10 +52,10 @@ pub fn signup(ctx: &PageContext) -> Markup {
                     hx-target="#signup-error"
                     hx-swap="innerHTML"
                 {
-                    (input("email").kind(Kind::Email).placeholder("you@example.com").required())
-                    (input("handle").prefix("@").placeholder("yourhandle").autocomplete("username").required())
-                    (input("password").kind(Kind::Password).label("Password").autocomplete("new-password").required())
-                    (button(html! { "Create account" }).submit().primary())
+                    Input("email", kind = Kind::Email) placeholder="you@example.com" required;
+                    Input("handle", prefix = "@") placeholder="yourhandle" autocomplete="username" required;
+                    Input("password", kind = Kind::Password, label = "Password") autocomplete="new-password" required;
+                    Button(submit = true) .primary { "Create account" }
 
                     p {
                         "Already have an account? "
@@ -83,8 +84,8 @@ pub fn forgot_password(ctx: &PageContext) -> Markup {
                     hx-target="#forgot-password"
                     hx-swap="outerHTML"
                 {
-                    (input("email").kind(Kind::Email).placeholder("you@example.com").required())
-                    (button(html! { "Send reset link" }).submit().primary())
+                    Input("email", kind = Kind::Email) placeholder="you@example.com" required;
+                    Button(submit = true) .primary { "Send reset link" }
                     p {
                         a.link href="/login" { "Back to login" }
                     }
@@ -120,9 +121,9 @@ pub fn reset_password(ctx: &PageContext, token: &str) -> Markup {
                     hx-swap="innerHTML"
                 {
                     input type="hidden" name="token" value=(token);
-                    (input("password").kind(Kind::Password).label("New password").autocomplete("new-password").required())
-                    (input("password_confirm").kind(Kind::Password).label("Confirm password").autocomplete("new-password").required())
-                    (button(html! { "Change password" }).submit().primary())
+                    Input("password", kind = Kind::Password, label = "New password") autocomplete="new-password" required;
+                    Input("password_confirm", kind = Kind::Password, label = "Confirm password") autocomplete="new-password" required;
+                    Button(submit = true) .primary { "Change password" }
                 }
             }
         }

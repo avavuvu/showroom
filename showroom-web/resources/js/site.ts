@@ -5,8 +5,7 @@ import "../css/base.css";
 import "../css/app.css";
 import "../css/prose.css";
 
-import "@bq/components/src/autosave/autosave";
-import "@bq/components/src/behaviours/behaviours";
+
 import { defineSetups } from "@bq/components/src/setups";
 import { registry } from "../../bindings/registry";
 

@@ -1,4 +1,5 @@
-use maud::{Markup, html};
+use boutique::html;
+use maud::Markup;
 use crate::views::{context::PageContext, layouts::{Metadata, page, shell}};
 
 pub fn about(ctx: &PageContext) -> Markup {

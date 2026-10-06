@@ -1,5 +1,6 @@
-use maud::{Markup, html};
-use crate::components::button;
+use boutique::html;
+use maud::Markup;
+use crate::components::Button;
 use crate::views::{context::PageContext, layouts::{page, dashboard_shell}};
 
 pub fn index(ctx: &PageContext) -> Markup {
@@ -23,7 +24,7 @@ pub fn index(ctx: &PageContext) -> Markup {
                         }
                     }
                 }
-                (button(html! { "New publication" }).href(format!("{}/new", ctx.urls.app())).primary())
+                Button(href = format!("{}/new", ctx.urls.app())) .primary { "New publication" }
             }
 
             section.settings-section {
@@ -34,7 +35,7 @@ pub fn index(ctx: &PageContext) -> Markup {
                     hx-target="#change-password-result"
                     hx-swap="innerHTML" {
                     div id="change-password-result" {}
-                    (button(html! { "Send reset email" }).submit().secondary())
+                    Button(submit = true) .secondary { "Send reset email" }
                 }
             }
         }

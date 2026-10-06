@@ -1,7 +1,7 @@
-use maud::{Markup, html};
+use boutique::html;
+use maud::Markup;
 use crate::models::newsletter;
-use crate::components::button;
-use crate::components::{editor, save_status};
+use crate::components::{Button, Editor, SaveStatus};
 use crate::views::context::PageContext;
 use crate::views::layouts::{base, page};
 
@@ -9,9 +9,9 @@ pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
 
     let back_url = ctx.dashboard_url();
     let view_or_preview_button = if newsletter.sent_at.is_some() {
-        button(html!("View")).href(format!("{}/{}", ctx.publication_url(), newsletter.slug)).primary()
+        html! { Button(href = format!("{}/{}", ctx.publication_url(), newsletter.slug)) .primary { "View" } }
     } else {
-        button(html!("Publish")).href(format!("{}/send/{}", ctx.dashboard_url(), newsletter.id)).primary()
+        html! { Button(href = format!("{}/send/{}", ctx.dashboard_url(), newsletter.id)) .primary { "Publish" } }
     };
 
     base(
@@ -26,9 +26,9 @@ pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
 
             header {
                 div.left {
-                    (button(html!("Back")).href(back_url).secondary())
+                    Button(href = back_url) .secondary { "Back" }
 
-                    (save_status())
+                    SaveStatus;
 
                 }
 
@@ -37,7 +37,7 @@ pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
                 }
             }
 
-            (editor(&newsletter.id))
+            Editor(&newsletter.id);
         }
     })
 }

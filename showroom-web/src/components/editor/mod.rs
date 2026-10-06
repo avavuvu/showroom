@@ -1,5 +1,6 @@
+use boutique::html;
 use bq_components::{component, setup};
-use maud::{Markup, html};
+use maud::Markup;
 
 setup!(NewsletterEditor);
 

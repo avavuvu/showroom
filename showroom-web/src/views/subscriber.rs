@@ -1,4 +1,5 @@
-use maud::{Markup, html};
+use boutique::html;
+use maud::Markup;
 use crate::views::layouts::page;
 
 use super::layouts::base;

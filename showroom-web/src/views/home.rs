@@ -1,4 +1,5 @@
-use maud::{Markup, html};
+use boutique::html;
+use maud::Markup;
 use crate::{components::header, views::{context::PageContext, layouts::{page, Metadata}}};
 use super::layouts::base;
 

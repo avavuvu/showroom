@@ -1,5 +1,6 @@
 use axum::{http::header, response::{IntoResponse, Response}};
-use maud::{Markup, PreEscaped, html};
+use boutique::html;
+use maud::{Markup, PreEscaped};
 
 use crate::{
     models::{newsletter::Model as Newsletter, publication::Model as Publication},

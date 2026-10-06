@@ -1,4 +1,5 @@
-use maud::{DOCTYPE, Markup, PreEscaped, html};
+use boutique::html;
+use maud::{DOCTYPE, Markup, PreEscaped};
 use serde::Serialize;
 
 use crate::{renderer::email::EmailBlock, theme::{Color, EmailTheme, FONT_BODY, FONT_TITLE}};

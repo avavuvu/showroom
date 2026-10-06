@@ -1,6 +1,7 @@
-use maud::{Markup, html};
+use boutique::html;
+use maud::Markup;
 
-use crate::components::{Kind, button, input};
+use crate::components::{Button, Input, Kind};
 
 pub fn subscribe_form(publication_url: &str, publication_name: &str) -> Markup {
     let subscribe_to_url = &format!("{}/subscribe", publication_url);
@@ -14,9 +15,9 @@ pub fn subscribe_form(publication_url: &str, publication_name: &str) -> Markup {
                 hx-target="#subscribe-form"
                 hx-swap="outerHTML" {
 
-                (input("email").kind(Kind::Email).placeholder("you@example.com").required())
-                (input("name").placeholder("name (optional)"))
-                (button(html! { "Subscribe to "(publication_name) }).submit().primary())
+                Input("email", kind = Kind::Email) placeholder="you@example.com" required;
+                Input("name") placeholder="name (optional)";
+                Button(submit = true) .primary { "Subscribe to " (publication_name) }
             }
         }
     }
