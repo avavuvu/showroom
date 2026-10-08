@@ -1,5 +1,5 @@
 use boutique::html;
-use maud::Markup;
+use maud::{Markup, PreEscaped};
 use crate::models::newsletter;
 use crate::components::{Button, Editor, SaveStatus};
 use crate::views::context::PageContext;
@@ -17,6 +17,9 @@ pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     base(
         &page("Edit").htmx(),
         html! {
+        @if let Some(publication) = &ctx.publication {
+            style { (PreEscaped(publication.theme().css())) }
+        }
         div.edit-view {
             @if newsletter.sent_at.is_some() {
                 div.marquee {

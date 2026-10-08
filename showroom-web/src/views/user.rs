@@ -1,6 +1,6 @@
 use boutique::html;
 use maud::{Markup, PreEscaped};
-use crate::{models::newsletter::Model as Newsletter, renderer::html::render, components::subscribe_form, views::{context::PageContext, layouts::{Metadata, page, shell}}};
+use crate::{models::newsletter::Model as Newsletter, renderer::html::render, components::{ArticleHeader, subscribe_form}, views::{context::PageContext, layouts::{Metadata, page, shell}}};
 
 pub fn profile(ctx: &PageContext, newsletters: &[Newsletter]) -> Markup {
     let publication = ctx.publication();
@@ -48,16 +48,13 @@ pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
         html! {
         main.article-layout .newsletter {
             article.prose .flow {
-                div.info {
-                    p.date { (date) }
-                    h1 { (newsletter.title) }
-                    @if let Some(subtitle) = &newsletter.subtitle {
-                        p.subtitle { (subtitle) }
-                    }
-                    p.handle {
-                        a href=(publication_url) { (publication.name) }
-                    }
-                }
+                ArticleHeader(
+                    date = &date,
+                    title = &newsletter.title,
+                    subtitle = newsletter.subtitle.as_deref(),
+                    name = &publication.name,
+                    href = &publication_url,
+                );
                 (PreEscaped(html_string))
             }
             div.subscribe {

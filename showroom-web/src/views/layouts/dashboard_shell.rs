@@ -1,5 +1,5 @@
 use boutique::html;
-use maud::Markup;
+use maud::{Markup, PreEscaped};
 use crate::views::{context::PageContext, layouts::{Head, base}};
 
 pub fn dashboard_shell(view: Head, ctx: &PageContext, content: Markup) -> Markup {
@@ -14,6 +14,9 @@ pub fn dashboard_shell(view: Head, ctx: &PageContext, content: Markup) -> Markup
     base(
         &view,
         html! {
+            @if let Some(publication) = &ctx.publication {
+                style id="theme" { (PreEscaped(publication.theme().css())) }
+            }
             div.dashboard {
                 ul.side-bar {
                     nav {

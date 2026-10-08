@@ -1,0 +1,30 @@
+.article-header {
+    text-align: var(--article-header-align, start);
+
+    & .date {
+        display: var(--article-date-display, block);
+        color: var(--prose-color-muted, var(--color-muted));
+        text-align: var(--article-date-align, right);
+    }
+
+    & .title {
+        font-size: var(--article-title-size, var(--prose-h1-size, 1.4rem));
+    }
+
+    & .subtitle {
+        color: var(--prose-color-muted, var(--color-muted));
+    }
+
+    & .handle {
+        display: var(--article-handle-display, block);
+        color: var(--color-primary);
+    }
+
+    &::after {
+        content: "";
+        display: var(--article-header-rule, none);
+        width: 4em;
+        margin: 1.5em auto 0;
+        border-bottom: 1px solid currentColor;
+    }
+}

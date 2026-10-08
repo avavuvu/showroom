@@ -1,6 +1,6 @@
 use serde_json::Value;
 
-use crate::theme::{EmailTheme, FONT_BODY, FONT_TITLE};
+use crate::theme::{EmailTheme, Layout};
 
 pub enum EmailBlock {
     Content(String),
@@ -55,17 +55,20 @@ impl Renderer {
     }
 
     fn paragraph_style(&self) -> String {
+        let font_body = self.theme.font_body;
+        let size = self.theme.text_px;
         self.s(format!(
-            "margin: 0 0 16px 0; font-family: {FONT_BODY}; font-size: 16px; line-height: 1.5;"
+            "margin: 0 0 16px 0; font-family: {font_body}; font-size: {size}px; line-height: 1.5;"
         ))
     }
 
     fn heading_style(&self, level: u64) -> String {
-        let font = if level <= 3 { FONT_TITLE } else { FONT_BODY };
-        let size = match level { 1 => 22, 2 => 19, 3 => 18, _ => 16 };
+        let font = if level <= 3 { self.theme.font_title } else { self.theme.font_body };
+        let size = self.theme.heading_px(level);
+        let align = if self.theme.layout == Layout::Centred { "center" } else { "left" };
         self.s(format!(
-            "font-family: {font}; font-size: {size}px; font-weight: bold; \
-             margin: 0 0 8px 0; line-height: 1.3;"
+            "font-family: {font}; font-size: {size}px; font-weight: bold; text-align: {align}; \
+             margin: 28px 0 8px 0; line-height: 1.3;"
         ))
     }
 
@@ -77,15 +80,19 @@ impl Renderer {
     }
 
     fn list_item_style(&self) -> String {
+        let font_body = self.theme.font_body;
+        let size = self.theme.text_px;
         self.s(format!(
-            "font-family: {FONT_BODY}; font-size: 16px; line-height: 1.5; margin-bottom: 4px;"
+            "font-family: {font_body}; font-size: {size}px; line-height: 1.5; margin-bottom: 4px;"
         ))
     }
 
     fn blockquote_style(&self) -> String {
+        let font_body = self.theme.font_body;
+        let size = self.theme.text_px;
         self.s(format!(
             "border-left: 3px solid {}; padding: 0 0 0 16px; margin: 0 0 16px 0; \
-             font-family: {FONT_BODY}; font-size: 16px; line-height: 1.5;",
+             font-family: {font_body}; font-size: {size}px; line-height: 1.5;",
             self.theme.primary
         ))
     }
@@ -112,7 +119,7 @@ impl Renderer {
     }
 
     fn link_style(&self) -> String {
-        self.s(format!("color: {}; text-decoration: underline;", self.theme.primary))
+        self.s(format!("color: {}; text-decoration: underline;", self.theme.link))
     }
 
     fn code_mark_style(&self) -> String {

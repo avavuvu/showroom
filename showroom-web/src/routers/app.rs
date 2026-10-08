@@ -13,6 +13,7 @@ pub fn create_router(state: AppState) -> Router {
 
         .route("/settings", get(publications::get_settings).post(publications::update_settings))
         .route("/settings/style", post(publications::update_style))
+        .route("/settings/style/preview", post(publications::preview_style))
         .route("/delete", post(publications::delete));
 
     Router::new()

@@ -1,5 +1,5 @@
 use boutique::html;
-use maud::Markup;
+use maud::{Markup, PreEscaped};
 use crate::models::newsletter;
 use crate::renderer::email::render_email;
 use crate::components::Button;
@@ -31,6 +31,7 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     base(
         &page(&newsletter.title),
         html! {
+        style { (PreEscaped(publication.theme().css())) }
         div.preview-view {
             header {
                 div.left {

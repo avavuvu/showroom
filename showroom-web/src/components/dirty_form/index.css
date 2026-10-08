@@ -1,0 +1,4 @@
+h2:has(~ form[data-dirty])::after {
+    content: "*";
+    content: "*" / "unsaved changes";
+}

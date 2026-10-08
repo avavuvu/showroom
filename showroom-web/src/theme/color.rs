@@ -1,14 +1,6 @@
 use std::fmt;
 
-use sea_orm::FromJsonQueryResult;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-
-pub const FONT_BODY: &str = r#""Times", "Times New Roman", serif"#;
-pub const FONT_TITLE: &str = r#""Playfair Display", "Georgia", serif"#;
-
-const MUTED: f32 = 0.33;
-const SURFACE_MUTED: f32 = 0.07;
-const DARK_PAPER: f32 = 0.18;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Color {
@@ -47,6 +39,11 @@ impl Color {
         };
         0.2126 * linear(self.red) + 0.7152 * linear(self.green) + 0.0722 * linear(self.blue)
     }
+
+    pub fn contrast(self, other: Color) -> f32 {
+        let (a, b) = (self.luminance(), other.luminance());
+        (a.max(b) + 0.05) / (a.min(b) + 0.05)
+    }
 }
 
 impl fmt::Display for Color {
@@ -65,55 +62,5 @@ impl<'de> Deserialize<'de> for Color {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Color, D::Error> {
         let text = String::deserialize(deserializer)?;
         Color::parse(&text).ok_or_else(|| serde::de::Error::custom(format!("invalid color {text:?}")))
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
-pub struct Theme {
-    pub ink: Color,
-    pub paper: Color,
-    pub brand: Color,
-}
-
-impl Default for Theme {
-    fn default() -> Self {
-        Theme { ink: Color::hex(0x000000), paper: Color::hex(0xffffff), brand: Color::hex(0x92ca3a) }
-    }
-}
-
-impl Theme {
-    pub fn scheme(self) -> &'static str {
-        if self.paper.luminance() < DARK_PAPER { "dark" } else { "light" }
-    }
-
-    pub fn css(self) -> String {
-        format!(":root{{--ink:{};--paper:{};--brand:{};color-scheme:{}}}", self.ink, self.paper, self.brand, self.scheme())
-    }
-
-    pub fn email(self) -> EmailTheme {
-        EmailTheme {
-            text: self.ink,
-            border: self.ink,
-            primary: self.brand,
-            surface: self.paper,
-            surface_muted: self.ink.mix(self.paper, SURFACE_MUTED),
-            muted: self.ink.mix(self.paper, MUTED),
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct EmailTheme {
-    pub text: Color,
-    pub border: Color,
-    pub primary: Color,
-    pub surface: Color,
-    pub surface_muted: Color,
-    pub muted: Color,
-}
-
-impl Default for EmailTheme {
-    fn default() -> Self {
-        Theme::default().email()
     }
 }

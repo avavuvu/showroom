@@ -1,25 +1,9 @@
 .newsletter {
     min-height: 100vh;
 
-    & .info {
-    }
-
-    & .date {
-        color: var(--color-muted);
-        text-align: right;
-    }
-
-    & .subtitle {
-        color: var(--color-muted);
-    }
-
-    & .handle {
-        color: var(--color-primary);
-    }
-
     & .subscribe {
-        --color-placeholder: var(--color-surface);
-        --color-border: var(--color-surface);
+        --color-placeholder: var(--color-on-primary);
+        --color-border: var(--color-on-primary);
 
         margin: 1em 0;
         padding: 1em;
@@ -27,7 +11,7 @@
         flex-direction: column;
         justify-content: center;
         gap: 1em;
-        color: var(--color-surface);
+        color: var(--color-on-primary);
         background-color: var(--color-primary);
         grid-column-start: 1;
         grid-column-end: 4;

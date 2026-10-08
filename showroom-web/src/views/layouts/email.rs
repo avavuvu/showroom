@@ -2,7 +2,7 @@ use boutique::html;
 use maud::{DOCTYPE, Markup, PreEscaped};
 use serde::Serialize;
 
-use crate::{renderer::email::EmailBlock, theme::{Color, EmailTheme, FONT_BODY, FONT_TITLE}};
+use crate::{renderer::email::EmailBlock, theme::{Color, EmailTheme, Layout}};
 
 #[allow(dead_code)]
 pub enum Align {
@@ -60,7 +60,8 @@ const GUTTER: &str = "40";
 
 pub fn email_section(content: &str, padding_top: &str, padding_bottom: &str, align: Option<Align>, theme: &EmailTheme) -> Markup {
     let mut style = format!(
-        "padding-top:{padding_top};padding-bottom:{padding_bottom};font-family:{FONT_BODY};font-size:14px;color:{};",
+        "padding-top:{padding_top};padding-bottom:{padding_bottom};font-family:{};font-size:14px;color:{};",
+        theme.font_body,
         theme.text
     );
     if let Some(a) = align {
@@ -80,7 +81,8 @@ pub fn email_section(content: &str, padding_top: &str, padding_bottom: &str, ali
 
 pub fn email_p(content: Markup, theme: &EmailTheme, color_override: Option<Color>) -> Markup {
     let style = format!(
-        "margin:0 0 16px;font-family:{FONT_BODY};font-size:14px;line-height:1.5;color:{};",
+        "margin:0 0 16px;font-family:{};font-size:14px;line-height:1.5;color:{};",
+        theme.font_body,
         color_override.unwrap_or(theme.text)
     );
 
@@ -91,8 +93,9 @@ pub fn email_p(content: Markup, theme: &EmailTheme, color_override: Option<Color
 
 pub fn email_a(content: Markup, theme: &EmailTheme, href: &str, color_override: Option<Color>) -> Markup {
     let style = format!(
-        "font-family:{FONT_BODY};color:{};text-decoration:underline;",
-        color_override.unwrap_or(theme.primary)
+        "font-family:{};color:{};text-decoration:underline;",
+        theme.font_body,
+        color_override.unwrap_or(theme.link)
     );
 
     html! {
@@ -113,7 +116,8 @@ fn full_width_image_section(src: &str, alt: &str) -> Markup {
 pub fn email_button(label: &str, href: &str, theme: &EmailTheme) -> Markup {
     let td_style = format!("border-radius:4px;background-color:{};", theme.text);
     let a_style = format!(
-        "display:inline-block;padding:12px 24px;font-family:{FONT_BODY};font-size:14px;font-weight:600;color:{};text-decoration:none;",
+        "display:inline-block;padding:12px 24px;font-family:{};font-size:14px;font-weight:600;color:{};text-decoration:none;",
+        theme.font_body,
         theme.surface
     );
 
@@ -195,9 +199,20 @@ pub fn newsletter_template(
         _ => content.insert(0, EmailBlock::Content("{{greeting_html}}".to_string())),
     }
 
+    let letter = theme.layout == Layout::Letter;
+    let centred = theme.layout == Layout::Centred;
+    let (header_align, info_align) = match theme.layout {
+        Layout::Default => (Align::Right, None),
+        Layout::Compact => (Align::Right, Some(Align::Right)),
+        Layout::Centred => (Align::Center, Some(Align::Center)),
+        Layout::Letter => (Align::Right, None),
+    };
+
     let header = html! {
         (email_p(html! {
-            (date) " · "
+            @if !letter {
+                (date) " · "
+            }
             (email_a(
                 html! { "Read in browser" },
                 &theme,
@@ -209,7 +224,9 @@ pub fn newsletter_template(
 
     let info = html! {
         h1 style=(format!(
-            "margin:24px 0 8px;font-family:{FONT_TITLE};font-size:28px;font-weight:bold;color:{};line-height:1.2;",
+            "margin:24px 0 8px;font-family:{};font-size:{}px;font-weight:bold;color:{};line-height:1.2;",
+            theme.font_title,
+            theme.title_px,
             theme.text
         )) {
             (title)
@@ -221,16 +238,20 @@ pub fn newsletter_template(
                 Some(theme.muted)
             ))
         }
-        (email_p (
-            email_a(
-                html! { (publication_name) },
+        @if !letter {
+            (email_p (
+                email_a(
+                    html! { (publication_name) },
+                    &theme,
+                    &publication_url,
+                    None),
                 &theme,
-                &publication_url,
-                None),
-            &theme,
-            None
-        ))
-
+                None
+            ))
+        }
+        @if centred {
+            div style=(format!("width:64px;height:1px;margin:24px auto 0;background-color:{};font-size:0;line-height:0;", theme.text)) {}
+        }
     };
 
     let content_rows = html! {
@@ -268,8 +289,8 @@ pub fn newsletter_template(
         subtitle,
         theme,
         html! {
-            (email_section(&header.0, "32px", "24px", Some(Align::Right), &theme))
-            (email_section(&info.0, "0", "0", None, &theme))
+            (email_section(&header.0, "32px", "24px", Some(header_align), &theme))
+            (email_section(&info.0, "0", "0", info_align, &theme))
             (content_rows)
             (email_section(&footer.0, "24px", "24px", Some(Align::Right), &theme))
         }

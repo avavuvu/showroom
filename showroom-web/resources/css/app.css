@@ -11,18 +11,24 @@
     --ink: #000000;
     --paper: #ffffff;
     --brand: #92ca3a;
+    --on-brand: var(--ink);
+    --link: var(--brand);
+    --muted: var(--color-muted);
     --font-body: "Times", "Times New Roman", serif;
-    --font-title: "Playfair Display", "Georgia", serif;
+    --font-title: "Georgia", serif;
 
     --color-surface: var(--paper);
     --color-text: var(--ink);
     --color-border: var(--ink);
     --color-primary: var(--brand);
+    --color-on-primary: var(--on-brand);
     --color-error: #af1d27;
     --color-muted: color-mix(in srgb, var(--ink) 33%, var(--paper));
     --color-surface-muted: color-mix(in srgb, var(--ink) 7%, var(--paper));
     --color-placeholder: var(--color-muted);
 
+    background-color: var(--color-surface);
+    color: var(--color-text);
     font-family: var(--font-body);
 }
 

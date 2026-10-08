@@ -29,7 +29,7 @@
         }
     }
 
-    & h2 {
+    & h2:where(:not(.prose *)) {
         font-family: var(--font-title);
         font-size: 1.125rem;
         margin: 0 0 0.25em;
@@ -47,11 +47,11 @@
         flex-direction: column;
         padding: 1em;
         background-color: var(--color-primary);
-        color: var(--color-surface);
+        color: var(--color-on-primary);
 
         & li {
             padding: 1em;
-            border: 1px solid var(--color-surface);
+            border: 1px solid var(--color-on-primary);
         }
 
         & ul {
@@ -211,8 +211,11 @@
             border-bottom: none;
         }
 
-        & h2 {
+        & > h2 {
             margin-bottom: 0.5em;
+            position: sticky;
+            top: 0;
+            background-color: var(--color-surface);
         }
 
         & > .hint {
@@ -224,6 +227,43 @@
         & > .button {
             display: inline-block;
             margin-top: 1.25em;
+        }
+    }
+
+    & .style-section {
+        max-width: none;
+        display: grid;
+        grid-template-columns: minmax(0, 36rem) minmax(0, 1fr);
+        grid-template-rows: auto 1fr;
+        column-gap: 3em;
+        align-items: start;
+
+        & > h2,
+        & > form {
+            grid-column: 1;
+        }
+
+        & > .style-preview {
+            grid-column: 2;
+            grid-row: 1 / span 2;
+            position: sticky;
+            top: 2em;
+            margin: 0;
+            padding: 2em;
+            border: 1px solid var(--color-border);
+            background-color: var(--color-surface);
+            color: var(--color-text);
+        }
+
+        @media (max-width: 64rem) {
+            grid-template-columns: minmax(0, 1fr);
+
+            & > .style-preview {
+                grid-column: 1;
+                grid-row: auto;
+                position: static;
+                margin-top: 1.25em;
+            }
         }
     }
 
@@ -275,6 +315,84 @@
             border: 1px solid var(--color-border);
             padding: 0.5em 0.75em;
             width: 100%;
+        }
+
+        & .font-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1em;
+            margin: 0;
+            padding: 0;
+            border: 0;
+
+            & > legend {
+                margin-bottom: 0.5em;
+                padding: 0;
+                font-family: var(--font-title);
+            }
+
+            & > .option-list > legend {
+                font-family: inherit;
+                font-weight: bold;
+                font-size: 0.875em;
+            }
+        }
+
+        & .option-list {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            margin: 0;
+            padding: 0;
+            border: 0;
+
+            & > legend {
+                margin-bottom: 0.375em;
+                padding: 0;
+                font-family: var(--font-title);
+            }
+        }
+
+        & .option {
+            position: relative;
+            display: block;
+
+            & input {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                margin: 0;
+                padding: 0;
+                border: 0;
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            & span {
+                display: block;
+                padding: 0.375em 0.75em;
+                border: 1px solid var(--color-border);
+                cursor: pointer;
+
+                &:hover {
+                    background-color: var(--color-surface-muted);
+                }
+
+            }
+
+            & + .option span {
+                border-top: 0;
+            }
+
+            & input:checked + span {
+                background-color: var(--color-primary);
+                color: var(--color-on-primary);
+            }
+
+            & input:focus-visible + span {
+                outline: 2px solid var(--color-text);
+                outline-offset: -4px;
+            }
         }
 
         & input:disabled {

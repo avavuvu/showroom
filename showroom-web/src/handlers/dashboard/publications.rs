@@ -1,5 +1,5 @@
 use axum::{
-    Form, extract::State, http::StatusCode,
+    Form, extract::State, http::{StatusCode, header},
     response::{IntoResponse, Redirect, Response},
 };
 use maud::Markup;
@@ -16,7 +16,7 @@ use crate::{
         user,
     },
     state::AppState,
-    theme::{Color, Theme},
+    theme::{Color, Font, Fonts, Layout, Overrides, Theme},
     views::{self, PageContext},
 };
 
@@ -152,6 +152,51 @@ pub struct StyleForm {
     pub ink: String,
     pub paper: String,
     pub brand: String,
+    #[serde(default)]
+    pub link: String,
+    pub link_custom: Option<String>,
+    #[serde(default)]
+    pub muted: String,
+    pub muted_custom: Option<String>,
+    pub font_title: Option<String>,
+    pub font_body: Option<String>,
+    pub layout: Option<String>,
+}
+
+fn font(key: &Option<String>, default: Font) -> Option<Font> {
+    match key {
+        Some(key) => Font::from_key(key),
+        None => Some(default),
+    }
+}
+
+fn override_color(custom: &Option<String>, value: &str) -> Option<Option<Color>> {
+    match custom {
+        Some(_) => Color::parse(value).map(Some),
+        None => Some(None),
+    }
+}
+
+impl StyleForm {
+    fn theme(&self) -> Option<Theme> {
+        Some(Theme {
+            ink: Color::parse(&self.ink)?,
+            paper: Color::parse(&self.paper)?,
+            brand: Color::parse(&self.brand)?,
+            overrides: Overrides {
+                link: override_color(&self.link_custom, &self.link)?,
+                muted: override_color(&self.muted_custom, &self.muted)?,
+            },
+            fonts: Fonts {
+                title: font(&self.font_title, Fonts::default().title)?,
+                body: font(&self.font_body, Fonts::default().body)?,
+            },
+            layout: match &self.layout {
+                Some(key) => Layout::from_key(key)?,
+                None => Layout::default(),
+            },
+        })
+    }
 }
 
 pub async fn update_style(
@@ -159,19 +204,25 @@ pub async fn update_style(
     owned: OwnedPublication,
     Form(form): Form<StyleForm>,
 ) -> AppResult {
-    let colors = (Color::parse(&form.ink), Color::parse(&form.paper), Color::parse(&form.brand));
-    let (Some(ink), Some(paper), Some(brand)) = colors else {
-        return Ok(views::dashboard::publications::settings(&owned.into_context(state.urls.clone()), Some("Colors must be in #rrggbb format")).into_response());
+    let Some(theme) = form.theme() else {
+        return Ok(views::dashboard::publications::settings(&owned.into_context(state.urls.clone()), Some("Colors must be in #rrggbb format, and fonts and layouts must be from the list")).into_response());
     };
 
     let slug = owned.publication.slug.clone();
     let mut active: publication::ActiveModel = owned.publication.into();
-    active.theme = Set(Some(Theme { ink, paper, brand }));
+    active.theme = Set(Some(theme));
     active.updated_at = Set(chrono::Utc::now().fixed_offset());
 
     active.update(&state.db).await?;
 
     Ok(Redirect::to(&format!("{}/settings", state.urls.dashboard(&slug))).into_response())
+}
+
+pub async fn preview_style(_: OwnedPublication, Form(form): Form<StyleForm>) -> Response {
+    match form.theme() {
+        Some(theme) => ([(header::CONTENT_TYPE, "text/css")], theme.css()).into_response(),
+        None => StatusCode::UNPROCESSABLE_ENTITY.into_response(),
+    }
 }
 
 pub async fn delete(

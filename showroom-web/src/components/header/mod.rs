@@ -17,15 +17,16 @@ pub fn header(ctx: &PageContext) -> Markup {
                 img.logo src="/icons/logo-sm.webp" alt="";
                 img.wordmark src="/icons/wordmark.svg" alt="Showroom";
             }
+
             div.auth {
                 @if ctx.is_authenticated() {
-                    Button(post = format!("{}/logout", ctx.urls.base())) { "Log out" }
-                    Button(href = ctx.urls.app()) { "Dashboard" }
+                    Button(post = format!("{}/logout", ctx.urls.base())) .ghost { "Log out" }
+                    Button(href = ctx.urls.app()) .ghost { "Dashboard" }
                 } @else {
                     @if cfg!(debug_assertions) {
-                        Button(href = format!("{}/signup", ctx.urls.base())) { "Get started" }
+                        Button(href = format!("{}/signup", ctx.urls.base())) .ghost { "Get started" }
                     }
-                    Button(href = format!("{}/login", ctx.urls.base())) { (login_text) }
+                    Button(href = format!("{}/login", ctx.urls.base())) .ghost { (login_text) }
                 }
             }
         }
