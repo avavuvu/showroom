@@ -22,8 +22,30 @@
             align-items: center;
             gap: 0.5em;
 
+            & .save-status-group {
+                display: flex;
+                align-items: center;
+                gap: 0.5em;
+            }
+
             & .save-status {
+                max-width: 40ch;
                 color: var(--color-muted);
+                font-size: 0.875em;
+                line-height: 1.2;
+
+                &:is([data-state="error"], [data-state="conflict"], [data-state="expired"], [data-state="invalid"], [data-state="problem"]) {
+                    color: var(--color-error);
+                }
+            }
+
+            & .save-actions {
+                display: flex;
+                gap: 0.5em;
+
+                &[hidden] {
+                    display: none;
+                }
             }
         }
     }

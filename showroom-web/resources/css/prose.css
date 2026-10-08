@@ -4,15 +4,15 @@
     --prose-color-link: var(--link);
     --prose-color-muted: var(--muted);
     --prose-color-blockquote-border: var(--color-primary);
-    --prose-color-pullquote-border: var(--color-text);
-    --prose-color-surface-subtle: #cccccc;
-    --prose-color-rule: #cccccc;
+    --prose-color-pullquote-border: var(--color-primary);
+    --prose-color-pullquote-surface: var(--color-surface-muted);
+    --prose-color-rule: var(--color-border);
 
     font-family: var(--prose-font-body);
     font-size: var(--prose-font-size, 1em);
 }
 
-.prose :is(p, ul, ol, blockquote, pre, hr, img) + :is(p, ul, ol, blockquote, pre, hr, img) {
+.prose :is(p, ul, ol, blockquote, pre, hr, img, figure) + :is(p, ul, ol, blockquote, pre, hr, img, figure) {
     margin-top: var(--prose-space, 1em);
 }
 
@@ -33,6 +33,10 @@
     color: var(--prose-color-link);
 }
 
+.prose :is(ul, ol) {
+    padding-left: var(--prose-list-indent, 1.5em);
+}
+
 .prose ul {
     list-style-type: disc;
 }
@@ -41,9 +45,18 @@
     list-style-type: decimal;
 }
 
+.prose li + li {
+    margin-top: var(--prose-list-space, 0.25em);
+}
+
+.prose li > :is(ul, ol) {
+    margin-top: var(--prose-list-space, 0.25em);
+}
+
 .prose h1,
 .prose h2,
-.prose h3 {
+.prose h3,
+.prose h4 {
     font-family: var(--prose-font-title);
 }
 
@@ -90,15 +103,40 @@
     margin-bottom: 1rem;
 }
 
-.prose blockquote.pullquote {
+.prose figure.pullquote {
+    margin-block: 1.5em;
+    padding: 1.25em 1.75em;
     border-left: 4px solid var(--prose-color-pullquote-border);
-    border-right: none;
-    border-top: none;
-    border-bottom: none;
-    font-size: 1.5rem;
+    background-color: var(--prose-color-pullquote-surface);
+}
+
+.prose figure.pullquote > blockquote {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.prose figure.pullquote > :not(figcaption) {
+    font-size: 1.2em;
     font-style: italic;
-    background: var(--prose-color-surface-subtle);
-    padding: 1rem;
+    line-height: 1.6;
+}
+
+.prose figure.pullquote > :not(figcaption) + :not(figcaption) {
+    margin-top: 0.5em;
+}
+
+.prose figure.pullquote > figcaption {
+    margin-top: 1em;
+    color: var(--color-muted);
+    font-size: 0.9em;
+    line-height: 1.6;
+    text-align: right;
+}
+
+.prose figure.pullquote > figcaption::before {
+    content: "—";
+    display: block;
 }
 
 .prose hr {
@@ -111,11 +149,30 @@
     max-width: 100%;
 }
 
-.prose img[data-width="full"] {
+.prose img[data-width="full"],
+.prose figure[data-width="full"] {
     width: 100vw;
     max-width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
+}
+
+.prose figure:not(.pullquote) img {
+    display: block;
+}
+
+.prose figure:not(.pullquote) > figcaption {
+    margin-top: 0.5em;
+    font-size: 0.875em;
+    line-height: 1.4;
+}
+
+.prose figure[data-width="full"] img {
+    width: 100%;
+}
+
+.prose figure[data-width="full"] > figcaption {
+    padding-inline: max(0.5em, calc((100% - 70ch) / 2 + 0.5em));
 }
 
 .prose code {

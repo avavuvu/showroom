@@ -2,6 +2,7 @@ use std::env;
 use aws_config::{BehaviorVersion, Region};
 use sea_orm::{Database, DatabaseConnection};
 mod auth;
+mod document;
 mod mailer;
 mod handlers;
 mod models;

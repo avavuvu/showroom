@@ -4,6 +4,7 @@ use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, QueryOrder};
 use serde::Serialize;
 
 use crate::{
+    document::Document,
     models::newsletter::{self, Entity as Newsletter},
     renderer::markdown,
     services::subdomain::CurrentPublication,
@@ -72,6 +73,6 @@ pub async fn get_newsletter(
         subtitle: newsletter.subtitle,
         date,
         slug: newsletter.slug,
-        content: markdown::render(&newsletter.content),
+        content: markdown::render(&Document::from_stored(&newsletter.content)),
     }))
 }

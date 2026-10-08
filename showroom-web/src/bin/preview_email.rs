@@ -1,6 +1,7 @@
 use chrono::Utc;
 use serde_json::json;
 use showroom_web::{
+    document::Document,
     renderer::email::render_email,
     theme::Theme,
     views::layouts::newsletter_template,
@@ -32,7 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     let theme = Theme::default().email();
-    let rendered_content = render_email(&content, theme);
+    let rendered_content = render_email(&Document::from_value(&content)?, theme);
     let date = Utc::now().format("%B %-d, %Y").to_string();
 
     let html = newsletter_template(

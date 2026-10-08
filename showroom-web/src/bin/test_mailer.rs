@@ -46,7 +46,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                 }
             ]
         }),
-        rendered: None,
+        revision: 0,
         sent_at: None,
         created_at: Utc::now().fixed_offset(),
         updated_at: Utc::now().fixed_offset(),

@@ -3,6 +3,7 @@ pub mod button;
 pub mod editor;
 pub mod footer;
 pub mod header;
+pub mod icon;
 pub mod input;
 pub mod save_status;
 pub mod subscribe_form;

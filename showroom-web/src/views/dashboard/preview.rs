@@ -1,5 +1,6 @@
 use boutique::html;
 use maud::{Markup, PreEscaped};
+use crate::document::Document;
 use crate::models::newsletter;
 use crate::renderer::email::render_email;
 use crate::components::Button;
@@ -15,10 +16,12 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     let date = newsletter.created_at.format("%B %-d, %Y").to_string();
 
     let theme = publication.theme().email();
-    let content = render_email(&newsletter.content, theme);
+    let content = render_email(&Document::from_stored(&newsletter.content), theme);
+    let has_title = !newsletter.title.trim().is_empty();
+    let recipient = ctx.user.as_ref().map(|user| user.email.as_str()).unwrap_or("");
 
     let template = newsletter_template(
-        &newsletter.title,
+        newsletter.display_title(),
         newsletter.subtitle.as_deref(),
         &publication.name,
         &date,
@@ -29,7 +32,7 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     );
 
     base(
-        &page(&newsletter.title),
+        &page(newsletter.display_title()),
         html! {
         style { (PreEscaped(publication.theme().css())) }
         div.preview-view {
@@ -38,8 +41,11 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
                     Button(href = back_url) .secondary { "Back" }
                 }
 
-                div {
-                    Button(post = send_url) .primary { "Send" }
+                div.right {
+                    @if !has_title {
+                        p.send-warning { "Add a title before you send." }
+                    }
+                    Button(post = send_url, disabled = !has_title) .primary { "Send" }
                 }
             }
 
@@ -55,13 +61,13 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
                         "TO:"
                     }
                     span {
-                        "avadinhvu@gmail.com"
+                        (recipient)
                     }
                     span {
                         "SUBJ:"
                     }
                     span {
-                        (&newsletter.title)
+                        (newsletter.display_title())
                     }
                 }
             }

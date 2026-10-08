@@ -10,6 +10,16 @@
         justify-content: space-between;
         align-items: center;
         padding: 0.5em 2em;
+
+        & .right {
+            display: flex;
+            align-items: center;
+            gap: 1em;
+        }
+
+        & .send-warning {
+            color: var(--color-error);
+        }
     }
     & .emails {
         display: grid;

@@ -11,16 +11,6 @@ use serde_json::json;
 use showroom_web::models::{newsletter, publication, user};
 use std::env;
 
-fn slugify(s: &str) -> String {
-    s.to_lowercase()
-        .chars()
-        .map(|c| if c.is_alphanumeric() { c } else { '-' })
-        .collect::<String>()
-        .split('-')
-        .filter(|s| !s.is_empty())
-        .collect::<Vec<_>>()
-        .join("-")
-}
 
 fn tiptap_doc(paragraphs: Vec<String>) -> serde_json::Value {
     json!({
@@ -95,14 +85,16 @@ async fn main() {
             let title = format!("On {word1} and {word2}");
             let paragraphs: Vec<String> = Paragraphs(2..4).fake();
 
+            let newsletter_id = nanoid!(14);
+
             newsletter::Entity::insert(newsletter::ActiveModel {
-                id: Set(nanoid!(14)),
+                id: Set(newsletter_id.clone()),
                 publication_id: Set(publication_id.clone()),
                 title: Set(title.clone()),
-                slug: Set(slugify(&title)),
+                slug: Set(newsletter_id),
                 subtitle: Set(None),
                 content: Set(tiptap_doc(paragraphs)),
-                rendered: Set(None),
+                revision: Set(0),
                 sent_at: Set(None),
                 created_at: Set(now),
                 updated_at: Set(now),

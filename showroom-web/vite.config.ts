@@ -1,5 +1,4 @@
 import { defineConfig } from "vite";
-import vue from "@vitejs/plugin-vue";
 import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
 
@@ -12,7 +11,7 @@ const boutique = existsSync(localBoutique)
 export default defineConfig({
     publicDir: false,
     base: "/build/",
-    plugins: [vue()],
+
     resolve: {
         alias: {
             "@bq": boutique,

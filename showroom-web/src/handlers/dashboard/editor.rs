@@ -1,14 +1,27 @@
-use axum::{Json, extract::{Path, State}, http::StatusCode};
-use maud::Markup;
-use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
-use serde::{Deserialize, Serialize};
-use slugify::slugify;
-use serde_json::Value;
+use axum::{
+    Json,
+    extract::{Path, State},
+    http::StatusCode,
+    response::{IntoResponse, Response},
+};
 use boutique::{AppError, AppResult, AuthenticatedUser};
-use crate::{
+use chrono::Utc;
+use maud::Markup;
+use sea_orm::{
+    ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter,
+    sea_query::Expr,
+};
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
+use crate::{
+    document::Document,
+    models::{
+        newsletter::{self, Entity as Newsletter},
+        publication::Entity as Publication,
+        user,
+    },
     services::publication::OwnedPublication,
-    models::{newsletter::{self, Entity as Newsletter}, publication::Entity as Publication, user},
     state::AppState,
     views,
 };
@@ -40,44 +53,50 @@ async fn find_owned_newsletter(id: &str, user_id: &str, db: &DatabaseConnection)
     }
 }
 
-pub async fn get_edit_json(
-    State(state): State<AppState>,
-    AuthenticatedUser(user): AuthenticatedUser<user::Model>,
-    Path(id): Path<String>,
-) -> AppResult<Json<NewsletterResponse>> {
-    let newsletter = find_owned_newsletter(&id, &user.id, &state.db).await?;
-
-    let response = NewsletterResponse {
-        title: newsletter.title,
-        subtitle: newsletter.subtitle,
-        content: newsletter.content,
-    };
-
-    Ok(Json(response))
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct NewsletterResponse {
+#[derive(Deserialize)]
+pub struct SaveRequest {
     title: String,
     subtitle: Option<String>,
     content: Value,
+    revision: i32,
+}
+
+#[derive(Serialize)]
+pub struct SaveResponse {
+    revision: i32,
 }
 
 pub async fn put_edit_json(
     State(state): State<AppState>,
     AuthenticatedUser(user): AuthenticatedUser<user::Model>,
     Path(id): Path<String>,
-    Json(body): Json<NewsletterResponse>,
-) -> AppResult<StatusCode> {
+    Json(body): Json<SaveRequest>,
+) -> AppResult<Response> {
     let newsletter = find_owned_newsletter(&id, &user.id, &state.db).await?;
 
-    let mut active: newsletter::ActiveModel = newsletter.into();
-    active.title = Set(body.title.clone());
-    active.subtitle = Set(body.subtitle);
-    active.slug = Set(slugify(&body.title, "", "-", None));
-    active.content = Set(body.content);
-    active.updated_at = Set(chrono::Utc::now().fixed_offset());
-    active.update(&state.db).await?;
+    let document = Document::from_value(&body.content)
+        .map_err(|error| AppError::message(format!("The newsletter content is not valid: {error}")))?;
 
-    Ok(StatusCode::NO_CONTENT)
+    let subtitle = body.subtitle.map(|subtitle| subtitle.trim().to_string()).filter(|subtitle| !subtitle.is_empty());
+
+    let result = Newsletter::update_many()
+        .col_expr(newsletter::Column::Title, Expr::value(body.title.trim().to_string()))
+        .col_expr(newsletter::Column::Subtitle, Expr::value(subtitle))
+        .col_expr(newsletter::Column::Content, Expr::value(document.to_value()))
+        .col_expr(newsletter::Column::UpdatedAt, Expr::value(Utc::now().fixed_offset()))
+        .col_expr(newsletter::Column::Revision, Expr::col(newsletter::Column::Revision).add(1))
+        .filter(newsletter::Column::Id.eq(&newsletter.id))
+        .filter(newsletter::Column::Revision.eq(body.revision))
+        .exec(&state.db)
+        .await?;
+
+    if result.rows_affected == 0 {
+        let current = Newsletter::find_by_id(&newsletter.id)
+            .one(&state.db)
+            .await?
+            .ok_or(AppError::NotFound)?;
+        return Ok((StatusCode::CONFLICT, Json(SaveResponse { revision: current.revision })).into_response());
+    }
+
+    Ok(Json(SaveResponse { revision: body.revision + 1 }).into_response())
 }

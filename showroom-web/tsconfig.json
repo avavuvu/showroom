@@ -5,12 +5,10 @@
         "moduleResolution": "bundler",
         "types": ["vite/client"],
         "strict": true,
-        "jsx": "preserve",
-        "jsxImportSource": "vue",
         "paths": {
             "@bq/*": ["../../../dev/boutique/*", "./node_modules/boutique/*"],
             "@setups": ["./bindings/setups.ts"]
         }
     },
-    "include": ["resources/js/**/*.ts", "resources/js/**/*.vue", "src/**/*.ts", "src/**/*.vue", "bindings/**/*.ts", "../../../dev/boutique/components/src"]
+    "include": ["resources/js/**/*.ts", "src/**/*.ts", "bindings/**/*.ts", "../../../dev/boutique/components/src"]
 }

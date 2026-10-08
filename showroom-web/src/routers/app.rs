@@ -1,4 +1,4 @@
-use axum::{Router, routing::{delete, get, post}};
+use axum::{Router, routing::{delete, get, post, put}};
 use crate::{handlers::{dashboard::*, error404::app_404}, state::AppState};
 
 pub fn create_router(state: AppState) -> Router {
@@ -22,7 +22,7 @@ pub fn create_router(state: AppState) -> Router {
         .route("/new", get(publications::new_form).post(publications::create))
         .route("/settings", get(settings::get_settings))
         .route("/settings/change-password/request", post(settings::request_password_change))
-        .route("/json/{id}", get(get_edit_json).put(put_edit_json))
+        .route("/json/{id}", put(put_edit_json))
         .route("/images/sign", get(images::sign_upload))
         .nest("/{slug}", publication)
         .with_state(state)

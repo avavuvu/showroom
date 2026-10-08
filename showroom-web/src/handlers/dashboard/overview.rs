@@ -4,6 +4,7 @@ use nanoid::nanoid;
 use maud::Markup;
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, ModelTrait, QueryFilter};
 use crate::{
+    document::Document,
     services::publication::OwnedPublication,
     models::newsletter::{self, Entity as Newsletter},
     state::AppState,
@@ -35,14 +36,14 @@ pub async fn post_newsletters(
     let new_newsletter = newsletter::ActiveModel {
         id: Set(id.clone()),
         publication_id: Set(publication.id.clone()),
-        title: Set("Untitled".to_string()),
+        title: Set(String::new()),
         slug: Set(id.clone()),
         subtitle: Set(None),
-        content: Set(serde_json::json!({ "type": "doc", "content": [] })),
+        content: Set(Document::default().to_value()),
+        revision: Set(0),
         sent_at: Set(None),
         created_at: Set(now),
         updated_at: Set(now),
-        rendered: Set(None)
     };
 
     let newsletter = new_newsletter.insert(&state.db).await?;

@@ -2,7 +2,7 @@ use boutique::html;
 use maud::{DOCTYPE, Markup, PreEscaped};
 use serde::Serialize;
 
-use crate::{renderer::email::EmailBlock, theme::{Color, EmailTheme, Layout}};
+use crate::{renderer::email::{EmailBlock, caption_style}, theme::{Color, EmailTheme, Layout}};
 
 #[allow(dead_code)]
 pub enum Align {
@@ -103,11 +103,20 @@ pub fn email_a(content: Markup, theme: &EmailTheme, href: &str, color_override: 
     }
 }
 
-fn full_width_image_section(src: &str, alt: &str) -> Markup {
+fn full_width_image_section(src: &str, caption: Option<&str>, theme: &EmailTheme) -> Markup {
     html! {
         tr {
             td colspan="3" style="padding:0;" width="600" {
-                img src=(src) alt=(alt) width="600" style="width:100%;max-width:100%;height:auto;display:block;";
+                img src=(src) alt="" width="600" style="width:100%;max-width:100%;height:auto;display:block;";
+            }
+        }
+        @if let Some(caption) = caption {
+            tr {
+                td width=(GUTTER) style=(format!("width:{GUTTER}px;padding:0;")) {}
+                td style="padding:0 0 24px 0;" {
+                    p style=(caption_style(theme)) { (PreEscaped(caption)) }
+                }
+                td width=(GUTTER) style=(format!("width:{GUTTER}px;padding:0;")) {}
             }
         }
     }
@@ -258,7 +267,7 @@ pub fn newsletter_template(
         @for block in &content {
             @match block {
                 EmailBlock::Content(s) => (email_section(s, "0", "32px", None, &theme)),
-                EmailBlock::FullWidthImage { src, alt } => (full_width_image_section(src, alt)),
+                EmailBlock::FullWidthImage { src, caption } => (full_width_image_section(src, caption.as_deref(), &theme)),
             }
         }
     };

@@ -9,6 +9,7 @@ use aws_sdk_sesv2::{
 };
 
 use crate::{
+    document::Document,
     models::{newsletter::Model as Newsletter, publication::Model as Publication, subscriber::Model as Subscriber}, renderer::{email::render_email, plain_text}, state::Urls, views::layouts::{NewsletterTemplateData, generate_subscriber_data, newsletter_template},
 };
 
@@ -27,11 +28,12 @@ pub async fn send_newsletter(
     let publication_url = urls.publication(&publication.slug);
 
     let theme = publication.theme().email();
-    let rendered_content = render_email(&newsletter.content, theme);
+    let document = Document::from_value(&newsletter.content).map_err(|e| format!("Newsletter content is not valid: {e}"))?;
+    let rendered_content = render_email(&document, theme);
     let date = newsletter.created_at.format("%B %-d, %Y").to_string();
     let read_online_url = format!("{}/{}", publication_url, newsletter.slug);
     let html = newsletter_template(
-        &newsletter.title,
+        newsletter.display_title(),
         newsletter.subtitle.as_deref(),
         &publication.name,
         &date,
@@ -40,14 +42,14 @@ pub async fn send_newsletter(
         theme,
         rendered_content,
     );
-    let text = &plain_text::render(&newsletter.content);
+    let text = &plain_text::render(&document);
 
     client
         .create_email_template()
         .template_name(&template_name)
         .template_content(
             EmailTemplateContent::builder()
-                .subject(&newsletter.title)
+                .subject(newsletter.display_title())
                 .html(html)
                 .text(text)
                 .build(),

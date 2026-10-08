@@ -10,7 +10,7 @@ pub struct Model {
     pub slug: String,
     pub subtitle: Option<String>,
     pub content: Json,
-    pub rendered: Option<String>,
+    pub revision: i32,
     pub sent_at: Option<DateTimeWithTimeZone>,
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,
@@ -33,3 +33,10 @@ impl Related<super::publication::Entity> for Entity {
 }
 
 impl ActiveModelBehavior for ActiveModel {}
+
+impl Model {
+    pub fn display_title(&self) -> &str {
+        let title = self.title.trim();
+        if title.is_empty() { "Untitled" } else { title }
+    }
+}

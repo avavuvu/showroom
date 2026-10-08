@@ -75,7 +75,7 @@ fn newsletter_row(newsletter: &newsletter::Model, publication_url: &str, dashboa
     html! {
         li.newsletter-row id={ "newsletter-" (newsletter.id) } {
             div.newsletter-meta {
-                h3 { a href=(primary_url) { (newsletter.title) } }
+                h3 { a href=(primary_url) { (newsletter.display_title()) } }
                 @if let Some(subtitle) = &newsletter.subtitle {
                     p.subtitle { (subtitle) }
                 }
