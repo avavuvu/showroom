@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "types": ["vite/client"],
+        "strict": true,
+        "jsx": "preserve",
+        "jsxImportSource": "vue",
+        "paths": {
+            "@bq/*": ["../../../dev/boutique/*", "./node_modules/boutique/*"],
+            "@setups": ["./bindings/setups.ts"]
+        }
+    },
+    "include": ["resources/js/**/*.ts", "resources/js/**/*.vue", "src/**/*.ts", "src/**/*.vue", "bindings/**/*.ts", "../../../dev/boutique/components/src"]
+}
