@@ -28,6 +28,12 @@ pub fn style_overrides(#[builder(start_fn)] theme: &Theme, #[builder(default)] a
             color: theme.muted(),
             custom: theme.overrides.muted.is_some(),
         },
+        Row {
+            name: "on-brand",
+            label: "Text on brand",
+            color: theme.on_brand(),
+            custom: theme.overrides.on_brand.is_some(),
+        },
     ];
 
     html! {

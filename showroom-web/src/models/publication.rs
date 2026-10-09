@@ -12,6 +12,7 @@ pub struct Model {
     pub name: String,
     pub description: Option<String>,
     pub theme: Option<Theme>,
+    pub greeting: String,
     pub is_default: bool,
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,

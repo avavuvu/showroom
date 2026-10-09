@@ -14,12 +14,12 @@ pub async fn profile(
 ) -> Markup {
     let mut newsletters = Newsletter::find()
         .filter(newsletter::Column::PublicationId.eq(&publication.id))
-        .filter(newsletter::Column::SentAt.is_not_null())
+        .filter(newsletter::Column::PublishedAt.is_not_null())
         .all(&state.db)
         .await
         .unwrap_or_default();
 
-    newsletters.sort_unstable_by_key(|n| std::cmp::Reverse(n.sent_at));
+    newsletters.sort_unstable_by_key(|n| std::cmp::Reverse(n.published_at));
 
     let page_ctx = PageContext::public(viewer, state.urls.clone()).with_publication(publication);
     views::user::profile(&page_ctx, &newsletters)
@@ -34,7 +34,7 @@ pub async fn newsletter(
     let newsletter = Newsletter::find()
         .filter(newsletter::Column::PublicationId.eq(&publication.id))
         .filter(newsletter::Column::Slug.eq(&slug))
-        .filter(newsletter::Column::SentAt.is_not_null())
+        .filter(newsletter::Column::PublishedAt.is_not_null())
         .one(&state.db)
         .await?;
 

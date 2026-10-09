@@ -40,9 +40,25 @@ impl Color {
         0.2126 * linear(self.red) + 0.7152 * linear(self.green) + 0.0722 * linear(self.blue)
     }
 
-    pub fn contrast(self, other: Color) -> f32 {
-        let (a, b) = (self.luminance(), other.luminance());
-        (a.max(b) + 0.05) / (a.min(b) + 0.05)
+    pub fn apca(self, background: Color) -> f32 {
+        let (text, background) = (self.apca_luminance(), background.apca_luminance());
+        let contrast = if background > text {
+            (background.powf(0.56) - text.powf(0.57)) * 1.14
+        } else {
+            (background.powf(0.65) - text.powf(0.62)) * 1.14
+        };
+
+        match contrast {
+            c if c.abs() < 0.1 => 0.0,
+            c if c > 0.0 => (c - 0.027) * 100.0,
+            c => (c + 0.027) * 100.0,
+        }
+    }
+
+    fn apca_luminance(self) -> f32 {
+        let linear = |value: u8| (value as f32 / 255.0).powf(2.4);
+        let y = 0.2126729 * linear(self.red) + 0.7151522 * linear(self.green) + 0.0721750 * linear(self.blue);
+        if y < 0.022 { y + (0.022 - y).powf(1.414) } else { y }
     }
 }
 

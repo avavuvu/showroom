@@ -26,6 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         name: "test's room".to_string(),
         description: None,
         theme: None,
+        greeting: showroom_web::renderer::greeting::DEFAULT.to_string(),
         is_default: true,
         created_at: Utc::now().fixed_offset(),
         updated_at: Utc::now().fixed_offset(),
@@ -47,7 +48,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             ]
         }),
         revision: 0,
-        sent_at: None,
+        published_at: None,
+        send_started_at: None,
         created_at: Utc::now().fixed_offset(),
         updated_at: Utc::now().fixed_offset(),
     };
@@ -64,7 +66,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("Sending test newsletter to {to_email}...");
     println!("Creating SES template...");
 
-    mailer::send_newsletter(&client, &newsletter, &publication, &subscribers, &urls).await?;
+    let mailing = mailer::NewsletterMailing::prepare(&client, &newsletter, &publication, &urls).await?;
+    let deliveries = mailing.send(&subscribers).await;
+    mailing.finish().await?;
+
+    for delivery in deliveries? {
+        match delivery.outcome {
+            mailer::Outcome::Sent(message_id) => println!("Sent to {} ({})", delivery.subscriber.email, message_id.unwrap_or_default()),
+            mailer::Outcome::Retry(error) | mailer::Outcome::Failed(error) => println!("Failed for {}: {error}", delivery.subscriber.email),
+        }
+    }
 
     println!("Done — check {to_email}");
 

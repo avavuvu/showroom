@@ -10,6 +10,8 @@ mod m20260627_000007_create_subscribers_table;
 mod m20260909_125444_create_publications;
 mod m20260929_000008_create_sessions;
 mod m20261008_000009_newsletter_revisions;
+mod m20261008_000010_publication_greeting;
+mod m20261009_000011_newsletter_deliveries;
 
 pub struct Migrator;
 
@@ -27,6 +29,8 @@ impl MigratorTrait for Migrator {
             Box::new(m20260909_125444_create_publications::Migration),
             Box::new(m20260929_000008_create_sessions::Migration),
             Box::new(m20261008_000009_newsletter_revisions::Migration),
+            Box::new(m20261008_000010_publication_greeting::Migration),
+            Box::new(m20261009_000011_newsletter_deliveries::Migration),
         ]
     }
 }

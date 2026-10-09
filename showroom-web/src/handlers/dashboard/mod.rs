@@ -9,4 +9,4 @@ pub mod subscribers;
 
 pub use editor::{get_edit, put_edit_json};
 pub use overview::{index, post_newsletters, delete_newsletter};
-pub use send::{get_send, post_send};
+pub use send::{get_progress, get_send, post_retry, post_send};

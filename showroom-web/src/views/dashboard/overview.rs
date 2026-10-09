@@ -8,7 +8,7 @@ use crate::views::layouts::{page, dashboard_shell};
 pub fn index(ctx: &PageContext, newsletters: Vec<newsletter::Model>) -> Markup {
     let publication_url = ctx.publication_url();
     let dashboard_url = ctx.dashboard_url();
-    let (published, drafts): (Vec<_>, Vec<_>) = newsletters.into_iter().partition(|n| n.sent_at.is_some());
+    let (published, drafts): (Vec<_>, Vec<_>) = newsletters.into_iter().partition(|n| n.published_at.is_some());
 
     dashboard_shell(
         page(&ctx.publication().name).htmx().class("overview".into()),
@@ -19,7 +19,7 @@ pub fn index(ctx: &PageContext, newsletters: Vec<newsletter::Model>) -> Markup {
                 section.newsletter-section.drafts {
                     header.section-header {
                         h2 { "Drafts" }
-                        Button(post = format!("{}/newsletters", dashboard_url)) .primary { "New newsletter" }
+                        Button(post = &format!("{}/newsletters", dashboard_url)) .primary { "New newsletter" }
                     }
                     (newsletter_list(&drafts, &publication_url, &dashboard_url, "No drafts. Start a new newsletter."))
                 }
@@ -66,9 +66,10 @@ fn newsletter_list(newsletters: &[newsletter::Model], publication_url: &str, das
 fn newsletter_row(newsletter: &newsletter::Model, publication_url: &str, dashboard_url: &str) -> Markup {
     let view_url = format!("{}/{}", publication_url, newsletter.slug);
     let edit_url = format!("{}/edit/{}", dashboard_url, newsletter.id);
+    let send_url = format!("{}/send/{}", dashboard_url, newsletter.id);
 
-    let (primary_url, date) = match newsletter.sent_at {
-        Some(sent_at) => (view_url.as_str(), format!("Sent {}", sent_at.format("%b %-d, %Y"))),
+    let (primary_url, date) = match newsletter.published_at {
+        Some(published_at) => (view_url.as_str(), format!("Sent {}", published_at.format("%b %-d, %Y"))),
         None => (edit_url.as_str(), format!("Edited {}", newsletter.updated_at.format("%b %-d, %Y"))),
     };
 
@@ -83,8 +84,11 @@ fn newsletter_row(newsletter: &newsletter::Model, publication_url: &str, dashboa
             }
 
             div.newsletter-actions {
-                @if newsletter.sent_at.is_some() {
+                @if newsletter.published_at.is_some() {
                     a href=(view_url) { "View" }
+                }
+                @if newsletter.send_started_at.is_some() {
+                    a href=(send_url) { "Delivery" }
                 }
                 a href=(edit_url) { "Edit" }
                 Button

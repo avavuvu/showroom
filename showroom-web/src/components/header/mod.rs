@@ -20,13 +20,13 @@ pub fn header(ctx: &PageContext) -> Markup {
 
             div.auth {
                 @if ctx.is_authenticated() {
-                    Button(post = format!("{}/logout", ctx.urls.base())) .ghost { "Log out" }
-                    Button(href = ctx.urls.app()) .ghost { "Dashboard" }
+                    Button(post = &format!("{}/logout", ctx.urls.base())) .ghost { "Log out" }
+                    Button(href = &ctx.urls.app()) .ghost { "Dashboard" }
                 } @else {
                     @if cfg!(debug_assertions) {
-                        Button(href = format!("{}/signup", ctx.urls.base())) .ghost { "Get started" }
+                        Button(href = &format!("{}/signup", ctx.urls.base())) .ghost { "Get started" }
                     }
-                    Button(href = format!("{}/login", ctx.urls.base())) .ghost { (login_text) }
+                    Button(href = &format!("{}/login", ctx.urls.base())) .ghost { (login_text) }
                 }
             }
         }

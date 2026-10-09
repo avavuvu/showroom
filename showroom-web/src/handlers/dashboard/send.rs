@@ -1,13 +1,11 @@
 use axum::{extract::{Path, State}, http::StatusCode, response::Redirect};
 use boutique::{AppError, AppResult};
 use maud::Markup;
-use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter};
+use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter};
 use slugify::slugify;
 use crate::{
-    services::publication::OwnedPublication,
+    services::{newsletter_send, publication::OwnedPublication},
     models::newsletter::{self, Entity as Newsletter},
-    models::subscriber::{self, Entity as Subscriber},
-    mailer,
     state::AppState,
     views,
 };
@@ -17,13 +15,35 @@ pub async fn get_send(
     owned: OwnedPublication,
     Path((_, id)): Path<(String, String)>,
 ) -> AppResult<Markup> {
-    let newsletter = Newsletter::find_by_id(&id)
-        .filter(newsletter::Column::PublicationId.eq(&owned.publication.id))
-        .one(&state.db)
-        .await?
-        .ok_or(AppError::NotFound)?;
+    let newsletter = find(&state.db, &owned.publication.id, &id).await?;
+    let ctx = owned.into_context(state.urls.clone());
 
-    Ok(views::dashboard::preview(&owned.into_context(state.urls.clone()), &newsletter))
+    if newsletter.send_started_at.is_some() {
+        let progress = newsletter_send::progress(&state.db, &newsletter.id).await?;
+        return Ok(views::dashboard::sending::page(&ctx, &newsletter, &progress));
+    }
+
+    Ok(views::dashboard::preview(&ctx, &newsletter))
+}
+
+pub async fn get_progress(
+    State(state): State<AppState>,
+    owned: OwnedPublication,
+    Path((_, id)): Path<(String, String)>,
+) -> AppResult<Markup> {
+    let newsletter = find(&state.db, &owned.publication.id, &id).await?;
+    let progress = newsletter_send::progress(&state.db, &newsletter.id).await?;
+    Ok(views::dashboard::sending::panel(&owned.into_context(state.urls.clone()), &newsletter, &progress))
+}
+
+pub async fn post_retry(
+    State(state): State<AppState>,
+    owned: OwnedPublication,
+    Path((_, id)): Path<(String, String)>,
+) -> AppResult<Redirect> {
+    let newsletter = find(&state.db, &owned.publication.id, &id).await?;
+    newsletter_send::retry_failed(&state.db, &newsletter.id).await?;
+    Ok(Redirect::to(&send_url(&state, &owned.publication.slug, &newsletter.id)))
 }
 
 pub async fn post_send(
@@ -31,13 +51,13 @@ pub async fn post_send(
     OwnedPublication { publication, .. }: OwnedPublication,
     Path((_, id)): Path<(String, String)>,
 ) -> AppResult<Redirect> {
-    let newsletter = Newsletter::find_by_id(&id)
-        .filter(newsletter::Column::PublicationId.eq(&publication.id))
-        .one(&state.db)
-        .await?
-        .ok_or(AppError::NotFound)?;
+    let newsletter = find(&state.db, &publication.id, &id).await?;
 
-    if newsletter.sent_at.is_some() {
+    if newsletter.send_started_at.is_some() {
+        return Ok(Redirect::to(&send_url(&state, &publication.slug, &newsletter.id)));
+    }
+
+    if newsletter.published_at.is_some() {
         return Err(AppError::Status(StatusCode::CONFLICT));
     }
 
@@ -50,23 +70,21 @@ pub async fn post_send(
     active.slug = Set(slug);
     let newsletter = active.update(&state.db).await?;
 
-    let subscribers = publication
-        .find_related(Subscriber)
-        .filter(subscriber::Column::IsConfirmed.eq(true))
-        .all(&state.db)
-        .await?;
+    newsletter_send::enqueue(&state.db, &newsletter, &publication).await?;
 
-    mailer::send_newsletter(&state.ses, &newsletter, &publication, &subscribers, &state.urls)
-        .await
-        .map_err(|e| AppError::internal("send newsletter", e))?;
+    Ok(Redirect::to(&send_url(&state, &publication.slug, &newsletter.id)))
+}
 
-    let url = format!("{}/{}", state.urls.publication(&publication.slug), newsletter.slug);
+async fn find(db: &DatabaseConnection, publication_id: &str, id: &str) -> AppResult<newsletter::Model> {
+    Newsletter::find_by_id(id)
+        .filter(newsletter::Column::PublicationId.eq(publication_id))
+        .one(db)
+        .await?
+        .ok_or(AppError::NotFound)
+}
 
-    let mut active: newsletter::ActiveModel = newsletter.into();
-    active.sent_at = Set(Some(chrono::Utc::now().fixed_offset()));
-    active.update(&state.db).await?;
-
-    Ok(Redirect::to(&url))
+fn send_url(state: &AppState, slug: &str, id: &str) -> String {
+    format!("{}/send/{}", state.urls.dashboard(slug), id)
 }
 
 async fn unique_slug(newsletter: &newsletter::Model, db: &DatabaseConnection) -> AppResult<String> {

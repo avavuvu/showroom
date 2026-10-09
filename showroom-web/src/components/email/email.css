@@ -1,0 +1,129 @@
+/*
+This css file is not use directly, instead it is important into rust, the vars are swapped for rust variables, and then inlined into the email with css_inline.
+*/
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--surface);
+}
+
+.email-preheader {
+    display: none;
+    max-height: 0;
+    overflow: hidden;
+    mso-hide: all;
+}
+
+.email-outer {
+    background-color: var(--surface);
+}
+
+.email-frame {
+    padding: 40px 20px;
+}
+
+.email-inner {
+    max-width: 600px;
+    width: 100%;
+    background-color: var(--surface);
+}
+
+.email-gutter {
+    width: var(--gutter);
+    padding: 0;
+}
+
+.email-section {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--text);
+}
+
+.email-title {
+    margin: 24px 0 8px;
+    font-family: var(--font-title);
+    font-size: var(--title-size);
+    font-weight: bold;
+    color: var(--text);
+    line-height: 1.2;
+}
+
+.email-rule {
+    width: 64px;
+    height: 1px;
+    margin: 24px auto 16px;
+    background-color: var(--text);
+    font-size: 0;
+    line-height: 0;
+}
+
+p {
+    margin: 0 0 16px;
+    font-family: var(--font-body);
+    font-size: var(--text-size);
+    line-height: 1.5;
+    color: var(--text);
+}
+
+a {
+    color: var(--link);
+    text-decoration: underline;
+}
+
+.muted {
+    color: var(--muted);
+}
+
+.small {
+    font-size: 14px;
+}
+
+.email-full-width {
+    padding: 0;
+}
+
+.email-full-width-image {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.email-caption-cell {
+    padding: 0 0 24px 0;
+}
+
+.email-caption {
+    margin: 8px 0 0 0;
+    padding: 0;
+    font-family: var(--font-body);
+    font-size: var(--caption-size);
+    line-height: 1.4;
+    color: var(--text);
+}
+
+.email-button-cell {
+    border-radius: 4px;
+    background-color: var(--text);
+}
+
+.email-button {
+    display: inline-block;
+    padding: 12px 24px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--surface);
+    text-decoration: none;
+}
+
+@media only screen and (max-width: 640px) {
+    .email-frame {
+        padding: 16px 0 !important;
+    }
+
+    .email-gutter {
+        width: 20px !important;
+    }
+}

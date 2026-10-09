@@ -2,10 +2,11 @@ use chrono::Utc;
 use serde_json::json;
 use showroom_web::{
     document::Document,
-    renderer::email::render_email,
+    renderer::{email::render_email, greeting},
     theme::Theme,
-    views::layouts::newsletter_template,
+    views::layouts::{NewsletterBody, base_email_layout},
 };
+use boutique::html;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let content = json!({
@@ -36,20 +37,28 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let rendered_content = render_email(&Document::from_value(&content)?, theme);
     let date = Utc::now().format("%B %-d, %Y").to_string();
 
-    let html = newsletter_template(
+    let greeting = greeting::for_subscriber(greeting::DEFAULT, Some("Ava")).map(|text| html! { p { (text) } });
+
+    let html = base_email_layout(
         "My Test Newsletter",
         Some("Testing the mailer"),
-        "test",
-        &date,
-        "http://test.showroom.you:3000/my-test-newsletter",
-        "http://test.showroom.you:3000",
         theme,
-        rendered_content,
+        html! {
+            NewsletterBody(
+                title = "My Test Newsletter",
+                subtitle = "Testing the mailer",
+                publication_name = "test",
+                date = &date,
+                read_online_url = "http://test.showroom.you:3000/my-test-newsletter",
+                publication_url = "http://test.showroom.you:3000",
+                layout = theme.layout,
+                maybe_greeting = greeting,
+                content = &rendered_content,
+            );
+        },
     );
 
-    let preview = html.0
-        .replace("{{greeting_html}}", "Hi Ava,")
-        .replace("{{unsubscribe_url}}", "#");
+    let preview = html.0.replace("{{unsubscribe_url}}", "#");
 
     let path = std::env::temp_dir().join("email_preview.html");
     std::fs::write(&path, &preview)?;

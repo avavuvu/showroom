@@ -36,6 +36,8 @@ pub struct Overrides {
     pub link: Option<Color>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub muted: Option<Color>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub on_brand: Option<Color>,
 }
 
 impl Overrides {
@@ -63,7 +65,9 @@ impl Theme {
     }
 
     pub fn on_brand(self) -> Color {
-        if self.ink.contrast(self.brand) >= self.paper.contrast(self.brand) { self.ink } else { self.paper }
+        self.overrides.on_brand.unwrap_or_else(|| {
+            if self.ink.apca(self.brand).abs() >= self.paper.apca(self.brand).abs() { self.ink } else { self.paper }
+        })
     }
 
     pub fn link(self) -> Color {

@@ -1,6 +1,7 @@
 pub mod article_header;
 pub mod button;
 pub mod editor;
+pub mod email;
 pub mod footer;
 pub mod header;
 pub mod icon;

@@ -9,6 +9,7 @@ use nanoid::nanoid;
 use sea_orm::{ActiveValue::Set, Database, EntityTrait};
 use serde_json::json;
 use showroom_web::models::{newsletter, publication, user};
+use showroom_web::renderer::greeting;
 use std::env;
 
 
@@ -69,6 +70,7 @@ async fn main() {
             name: Set(format!("{username}'s room")),
             description: Set(None),
             theme: Set(None),
+            greeting: Set(greeting::DEFAULT.to_string()),
             is_default: Set(true),
             created_at: Set(now),
             updated_at: Set(now),
@@ -95,7 +97,8 @@ async fn main() {
                 subtitle: Set(None),
                 content: Set(tiptap_doc(paragraphs)),
                 revision: Set(0),
-                sent_at: Set(None),
+                published_at: Set(None),
+                send_started_at: Set(None),
                 created_at: Set(now),
                 updated_at: Set(now),
             })

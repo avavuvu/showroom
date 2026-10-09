@@ -11,7 +11,8 @@ pub struct Model {
     pub subtitle: Option<String>,
     pub content: Json,
     pub revision: i32,
-    pub sent_at: Option<DateTimeWithTimeZone>,
+    pub published_at: Option<DateTimeWithTimeZone>,
+    pub send_started_at: Option<DateTimeWithTimeZone>,
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,
 }

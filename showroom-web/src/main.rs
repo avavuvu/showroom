@@ -25,6 +25,7 @@ struct AppEnv {
     port: String,
     domain: String,
     main_domain: String,
+    email_domain: Option<String>,
     secret: String,
 }
 
@@ -54,6 +55,7 @@ async fn setup() -> AppEnv {
     let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string());
     let domain = env::var("DOMAIN").unwrap_or_else(|_| "localtest.me".to_string());
     let main_domain = env::var("MAIN_DOMAIN").unwrap_or_else(|_| "localtest.me".to_string());
+    let email_domain = env::var("EMAIL_DOMAIN").ok().filter(|domain| !domain.is_empty());
     let secret = env::var("SECRET_KEY").expect("SECRET_KEY must be set");
 
     let aws_config = aws_config::defaults(BehaviorVersion::latest())
@@ -64,17 +66,17 @@ async fn setup() -> AppEnv {
 
     let cloudinary = Cloudinary::from_env().expect("CLOUDINARY_URL must be set");
 
-    AppEnv { db, ses, cloudinary, port, domain, main_domain, secret }
+    AppEnv { db, ses, cloudinary, port, domain, main_domain, email_domain, secret }
 }
 
 async fn server(env: AppEnv) {
-    let state = state::AppState::new(
-        env.db,
-        env.ses,
-        env.cloudinary,
-        state::Urls::new(&env.domain, &env.port, &env.main_domain),
-        env.secret,
-    );
+    let mut urls = state::Urls::new(&env.domain, &env.port, &env.main_domain);
+    if let Some(email_domain) = &env.email_domain {
+        urls = urls.with_email_domain(email_domain);
+    }
+
+    let state = state::AppState::new(env.db, env.ses, env.cloudinary, urls, env.secret);
+    let _worker = AbortOnDrop(tokio::spawn(services::newsletter_send::run_worker(state.clone())));
 
     let (server, routes) = router::create_server(&state);
 
@@ -84,6 +86,14 @@ async fn server(env: AppEnv) {
     println!("listening on http://0.0.0.0:{}", env.port);
 
     server.serve(routes, &env.port).await;
+}
+
+struct AbortOnDrop(tokio::task::JoinHandle<()>);
+
+impl Drop for AbortOnDrop {
+    fn drop(&mut self) {
+        self.0.abort();
+    }
 }
 
 #[tokio::main]

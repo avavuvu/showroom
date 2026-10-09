@@ -9,7 +9,8 @@ use crate::{auth, models::user};
 #[derive(Clone)]
 pub struct Urls {
     domain: String,      // room.lc — used for subdomain routing
-    main_domain: String, // show.room.lc — primary URL and email from-address
+    main_domain: String, // show.room.lc — primary URL
+    email_domain: String,
     port: String,
     secure: bool,
 }
@@ -18,12 +19,20 @@ impl Urls {
     pub fn new(domain: impl Into<String>, port: impl Into<String>, main_domain: impl Into<String>) -> Self {
             let secure = !cfg!(debug_assertions);
 
+            let main_domain = main_domain.into();
+
             Self {
                 domain: domain.into(),
-                main_domain: main_domain.into(),
+                email_domain: main_domain.clone(),
+                main_domain,
                 port: port.into(),
                 secure,
             }
+    }
+
+    pub fn with_email_domain(mut self, email_domain: impl Into<String>) -> Self {
+        self.email_domain = email_domain.into();
+        self
     }
 
     fn scheme(&self) -> &str {
@@ -63,7 +72,7 @@ impl Urls {
     }
 
     pub fn email(&self, slug: &str) -> String {
-        format!("{}@{}", slug, self.main_domain)
+        format!("{}@{}", slug, self.email_domain)
     }
 
     pub fn auth_config(&self) -> AuthConfig {

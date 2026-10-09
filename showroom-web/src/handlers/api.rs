@@ -34,15 +34,15 @@ pub async fn get_newsletters(
 ) -> AppResult<Json<Vec<NewsletterSummary>>> {
     let newsletters = Newsletter::find()
         .filter(newsletter::Column::PublicationId.eq(&publication.id))
-        .filter(newsletter::Column::SentAt.is_not_null())
-        .order_by_desc(newsletter::Column::SentAt)
+        .filter(newsletter::Column::PublishedAt.is_not_null())
+        .order_by_desc(newsletter::Column::PublishedAt)
         .all(&state.db)
         .await?;
 
     let summaries = newsletters.into_iter().map(|n| NewsletterSummary {
         title: n.title,
         subtitle: n.subtitle,
-        date: n.sent_at.expect("filtered by SentAt.is_not_null()").format("%Y-%m-%d").to_string(),
+        date: n.published_at.expect("filtered by PublishedAt.is_not_null()").format("%Y-%m-%d").to_string(),
         slug: n.slug,
     }).collect();
 
@@ -57,14 +57,14 @@ pub async fn get_newsletter(
     let newsletter = Newsletter::find()
         .filter(newsletter::Column::PublicationId.eq(&publication.id))
         .filter(newsletter::Column::Slug.eq(&slug))
-        .filter(newsletter::Column::SentAt.is_not_null())
+        .filter(newsletter::Column::PublishedAt.is_not_null())
         .one(&state.db)
         .await?
         .ok_or(AppError::NotFound)?;
 
     let date = newsletter
-        .sent_at
-        .expect("filtered by SentAt.is_not_null()")
+        .published_at
+        .expect("filtered by PublishedAt.is_not_null()")
         .format("%Y-%m-%d")
         .to_string();
 

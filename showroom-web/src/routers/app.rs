@@ -8,6 +8,8 @@ pub fn create_router(state: AppState) -> Router {
         .route("/newsletters/{id}", delete(delete_newsletter))
         .route("/edit/{id}", get(get_edit))
         .route("/send/{id}", get(get_send).post(post_send))
+        .route("/send/{id}/progress", get(get_progress))
+        .route("/send/{id}/retry", post(post_retry))
         .route("/subscribers", get(subscribers::get_subscribers))
         .route("/subscribers/import", post(subscribers::import_subscribers))
 

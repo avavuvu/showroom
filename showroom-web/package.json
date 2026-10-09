@@ -11,7 +11,7 @@
         "dev": "~/.cargo/bin/dx serve --hot-patch --features local --package showroom-web"
     },
     "devDependencies": {
-        "boutique": "github:avavuvu/boutique#42ee5c810e8a8a9343286f9b10add804c64f8c46",
+        "boutique": "github:avavuvu/boutique#89417ecc142aca2b9b4d282b152a473aaf65f899",
         "concurrently": "^10.0.3",
         "typescript": "~6.0.3",
         "vite": "^7.3.3"

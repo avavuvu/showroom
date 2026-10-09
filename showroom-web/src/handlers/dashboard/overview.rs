@@ -41,7 +41,8 @@ pub async fn post_newsletters(
         subtitle: Set(None),
         content: Set(Document::default().to_value()),
         revision: Set(0),
-        sent_at: Set(None),
+        published_at: Set(None),
+        send_started_at: Set(None),
         created_at: Set(now),
         updated_at: Set(now),
     };

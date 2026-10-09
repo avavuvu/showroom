@@ -90,6 +90,7 @@ pub async fn signup(
         name: Set(format!("{slug}'s room")),
         description: Set(None),
         theme: Set(None),
+        greeting: Set(crate::renderer::greeting::DEFAULT.to_string()),
         is_default: Set(true),
         created_at: Set(now),
         updated_at: Set(now),

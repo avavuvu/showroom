@@ -18,7 +18,7 @@ I have dubbed in Ava's Max Stack
 - [x] lander
 - [x] markdown API
 - [x] styling
-- [ ] Dashboard styling
+- [x] Dashboard styling
 - [x] Disable HTMX/Islands on pages that dont need it
 - [x] Remove create account page on prod
 - [x] Figure out why fake users are not 404ing
@@ -27,7 +27,7 @@ I have dubbed in Ava's Max Stack
 - [ ] RSS
 - [ ] Sitemap
 - [ ] Webhooks
-- [ ] convert to HTMX 4
+- [x] convert to HTMX 4
 
 ### Features
 - [ ] Subscribe embed
@@ -40,17 +40,17 @@ I have dubbed in Ava's Max Stack
     - [ ] Create test files
 - [ ] Fix broken email links
 - [ ] 404 pages don't link correctly
-- [ ] Remove tower reload
+- [x] Remove tower reload
 
 ### Profile pages
-- [ ] Visual themes
-    - [ ] Theme editor
-- [ ] Profile descriptions
+- [x] Visual themes
+    - [x] Theme editor
+- [x] Profile descriptions
 - [ ] Names beyond usernames
 - [ ] Custom headers
 - [ ] Profile link trees
 - [ ] Hero images
-- [ ] Main loading 
+- [x] Main loading 
 
 ### Preparing for launch
 - [ ] Banned account names
@@ -63,7 +63,7 @@ I have dubbed in Ava's Max Stack
 - [x] Improve link editor
 - [ ] Add proper loading animation to edit
 - [ ] Add Placeholder
-- [ ] List margins (and other inconsistencies with email)
+- [x] List margins (and other inconsistencies with email)
 - [ ] Code displays really weird on email
 
 #### Keybinds

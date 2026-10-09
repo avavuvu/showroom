@@ -11,7 +11,7 @@ use crate::views::layouts::{base, page};
 
 pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     let back_url = ctx.dashboard_url();
-    let sent = newsletter.sent_at.is_some();
+    let sent = newsletter.published_at.is_some();
     let props = json!({
         "id": newsletter.id,
         "revision": newsletter.revision,
@@ -34,15 +34,15 @@ pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
 
             header {
                 div.left {
-                    Button(href = back_url) .secondary bq-ref="leave" { "Back" }
+                    Button(href = &back_url) .secondary bq-ref="leave" { "Back" }
                     SaveStatus;
                 }
 
                 div {
                     @if sent {
-                        Button(href = format!("{}/{}", ctx.publication_url(), newsletter.slug)) .primary bq-ref="leave" { "View" }
+                        Button(href = &format!("{}/{}", ctx.publication_url(), newsletter.slug)) .primary bq-ref="leave" { "View" }
                     } @else {
-                        Button(href = format!("{}/send/{}", ctx.dashboard_url(), newsletter.id)) .primary bq-ref="leave" { "Publish" }
+                        Button(href = &format!("{}/send/{}", ctx.dashboard_url(), newsletter.id)) .primary bq-ref="leave" { "Publish" }
                     }
                 }
             }

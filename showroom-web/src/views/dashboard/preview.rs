@@ -2,10 +2,10 @@ use boutique::html;
 use maud::{Markup, PreEscaped};
 use crate::document::Document;
 use crate::models::newsletter;
-use crate::renderer::email::render_email;
+use crate::renderer::{email::render_email, greeting};
 use crate::components::Button;
 use crate::views::context::PageContext;
-use crate::views::layouts::{page, newsletter_template, base};
+use crate::views::layouts::{page, base, base_email_layout, NewsletterBody};
 
 pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     let publication = ctx.publication();
@@ -19,16 +19,25 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     let content = render_email(&Document::from_stored(&newsletter.content), theme);
     let has_title = !newsletter.title.trim().is_empty();
     let recipient = ctx.user.as_ref().map(|user| user.email.as_str()).unwrap_or("");
+    let greeting = greeting::preview(&publication.greeting).map(|text| html! { p { (text) } });
 
-    let template = newsletter_template(
+    let template = base_email_layout(
         newsletter.display_title(),
         newsletter.subtitle.as_deref(),
-        &publication.name,
-        &date,
-        &publication_url,
-        &publication_url,
         theme,
-        content,
+        html! {
+            NewsletterBody(
+                title = newsletter.display_title(),
+                maybe_subtitle = newsletter.subtitle.as_deref(),
+                publication_name = &publication.name,
+                date = &date,
+                read_online_url = &publication_url,
+                publication_url = &publication_url,
+                layout = theme.layout,
+                maybe_greeting = greeting,
+                content = &content,
+            );
+        },
     );
 
     base(
@@ -38,14 +47,14 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
         div.preview-view {
             header {
                 div.left {
-                    Button(href = back_url) .secondary { "Back" }
+                    Button(href = &back_url) .secondary { "Back" }
                 }
 
                 div.right {
                     @if !has_title {
                         p.send-warning { "Add a title before you send." }
                     }
-                    Button(post = send_url, disabled = !has_title) .primary { "Send" }
+                    Button(post = &send_url, disabled = !has_title) .primary { "Send" }
                 }
             }
 

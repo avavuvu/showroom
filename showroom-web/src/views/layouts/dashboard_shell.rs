@@ -1,4 +1,5 @@
 use boutique::html;
+use bq_components::Button;
 use maud::{Markup, PreEscaped};
 use crate::views::{context::PageContext, layouts::{Head, base}};
 
@@ -18,8 +19,8 @@ pub fn dashboard_shell(view: Head, ctx: &PageContext, content: Markup) -> Markup
                 style id="theme" { (PreEscaped(publication.theme().css())) }
             }
             div.dashboard {
-                ul.side-bar {
-                    nav {
+                nav.side-bar {
+                    ul {
                         a.logo href=(ctx.urls.base()) {
                             img.logo src="/icons/logo.png" alt="Logo";
                         }
@@ -27,13 +28,19 @@ pub fn dashboard_shell(view: Head, ctx: &PageContext, content: Markup) -> Markup
                         @if let Some(publication) = ctx.primary_publication() {
                             @let dashboard = ctx.urls.dashboard(&publication.slug);
                             li {
-                                a.home href=(dashboard) { (publication.slug) "." (domain) }
+                                Button(href = &dashboard) .home .ghost {
+                                    (publication.name)
+                                }
                             }
                             li {
-                                a.subscribers href={ (dashboard) "/subscribers" } { "Subscribers" }
+                                Button(href = &format!("{dashboard}/subscribers")) .subscribers .ghost {
+                                    "Subscribers"
+                                }
                             }
                             li {
-                                a.settings href={ (dashboard) "/settings" } { "Settings" }
+                                Button(href = &format!("{dashboard}/settings")) .settings .ghost {
+                                    "Settings"
+                                }
                             }
                         }
                     }
@@ -41,13 +48,15 @@ pub fn dashboard_shell(view: Head, ctx: &PageContext, content: Markup) -> Markup
                     ul {
                         @for publication in ctx.secondary_publications() {
                             li {
-                                a.publication href=(ctx.urls.dashboard(&publication.slug)) {
-                                    (publication.slug) "." (domain)
+                                Button(href = &ctx.urls.dashboard(&publication.slug)) .publication .ghost {
+                                    (publication.name)
                                 }
                             }
                         }
                         li {
-                            a.account href={ (ctx.urls.app()) "/settings" } { "Account" }
+                            Button(href = &format!("{}/settings", ctx.urls.app())) .account .ghost {
+                                "Account"
+                            }
                         }
                     }
                 }

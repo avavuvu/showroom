@@ -24,7 +24,7 @@ pub fn index(ctx: &PageContext) -> Markup {
                         }
                     }
                 }
-                Button(href = format!("{}/new", ctx.urls.app())) .primary { "New publication" }
+                Button(href = &format!("{}/new", ctx.urls.app())) .primary { "New publication" }
             }
 
             section.settings-section {

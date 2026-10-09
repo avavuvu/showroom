@@ -62,8 +62,8 @@ pub fn newsletters(items: &[(Newsletter, Publication)], urls: &Urls) -> Xml {
             @for (newsletter, publication) in items {
                 url {
                     loc { (urls.publication(&publication.slug)) "/" (newsletter.slug) }
-                    @if let Some(sent_at) = newsletter.sent_at {
-                        lastmod { (sent_at.format("%Y-%m-%d")) }
+                    @if let Some(published_at) = newsletter.published_at {
+                        lastmod { (published_at.format("%Y-%m-%d")) }
                     }
                 }
             }

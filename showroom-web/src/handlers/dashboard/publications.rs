@@ -8,6 +8,7 @@ use serde::Deserialize;
 
 use boutique::{AppError, AppResult, AuthenticatedUser};
 use crate::{
+    renderer::greeting,
     services::publication::OwnedPublication,
     models::{
         newsletter::{self, Entity as Newsletter},
@@ -96,6 +97,7 @@ pub async fn create(
         name: Set(name.clone()),
         description: Set(None),
         theme: Set(None),
+        greeting: Set(greeting::DEFAULT.to_string()),
         is_default: Set(false),
         created_at: Set(now),
         updated_at: Set(now),
@@ -122,6 +124,8 @@ pub async fn get_settings(
 pub struct SettingsForm {
     pub name: String,
     pub description: Option<String>,
+    #[serde(default)]
+    pub greeting: String,
 }
 
 pub async fn update_settings(
@@ -136,10 +140,20 @@ pub async fn update_settings(
         return Ok(views::dashboard::publications::settings(&owned.into_context(state.urls.clone()), Some("A name is required")).into_response());
     }
 
+    let greeting = match greeting::normalize(form.greeting.trim()) {
+        Ok(greeting) => greeting,
+        Err(message) => return Ok(views::dashboard::publications::settings(&owned.into_context(state.urls.clone()), Some(message)).into_response()),
+    };
+
+    if greeting.chars().count() > greeting::MAX_LEN {
+        return Ok(views::dashboard::publications::settings(&owned.into_context(state.urls.clone()), Some("The greeting is too long")).into_response());
+    }
+
     let slug = owned.publication.slug.clone();
     let mut active: publication::ActiveModel = owned.publication.into();
     active.name = Set(name);
     active.description = Set(description);
+    active.greeting = Set(greeting);
     active.updated_at = Set(chrono::Utc::now().fixed_offset());
 
     active.update(&state.db).await?;
@@ -158,6 +172,10 @@ pub struct StyleForm {
     #[serde(default)]
     pub muted: String,
     pub muted_custom: Option<String>,
+    #[serde(default, rename = "on-brand")]
+    pub on_brand: String,
+    #[serde(rename = "on-brand_custom")]
+    pub on_brand_custom: Option<String>,
     pub font_title: Option<String>,
     pub font_body: Option<String>,
     pub layout: Option<String>,
@@ -186,6 +204,7 @@ impl StyleForm {
             overrides: Overrides {
                 link: override_color(&self.link_custom, &self.link)?,
                 muted: override_color(&self.muted_custom, &self.muted)?,
+                on_brand: override_color(&self.on_brand_custom, &self.on_brand)?,
             },
             fonts: Fonts {
                 title: font(&self.font_title, Fonts::default().title)?,

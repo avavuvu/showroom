@@ -1,5 +1,6 @@
+use axum::middleware::from_fn_with_state;
 use boutique::{Server, assets::manifest};
-use crate::{models, routers::*, services::subdomain::SubdomainRouter, state::AppState};
+use crate::{models, routers::*, services::{error_page::error_pages, subdomain::SubdomainRouter}, state::AppState};
 
 pub const BUILD_ROUTE: &str = "/build";
 pub const BUILD_DIR: &str = "public/build";
@@ -7,9 +8,9 @@ pub const BUILD_DIR: &str = "public/build";
 pub fn create_server(state: &AppState) -> (Server<models::user::Model>, SubdomainRouter) {
     manifest::init(BUILD_ROUTE, BUILD_DIR);
 
-    let lander_router = lander::create_router(state.clone());
-    let app_router = app::create_router(state.clone());
-    let user_router = user::create_router(state.clone());
+    let lander_router = lander::create_router(state.clone()).layer(from_fn_with_state(state.clone(), error_pages));
+    let app_router = app::create_router(state.clone()).layer(from_fn_with_state(state.clone(), error_pages));
+    let user_router = user::create_router(state.clone()).layer(from_fn_with_state(state.clone(), error_pages));
 
     let routes = SubdomainRouter::new(
         lander_router,

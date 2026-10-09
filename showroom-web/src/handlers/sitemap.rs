@@ -29,7 +29,7 @@ pub async fn publications(State(state): State<AppState>) -> Xml {
 
 pub async fn newsletters(State(state): State<AppState>) -> Xml {
     let items: Vec<_> = Newsletter::find()
-        .filter(newsletter::Column::SentAt.is_not_null())
+        .filter(newsletter::Column::PublishedAt.is_not_null())
         .find_also_related(Publication)
         .all(&state.db)
         .await

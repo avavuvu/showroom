@@ -4,6 +4,7 @@ use crate::components::color_input::{DEFAULT_BRAND_COLORS, DEFAULT_INK_COLORS, D
 use crate::components::dirty_form::DirtyForm;
 use crate::components::{ArticleHeader, Button, ColorInput, Input, StyleOverrides, Textarea};
 use crate::views::context::PageContext;
+use crate::renderer::greeting;
 use crate::theme::{Font, Layout};
 use crate::views::layouts::{page, dashboard_shell};
 
@@ -86,6 +87,14 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
                     }
                     Input("name", label = "Name") value=(publication.name) required;
                     Textarea("description", label = "Description", value = publication.description.as_deref().unwrap_or("")) rows="3";
+                    Input(
+                        "greeting",
+                        label = "Greeting",
+                        hint = "Shown at the top of each newsletter. Write {{name}} where the subscriber's name goes. Subscribers without a name skip a greeting that uses {{name}}. Leave empty to turn the greeting off.",
+                    )
+                        value=(publication.greeting)
+                        placeholder=(greeting::DEFAULT)
+                        maxlength=(greeting::MAX_LEN);
                     Input("address", label = "Address") value=(address) disabled;
                     Button(submit = true) .primary { "Save" }
                 }

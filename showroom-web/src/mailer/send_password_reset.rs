@@ -1,6 +1,6 @@
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 use aws_sdk_sesv2::{Client, types::{Body, Destination, EmailContent, Message}};
-use crate::{mailer::util::convert_ses_content, state::Urls};
+use crate::{mailer::util::{convert_ses_content, ses_error}, state::Urls};
 
 pub async fn send_password_reset(
     client: &Client,
@@ -30,7 +30,7 @@ pub async fn send_password_reset(
         .content(email_content)
         .send()
         .await
-        .map_err(|e| format!("Failed to send password reset email: {e:#?}"))?;
+        .map_err(|e| ses_error("Failed to send the password reset email", &e))?;
 
     Ok(())
 }
