@@ -49,7 +49,8 @@
         padding-inline: 0.375rem;
         border-right: 1px solid var(--editor-accent);
 
-        &:last-child {
+        &:last-child,
+        &:has(+ .more-group) {
             border-right: none;
         }
     }
@@ -119,6 +120,10 @@
         }
     }
 
+    & .more-group {
+        display: none;
+    }
+
     & .block-current {
         display: inline-flex;
         align-items: center;
@@ -158,6 +163,11 @@
         &[aria-checked="true"] {
             background-color: var(--editor-accent);
             color: var(--editor-on-accent);
+        }
+
+        &:disabled {
+            opacity: 0.35;
+            cursor: default;
         }
 
         & .shortcut {
@@ -363,6 +373,130 @@
             &:hover {
                 background-color: var(--editor-accent);
                 color: var(--editor-on-accent);
+            }
+        }
+    }
+
+    @media (max-width: 48rem) {
+        padding-bottom: calc(50vh + var(--editor-toolbar-height, 3.5rem));
+
+        & .editor-toolbar {
+            position: fixed;
+            top: auto;
+            right: 0;
+            bottom: var(--keyboard-inset, 0px);
+            left: 0;
+            z-index: 30;
+            display: flex;
+            flex-direction: column-reverse;
+            overflow: visible;
+            border-top: 1px solid var(--editor-accent);
+            padding-bottom: calc(env(safe-area-inset-bottom) * var(--keyboard-closed, 1));
+        }
+
+        & .toolbar {
+            width: 100%;
+            margin-inline: 0;
+            padding: 0.25rem;
+            justify-content: space-between;
+            gap: 0.125rem;
+        }
+
+        & .toolbar-group,
+        & .more-group,
+        & .block-menu {
+            display: contents;
+        }
+
+        & .secondary-tool {
+            display: none;
+        }
+
+        & .toolbar .toolbar-button {
+            flex: 1 1 0;
+            width: auto;
+            min-width: 0;
+            max-width: 2.75rem;
+        }
+
+        & .block-button {
+            flex: 1.5 1 0;
+            min-width: 0;
+            max-width: 4rem;
+            justify-content: center;
+            gap: 0.125rem;
+            padding: 0 0.25rem;
+
+            & .option-label {
+                display: none;
+            }
+        }
+
+        & .link-bar {
+            padding-inline: 0.5rem;
+            border-bottom: 1px solid var(--editor-accent);
+
+            &.is-idle {
+                display: none;
+            }
+        }
+
+        & .editor-meta {
+            padding: 1.25rem 1rem 0.5rem;
+        }
+
+        & .editor-title {
+            font-size: 1.5rem;
+        }
+
+        & .editor-surface .ProseMirror > * {
+            margin-inline: 1rem;
+        }
+
+        & .menu-panel {
+            max-width: calc(100vw - 1rem);
+        }
+    }
+
+    @media (pointer: coarse) {
+        & .toolbar-button,
+        & .icon-button {
+            width: 2.75rem;
+            height: 2.75rem;
+        }
+
+        & .icon {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        & .block-button {
+            height: 2.75rem;
+        }
+
+        & .link-bar {
+            height: 3.25rem;
+        }
+
+        & .link-input {
+            height: 2.5rem;
+            font-size: 1rem;
+        }
+
+        & .menu-option {
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+
+            & .shortcut {
+                display: none;
+            }
+        }
+
+        & .image-actions {
+            font-size: 0.9375rem;
+
+            & button {
+                padding: 0.5rem 0.75rem;
             }
         }
     }

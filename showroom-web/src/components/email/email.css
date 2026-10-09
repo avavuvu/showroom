@@ -40,6 +40,15 @@ body {
     color: var(--text);
 }
 
+.email-picture {
+    display: inline-block;
+    width: var(--picture-size);
+    height: var(--picture-size);
+    border: 0;
+    outline: none;
+    text-decoration: none;
+}
+
 .email-title {
     margin: 24px 0 8px;
     font-family: var(--font-title);

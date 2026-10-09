@@ -62,6 +62,14 @@ body {
         grid-column-start: 2;
         padding: 0 0.5em;
     }
+
+    @media (max-width: 48rem) {
+        padding-top: 2em;
+
+        & > * {
+            padding: 0 1em;
+        }
+    }
 }
 
 input::placeholder {

@@ -38,7 +38,7 @@ body:has(.lander) {
         width: min(60ch, 100%);
         padding: min(4em, 10%);
         margin: 0 1em;
-        margin-top: 12em;
+        margin-top: min(12em, 15vh);
         text-align: center;
         height: min-content;
     }

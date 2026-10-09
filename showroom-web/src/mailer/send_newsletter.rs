@@ -100,6 +100,7 @@ impl<'a> NewsletterMailing<'a> {
                     date = &date,
                     read_online_url = &read_online_url,
                     publication_url = &publication_url,
+                    picture = &publication.email_picture_url(urls),
                     layout = theme.layout,
                     greeting = greeting,
                     content = &rendered_content,

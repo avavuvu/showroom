@@ -22,6 +22,11 @@ header.header-full {
             width: auto;
         }
 
+        .banner {
+            aspect-ratio: 4 / 1;
+            object-fit: cover;
+        }
+
         .wordmark {
             @media (max-width: 25em) {
                 display: none;
@@ -32,5 +37,17 @@ header.header-full {
     & .auth {
         display: flex;
         gap: 1em;
+    }
+
+    @media (max-width: 48rem) {
+        padding: 1em 0.5em;
+
+        & .auth {
+            gap: 0.25em;
+
+            & .button {
+                padding-inline: 0.5em;
+            }
+        }
     }
 }

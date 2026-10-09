@@ -9,6 +9,7 @@ pub fn article_header(
     #[builder(required)] subtitle: Option<&str>,
     name: &str,
     href: &str,
+    picture: &str,
     #[builder(default)] attrs: Attrs,
 ) -> Markup {
     html! {
@@ -19,7 +20,10 @@ pub fn article_header(
                 p.subtitle { (subtitle) }
             }
             p.handle {
-                a href=(href) { (name) }
+                a href=(href) {
+                    img.publication-picture src=(picture) alt="";
+                    (name)
+                }
             }
         }
     }

@@ -33,6 +33,7 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
                 date = &date,
                 read_online_url = &publication_url,
                 publication_url = &publication_url,
+                picture = &publication.email_picture_url(&ctx.urls),
                 layout = theme.layout,
                 maybe_greeting = greeting,
                 content = &content,

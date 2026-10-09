@@ -9,8 +9,8 @@ pub fn toolbar() -> Markup {
     html! {
         div.toolbar role="toolbar" aria-label="Formatting" bq-ref="toolbar" {
             div.toolbar-group {
-                (toolbar_button("undo", "Undo", "Mod-z", Glyph::Undo))
-                (toolbar_button("redo", "Redo", "Shift-Mod-z", Glyph::Redo))
+                (toolbar_button("undo", "Undo", "Mod-z", Glyph::Undo, false))
+                (toolbar_button("redo", "Redo", "Shift-Mod-z", Glyph::Redo, true))
             }
 
             div.toolbar-group {
@@ -18,25 +18,65 @@ pub fn toolbar() -> Markup {
             }
 
             div.toolbar-group {
-                (toolbar_button("bold", "Bold", "Mod-b", Glyph::Bold))
-                (toolbar_button("italic", "Italic", "Mod-i", Glyph::Italic))
-                (toolbar_button("underline", "Underline", "Mod-u", Glyph::Underline))
-                (toolbar_button("strike", "Strikethrough", "Shift-Mod-x", Glyph::Strikethrough))
-                (toolbar_button("code", "Inline code", "Mod-e", Glyph::Code))
-                (toolbar_button("link", "Link", "Mod-k", Glyph::Link))
+                (toolbar_button("bold", "Bold", "Mod-b", Glyph::Bold, false))
+                (toolbar_button("italic", "Italic", "Mod-i", Glyph::Italic, false))
+                (toolbar_button("underline", "Underline", "Mod-u", Glyph::Underline, true))
+                (toolbar_button("strike", "Strikethrough", "Shift-Mod-x", Glyph::Strikethrough, true))
+                (toolbar_button("code", "Inline code", "Mod-e", Glyph::Code, true))
+                (toolbar_button("link", "Link", "Mod-k", Glyph::Link, false))
             }
 
             div.toolbar-group {
-                (toolbar_button("bullet-list", "Bulleted list", "Shift-Mod-8", Glyph::List))
-                (toolbar_button("ordered-list", "Numbered list", "Shift-Mod-7", Glyph::ListOrdered))
-                (toolbar_button("blockquote", "Quote", "Shift-Mod-9", Glyph::Quote))
-                (toolbar_button("pullquote", "Pull quote", "", Glyph::TextQuote))
+                (toolbar_button("bullet-list", "Bulleted list", "Shift-Mod-8", Glyph::List, false))
+                (toolbar_button("ordered-list", "Numbered list", "Shift-Mod-7", Glyph::ListOrdered, true))
+                (toolbar_button("blockquote", "Quote", "Shift-Mod-9", Glyph::Quote, false))
+                (toolbar_button("pullquote", "Pull quote", "", Glyph::TextQuote, true))
             }
 
             div.toolbar-group {
-                (toolbar_button("horizontal-rule", "Divider", "", Glyph::Minus))
-                (toolbar_button("image", "Image", "", Glyph::Image))
+                (toolbar_button("horizontal-rule", "Divider", "", Glyph::Minus, true))
+                (toolbar_button("image", "Image", "", Glyph::Image, false))
             }
+
+            div.toolbar-group.more-group {
+                button.toolbar-button.more-button
+                    type="button"
+                    tabindex="-1"
+                    aria-haspopup="menu"
+                    aria-expanded="false"
+                    aria-label="More formatting"
+                    title="More formatting"
+                    bq-ref="more-button"
+                {
+                    Icon(Glyph::Ellipsis);
+                }
+                div.menu-panel role="menu" aria-label="More formatting" hidden bq-ref="more-options" {
+                    (more_option("redo", "Redo", "Shift-Mod-z", Glyph::Redo))
+                    (more_option("underline", "Underline", "Mod-u", Glyph::Underline))
+                    (more_option("strike", "Strikethrough", "Shift-Mod-x", Glyph::Strikethrough))
+                    (more_option("code", "Inline code", "Mod-e", Glyph::Code))
+                    (more_option("ordered-list", "Numbered list", "Shift-Mod-7", Glyph::ListOrdered))
+                    (more_option("pullquote", "Pull quote", "", Glyph::TextQuote))
+                    (more_option("horizontal-rule", "Divider", "", Glyph::Minus))
+                }
+            }
+        }
+    }
+}
+
+fn more_option(command: &str, label: &str, shortcut: &str, glyph: Glyph) -> Markup {
+    html! {
+        button.menu-option
+            type="button"
+            role="menuitem"
+            tabindex="-1"
+            bq-ref="command"
+            data-command=(command)
+            data-shortcut=[(!shortcut.is_empty()).then_some(shortcut)]
+        {
+            Icon(glyph);
+            span.option-label { (label) }
+            span.shortcut aria-hidden="true" {}
         }
     }
 }
@@ -126,9 +166,9 @@ fn block_option(value: &str, label: &str, shortcut: &str, glyph: Glyph) -> Marku
     }
 }
 
-fn toolbar_button(command: &str, label: &str, shortcut: &str, glyph: Glyph) -> Markup {
+fn toolbar_button(command: &str, label: &str, shortcut: &str, glyph: Glyph, secondary: bool) -> Markup {
     html! {
-        button.toolbar-button
+        button.toolbar-button.secondary-tool[secondary]
             type="button"
             tabindex="-1"
             bq-ref="command"

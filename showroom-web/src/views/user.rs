@@ -1,15 +1,24 @@
 use boutique::html;
 use maud::Markup;
-use crate::{document::Document, models::newsletter::Model as Newsletter, renderer::html::render, components::{ArticleHeader, subscribe_form}, views::{context::PageContext, layouts::{Metadata, page, shell}}};
+use crate::{document::Document, models::{newsletter::Model as Newsletter, publication::{self, Picture}}, renderer::html::render, components::{ArticleHeader, subscribe_form}, state::Urls, views::{context::PageContext, layouts::{Metadata, page, shell}}};
+
+fn with_share_image(metadata: Metadata, publication: &publication::Model, urls: &Urls) -> Metadata {
+    match (publication.banner_url(urls), publication.picture()) {
+        (Some(banner), _) => metadata.with_image(&banner),
+        (None, Picture::Upload(_)) => metadata.with_image(&publication.picture_url(urls)),
+        (None, Picture::Default(_)) => metadata,
+    }
+}
 
 pub fn profile(ctx: &PageContext, newsletters: &[Newsletter]) -> Markup {
     let publication = ctx.publication();
     let publication_url = ctx.publication_url();
 
-    let metadata = Metadata::article(
-        publication.description.as_deref().unwrap_or(&publication.name),
-        &publication.name,
-        &publication_url);
+    let metadata = with_share_image(
+        Metadata::article(publication.description.as_deref().unwrap_or(&publication.name), &publication.name, &publication_url),
+        publication,
+        &ctx.urls,
+    );
 
     shell(
         page(&publication.name)
@@ -18,6 +27,7 @@ pub fn profile(ctx: &PageContext, newsletters: &[Newsletter]) -> Markup {
         ctx,
         html! {
             div.user-view .article-layout .flow {
+                img.publication-picture src=(publication.picture_url(&ctx.urls)) alt="";
                 h1 { (publication.name) }
                 @if let Some(description) = &publication.description {
                     p.description { (description) }
@@ -35,10 +45,11 @@ pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
     let content = render(&Document::from_stored(&newsletter.content));
     let date = newsletter.created_at.format("%B %-d, %Y").to_string();
 
-    let metadata = Metadata::article(
-        newsletter.display_title(),
-        &publication.name,
-        &publication_url);
+    let metadata = with_share_image(
+        Metadata::article(newsletter.display_title(), &publication.name, &publication_url),
+        publication,
+        &ctx.urls,
+    );
 
     shell(
         page(newsletter.display_title())
@@ -54,6 +65,7 @@ pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
                     subtitle = newsletter.subtitle.as_deref(),
                     name = &publication.name,
                     href = &publication_url,
+                    picture = &publication.picture_url(&ctx.urls),
                 );
                 (content)
             }

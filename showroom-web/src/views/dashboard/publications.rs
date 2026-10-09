@@ -5,6 +5,7 @@ use crate::components::dirty_form::DirtyForm;
 use crate::components::{ArticleHeader, Button, ColorInput, Input, StyleOverrides, Textarea};
 use crate::views::context::PageContext;
 use crate::renderer::greeting;
+use crate::models::publication::{self, BANNER_HEIGHT, BANNER_WIDTH, DEFAULT_PICTURES, Picture};
 use crate::theme::{Font, Layout};
 use crate::views::layouts::{page, dashboard_shell};
 
@@ -68,6 +69,72 @@ pub fn new_form(ctx: &PageContext, slug: &str, name: &str, error: Option<&str>) 
     )
 }
 
+fn picture_section(ctx: &PageContext, publication: &publication::Model, dashboard_url: &str) -> Markup {
+    let current = publication.picture();
+
+    html! {
+        section.settings-section.picture-section {
+            h2 { "Picture" }
+            p.hint { "Shown on your pages and at the top of your emails." }
+            form.settings-form method="POST" action={ (dashboard_url) "/settings/picture" } enctype="multipart/form-data" {
+                fieldset.picture-choices {
+                    legend { "Choose a picture" }
+                    @if let Picture::Upload(public_id) = current {
+                        @if !publication.pictures.contains(public_id) {
+                            label.picture-choice {
+                                input type="radio" name="picture" value=(publication.image) checked;
+                                img src=(current.url(&ctx.urls)) alt="Your picture";
+                            }
+                        }
+                    }
+                    @for public_id in &publication.pictures.0 {
+                        label.picture-choice {
+                            input type="radio" name="picture" value=(public_id) checked[current == Picture::Upload(public_id)];
+                            img src=(Picture::Upload(public_id).url(&ctx.urls)) alt="A picture you uploaded";
+                        }
+                    }
+                    @for index in 0..DEFAULT_PICTURES {
+                        label.picture-choice {
+                            input type="radio" name="picture" value=(publication::default_picture(index)) checked[current == Picture::Default(index)];
+                            img src=(publication::default_picture_path(index)) alt={ "Picture " (index + 1) };
+                        }
+                    }
+                }
+                label {
+                    "Or upload your own"
+                    input type="file" name="file" accept="image/png,image/jpeg,image/gif,image/webp";
+                }
+                p.hint { "Square images work best. PNG, JPEG, GIF or WebP, up to 10 MB." }
+                Button(submit = true) .primary { "Save picture" }
+            }
+        }
+    }
+}
+
+fn banner_section(ctx: &PageContext, publication: &publication::Model, dashboard_url: &str) -> Markup {
+    html! {
+        section.settings-section.banner-section {
+            h2 { "Banner" }
+            p.hint {
+                "Shown in place of the Showroom logo at the top of your pages. Use a 4:1 image, for example "
+                (BANNER_WIDTH) " × " (BANNER_HEIGHT) " pixels. Other sizes are cropped to fit."
+            }
+            @if let Some(banner) = publication.banner_url(&ctx.urls) {
+                img.banner-preview src=(banner) alt="Your banner";
+            }
+            form.settings-form method="POST" action={ (dashboard_url) "/settings/banner" } enctype="multipart/form-data" {
+                input type="file" name="file" accept="image/png,image/jpeg,image/gif,image/webp" required;
+                Button(submit = true) .primary { "Upload banner" }
+            }
+            @if publication.banner.is_some() {
+                form.banner-remove method="POST" action={ (dashboard_url) "/settings/banner/remove" } {
+                    Button(submit = true) .secondary { "Remove banner" }
+                }
+            }
+        }
+    }
+}
+
 pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
     let publication = ctx.publication();
     let dashboard_url = ctx.dashboard_url();
@@ -100,6 +167,9 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
                 }
             }
 
+            (picture_section(ctx, publication, &dashboard_url))
+            (banner_section(ctx, publication, &dashboard_url))
+
             section.settings-section.style-section {
                 h2 { "Style" }
                 form.settings-form
@@ -127,6 +197,7 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
                             subtitle = Some("A Christmas Carol, Stave One"),
                             name = &publication.name,
                             href = "#",
+                            picture = &publication.picture_url(&ctx.urls),
                         );
                         p {
                             "MARLEY was dead, to begin with. There is no doubt whatever about that. The register of his "

@@ -1,3 +1,5 @@
+import { visibleBounds } from "./viewport";
+
 interface PopupMenuOptions {
     button: HTMLButtonElement;
     panel: HTMLElement;
@@ -5,14 +7,18 @@ interface PopupMenuOptions {
     onChoose: (item: HTMLButtonElement) => void;
     onEscape?: () => void;
     current?: () => HTMLButtonElement | undefined;
+    anchor?: HTMLElement;
     signal: AbortSignal;
 }
+
+type Focus = "first" | "last" | "current" | "none";
 
 export class PopupMenu {
     constructor(private options: PopupMenuOptions) {
         const { button, panel, items, signal } = options;
 
         for (const item of items) {
+            item.addEventListener("mousedown", (event) => event.preventDefault(), { signal });
             item.addEventListener(
                 "click",
                 () => {
@@ -24,7 +30,9 @@ export class PopupMenu {
         }
 
         button.addEventListener("mousedown", (event) => event.preventDefault(), { signal });
-        button.addEventListener("click", () => (this.isOpen ? this.close(false) : this.open()), { signal });
+        button.addEventListener("click", (event) => (this.isOpen ? this.close(false) : this.open(event.detail === 0 ? "current" : "none")), {
+            signal,
+        });
         button.addEventListener(
             "keydown",
             (event) => {
@@ -47,19 +55,22 @@ export class PopupMenu {
         );
         window.addEventListener("resize", () => this.position(), { signal });
         window.addEventListener("scroll", () => this.position(), { signal, passive: true });
+        window.visualViewport?.addEventListener("resize", () => this.position(), { signal });
+        window.visualViewport?.addEventListener("scroll", () => this.position(), { signal });
     }
 
     get isOpen(): boolean {
         return !this.options.panel.hidden;
     }
 
-    open(focus: "first" | "last" | "current" = "current") {
+    open(focus: Focus = "current") {
         const { button, panel, items } = this.options;
         if (button.disabled) return;
         panel.hidden = false;
         button.setAttribute("aria-expanded", "true");
         this.position();
 
+        if (focus === "none") return;
         const target =
             focus === "last" ? items[items.length - 1] : focus === "first" ? items[0] : (this.options.current?.() ?? items[0]);
         target?.focus();
@@ -79,9 +90,11 @@ export class PopupMenu {
         const rect = button.getBoundingClientRect();
         const height = panel.offsetHeight;
         const width = panel.offsetWidth;
-        const below = rect.bottom + height <= window.innerHeight;
+        const { top, bottom } = visibleBounds();
+        const below = rect.bottom + height <= bottom;
+        const above = (this.options.anchor ?? button).getBoundingClientRect().top - height;
         panel.style.left = `${Math.max(0, Math.min(rect.left, window.innerWidth - width))}px`;
-        panel.style.top = `${below ? rect.bottom : Math.max(0, rect.top - height)}px`;
+        panel.style.top = `${below ? rect.bottom : Math.max(top, above)}px`;
     }
 
     private navigate(event: KeyboardEvent) {

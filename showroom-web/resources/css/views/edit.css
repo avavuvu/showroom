@@ -49,4 +49,32 @@
             }
         }
     }
+
+    @media (max-width: 48rem) {
+        & .marquee {
+            padding: 0.25em 0.75em;
+            font-size: 0.875em;
+        }
+
+        & header {
+            height: auto;
+            min-height: 3.5em;
+            gap: 0.5em;
+            padding: 0.5em 0.75em;
+
+            & .left {
+                min-width: 0;
+
+                & .save-status-group {
+                    flex-wrap: wrap;
+                    min-width: 0;
+                }
+
+                & .save-status {
+                    max-width: none;
+                    font-size: 0.8125em;
+                }
+            }
+        }
+    }
 }

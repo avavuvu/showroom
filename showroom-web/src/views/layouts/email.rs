@@ -5,6 +5,7 @@ use serde::Serialize;
 
 use crate::{
     components::email::{Align, Button, FullWidthImage, Section, stylesheet},
+    models::publication::EMAIL_PICTURE_SIZE,
     renderer::{email::EmailBlock, greeting},
     theme::{EmailTheme, Layout},
 };
@@ -101,6 +102,7 @@ pub fn newsletter_body(
     date: &str,
     read_online_url: &str,
     publication_url: &str,
+    picture: &str,
     layout: Layout,
     greeting: Option<Markup>,
     content: &[EmailBlock],
@@ -123,7 +125,8 @@ pub fn newsletter_body(
                 a.muted href=(read_online_url) { "Read in browser" }
             }
         }
-        Section(bottom = "16px", maybe_align = info_align) {
+        Section(top = "8px", bottom = "16px", maybe_align = info_align) {
+            img.email-picture src=(picture) width=(EMAIL_PICTURE_SIZE) height=(EMAIL_PICTURE_SIZE) alt=(publication_name);
             h1.email-title { (title) }
             @if let Some(sub) = subtitle {
                 p.muted { (sub) }

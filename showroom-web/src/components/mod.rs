@@ -11,6 +11,8 @@ pub mod subscribe_form;
 pub mod color_input;
 pub mod style_overrides;
 pub mod dirty_form;
+pub mod dropdown;
+pub mod wordmark;
 
 pub use article_header::ArticleHeader;
 pub use button::Button;
@@ -22,3 +24,4 @@ pub use save_status::SaveStatus;
 pub use subscribe_form::subscribe_form;
 pub use color_input::ColorInput;
 pub use style_overrides::StyleOverrides;
+pub use wordmark::Wordmark;

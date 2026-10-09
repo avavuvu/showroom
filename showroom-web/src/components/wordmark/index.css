@@ -1,0 +1,10 @@
+.wordmark {
+    display: inline-block;
+    flex-shrink: 1;
+    min-width: 0;
+    height: 2em;
+    aspect-ratio: 125.61 / 25.35;
+    background-color: currentColor;
+    -webkit-mask: url("/icons/wordmark.svg") no-repeat left center / contain;
+    mask: url("/icons/wordmark.svg") no-repeat left center / contain;
+}

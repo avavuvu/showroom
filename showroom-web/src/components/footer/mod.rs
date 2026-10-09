@@ -1,12 +1,12 @@
 use boutique::html;
 use maud::Markup;
-use crate::views::context::PageContext;
+use crate::{components::Wordmark, views::context::PageContext};
 
 pub fn footer(ctx: &PageContext) -> Markup {
     html! {
         footer.footer-full {
             div.logo-container {
-                img.wordmark src="/icons/wordmark.svg" alt="Showroom";
+                Wordmark;
             }
             div.content {
                 p {

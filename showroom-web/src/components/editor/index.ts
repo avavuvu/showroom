@@ -20,6 +20,7 @@ import { toolbarPlugin, formatShortcut } from "./plugins/toolbar";
 import { imageFiles, uploadPlugin, Uploads } from "./plugins/upload";
 import { SaveController, type SaveState } from "./save";
 import { schema } from "./schema";
+import { trackViewport } from "./viewport";
 
 interface Props {
     id: string;
@@ -180,6 +181,9 @@ export const newsletterEditor: NewsletterEditor = (root, refs) => {
         },
         { once: true },
     );
+
+    const toolbar = refs.toolbar.closest<HTMLElement>(".editor-toolbar") ?? refs.toolbar;
+    trackViewport(root, root.querySelector<HTMLElement>(":scope > header"), toolbar, view, signal);
 
     for (const input of [refs.title, refs.subtitle]) {
         input.addEventListener("input", () => saver.markDirty(), { signal });

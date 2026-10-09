@@ -11,6 +11,8 @@ pub struct Urls {
     domain: String,      // room.lc — used for subdomain routing
     main_domain: String, // show.room.lc — primary URL
     email_domain: String,
+    asset_url: Option<String>,
+    cloudinary_cloud: String,
     port: String,
     secure: bool,
 }
@@ -25,6 +27,8 @@ impl Urls {
                 domain: domain.into(),
                 email_domain: main_domain.clone(),
                 main_domain,
+                asset_url: None,
+                cloudinary_cloud: String::new(),
                 port: port.into(),
                 secure,
             }
@@ -33,6 +37,27 @@ impl Urls {
     pub fn with_email_domain(mut self, email_domain: impl Into<String>) -> Self {
         self.email_domain = email_domain.into();
         self
+    }
+
+    pub fn with_asset_url(mut self, asset_url: impl Into<String>) -> Self {
+        self.asset_url = Some(asset_url.into().trim_end_matches('/').to_string());
+        self
+    }
+
+    pub fn with_cloudinary(mut self, cloud_name: impl Into<String>) -> Self {
+        self.cloudinary_cloud = cloud_name.into();
+        self
+    }
+
+    pub fn asset(&self, path: &str) -> String {
+        match &self.asset_url {
+            Some(asset_url) => format!("{asset_url}{path}"),
+            None => format!("{}{path}", self.base()),
+        }
+    }
+
+    pub fn cloudinary(&self, public_id: &str, transform: &str) -> String {
+        format!("https://res.cloudinary.com/{}/image/upload/{transform}/{public_id}", self.cloudinary_cloud)
     }
 
     fn scheme(&self) -> &str {

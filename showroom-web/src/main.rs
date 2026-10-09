@@ -26,6 +26,7 @@ struct AppEnv {
     domain: String,
     main_domain: String,
     email_domain: Option<String>,
+    asset_url: Option<String>,
     secret: String,
 }
 
@@ -56,6 +57,7 @@ async fn setup() -> AppEnv {
     let domain = env::var("DOMAIN").unwrap_or_else(|_| "localtest.me".to_string());
     let main_domain = env::var("MAIN_DOMAIN").unwrap_or_else(|_| "localtest.me".to_string());
     let email_domain = env::var("EMAIL_DOMAIN").ok().filter(|domain| !domain.is_empty());
+    let asset_url = env::var("ASSET_URL").ok().filter(|url| !url.is_empty());
     let secret = env::var("SECRET_KEY").expect("SECRET_KEY must be set");
 
     let aws_config = aws_config::defaults(BehaviorVersion::latest())
@@ -66,13 +68,16 @@ async fn setup() -> AppEnv {
 
     let cloudinary = Cloudinary::from_env().expect("CLOUDINARY_URL must be set");
 
-    AppEnv { db, ses, cloudinary, port, domain, main_domain, email_domain, secret }
+    AppEnv { db, ses, cloudinary, port, domain, main_domain, email_domain, asset_url, secret }
 }
 
 async fn server(env: AppEnv) {
-    let mut urls = state::Urls::new(&env.domain, &env.port, &env.main_domain);
+    let mut urls = state::Urls::new(&env.domain, &env.port, &env.main_domain).with_cloudinary(env.cloudinary.cloud_name());
     if let Some(email_domain) = &env.email_domain {
         urls = urls.with_email_domain(email_domain);
+    }
+    if let Some(asset_url) = &env.asset_url {
+        urls = urls.with_asset_url(asset_url);
     }
 
     let state = state::AppState::new(env.db, env.ses, env.cloudinary, urls, env.secret);

@@ -1,6 +1,6 @@
 use boutique::html;
 use maud::Markup;
-use crate::components::Button;
+use crate::components::{Button, Wordmark};
 use crate::views::context::PageContext;
 
 pub fn header(ctx: &PageContext) -> Markup {
@@ -10,12 +10,25 @@ pub fn header(ctx: &PageContext) -> Markup {
         "Admin"
     };
 
+    let banner = ctx.publication.as_ref().and_then(|publication| {
+        publication.banner_url(&ctx.urls).map(|banner| (banner, publication))
+    });
+
     html! {
         div.header-space {}
         header.header-full {
-            a.logo-container href=(ctx.urls.base()) {
-                img.logo src="/icons/logo-sm.webp" alt="";
-                img.wordmark src="/icons/wordmark.svg" alt="Showroom";
+            @match banner {
+                Some((banner, publication)) => {
+                    a.logo-container href=(ctx.urls.publication(&publication.slug)) {
+                        img.banner src=(banner) alt=(publication.name);
+                    }
+                }
+                None => {
+                    a.logo-container href=(ctx.urls.base()) {
+                        img.logo src="/icons/logo-sm.webp" alt="";
+                        Wordmark;
+                    }
+                }
             }
 
             div.auth {

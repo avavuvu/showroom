@@ -1,4 +1,4 @@
-use axum::{Router, routing::{delete, get, post, put}};
+use axum::{Router, extract::DefaultBodyLimit, routing::{delete, get, post, put}};
 use crate::{handlers::{dashboard::*, error404::app_404}, state::AppState};
 
 pub fn create_router(state: AppState) -> Router {
@@ -15,6 +15,9 @@ pub fn create_router(state: AppState) -> Router {
 
         .route("/settings", get(publications::get_settings).post(publications::update_settings))
         .route("/settings/style", post(publications::update_style))
+        .route("/settings/picture", post(images::update_picture).layer(DefaultBodyLimit::max(images::MAX_IMAGE_BYTES + 64 * 1024)))
+        .route("/settings/banner", post(images::update_banner).layer(DefaultBodyLimit::max(images::MAX_IMAGE_BYTES + 64 * 1024)))
+        .route("/settings/banner/remove", post(images::remove_banner))
         .route("/settings/style/preview", post(publications::preview_style))
         .route("/delete", post(publications::delete));
 

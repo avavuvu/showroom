@@ -10,7 +10,12 @@ interface ToolbarRefs {
     blockCurrent: HTMLElement;
     blockOptions: HTMLElement;
     blockOption: HTMLButtonElement[];
+    moreButton: HTMLButtonElement;
+    moreOptions: HTMLElement;
 }
+
+const isVisible = (element: HTMLElement) => element.getClientRects().length > 0;
+const inMenu = (element: Element) => element.closest('[role="menu"]') !== null;
 
 const OTHER_LABELS: Record<string, string> = {
     caption: "Caption",
@@ -52,6 +57,7 @@ class BlockMenu {
             button: refs.blockButton,
             panel: refs.blockOptions,
             items: refs.blockOption,
+            anchor: toolbarEdge(refs),
             current: () => refs.blockOption.find((option) => option.dataset.block === this.current),
             onChoose: (option) => {
                 blockTypeCommand(option.dataset.block ?? "")?.(this.view.state, this.view.dispatch, this.view);
@@ -86,9 +92,14 @@ class BlockMenu {
     }
 }
 
+function toolbarEdge(refs: ToolbarRefs): HTMLElement {
+    return refs.toolbar.closest<HTMLElement>(".editor-toolbar") ?? refs.toolbar;
+}
+
 class Toolbar {
     private current: HTMLElement | null = null;
     private menu: BlockMenu;
+    private more: PopupMenu;
 
     constructor(
         private view: EditorView,
@@ -105,8 +116,14 @@ class Toolbar {
                 continue;
             }
 
-            const label = button.getAttribute("aria-label") ?? name;
-            if (button.dataset.shortcut) button.title = `${label} (${formatShortcut(button.dataset.shortcut)})`;
+            if (inMenu(button)) {
+                button.setAttribute("role", command.active ? "menuitemcheckbox" : "menuitem");
+                const shortcut = button.querySelector(".shortcut");
+                if (shortcut && button.dataset.shortcut) shortcut.textContent = formatShortcut(button.dataset.shortcut);
+            } else {
+                const label = button.getAttribute("aria-label") ?? name;
+                if (button.dataset.shortcut) button.title = `${label} (${formatShortcut(button.dataset.shortcut)})`;
+            }
 
             button.addEventListener("mousedown", (event) => event.preventDefault(), { signal });
             button.addEventListener(
@@ -121,6 +138,16 @@ class Toolbar {
         }
 
         this.menu = new BlockMenu(view, refs, signal);
+        this.more = new PopupMenu({
+            button: refs.moreButton,
+            panel: refs.moreOptions,
+            items: [...refs.moreOptions.querySelectorAll<HTMLButtonElement>("button")],
+            anchor: toolbarEdge(refs),
+            current: () => [...refs.moreOptions.querySelectorAll<HTMLButtonElement>("button")].find((item) => !item.disabled),
+            onChoose: () => {},
+            onEscape: () => this.view.focus(),
+            signal,
+        });
 
         refs.toolbar.addEventListener("keydown", (event) => this.navigate(event), { signal });
         refs.toolbar.addEventListener(
@@ -142,10 +169,11 @@ class Toolbar {
             const command = this.commands[button.dataset.command ?? ""];
             if (!command) continue;
             button.disabled = !command.run(state, undefined, view);
-            if (command.active) button.setAttribute("aria-pressed", String(command.active(state)));
+            if (command.active) button.setAttribute(inMenu(button) ? "aria-checked" : "aria-pressed", String(command.active(state)));
         }
 
         this.menu.sync(view);
+        if (!isVisible(this.refs.moreButton)) this.more.close(false);
 
         const items = this.items();
         if (!this.current || !items.includes(this.current)) this.makeCurrent(items[0] ?? null);
@@ -154,7 +182,8 @@ class Toolbar {
     private items(): HTMLElement[] {
         return [...this.refs.toolbar.querySelectorAll<HTMLElement>("button, input, a")].filter(
             (item) =>
-                !item.closest('[role="menu"]') &&
+                !inMenu(item) &&
+                isVisible(item) &&
                 !item.hidden &&
                 !(item as HTMLButtonElement | HTMLInputElement).disabled &&
                 item.getAttribute("aria-disabled") !== "true",

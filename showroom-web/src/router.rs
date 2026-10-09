@@ -24,6 +24,7 @@ pub fn create_server(state: &AppState) -> (Server<models::user::Model>, Subdomai
         .file("/favicon.ico", "resources/static/favicon.ico")
         .static_dir("/assets", "resources/static/assets")
         .static_dir("/icons", "resources/static/icons")
+        .static_dir("/avatars", "resources/static/avatars")
         .static_dir(BUILD_ROUTE, BUILD_DIR)
         .debug(cfg!(debug_assertions));
 

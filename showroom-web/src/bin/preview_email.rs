@@ -51,6 +51,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 date = &date,
                 read_online_url = "http://test.showroom.you:3000/my-test-newsletter",
                 publication_url = "http://test.showroom.you:3000",
+                picture = "https://show.room.lc/avatars/0.png",
                 layout = theme.layout,
                 maybe_greeting = greeting,
                 content = &rendered_content,

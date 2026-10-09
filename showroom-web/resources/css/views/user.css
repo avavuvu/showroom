@@ -1,4 +1,10 @@
 .user-view {
+    & .publication-picture {
+        width: 6em;
+        height: 6em;
+        object-fit: cover;
+    }
+
     & h1 {
         font-family: var(--font-title);
         font-weight: bold;

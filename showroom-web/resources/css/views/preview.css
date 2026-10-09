@@ -47,4 +47,32 @@
             padding: 0 0.5em;
         }
     }
+
+    @media (max-width: 48rem) {
+        & header {
+            height: auto;
+            min-height: 3.5em;
+            flex-wrap: wrap;
+            gap: 0.5em;
+            padding: 0.5em 0.75em;
+
+            & .right {
+                flex-wrap: wrap;
+                justify-content: flex-end;
+                gap: 0.5em;
+            }
+
+            & .send-warning {
+                font-size: 0.875em;
+            }
+        }
+
+        & .emails {
+            overflow-wrap: anywhere;
+        }
+
+        & article > * {
+            padding: 0 1em;
+        }
+    }
 }

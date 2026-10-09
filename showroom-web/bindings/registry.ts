@@ -17,6 +17,11 @@ export const registry: Registry = {
         many: [],
         load: () => import("../src/components/dirty_form/index").then((module) => module.dirtyForm satisfies setups.DirtyForm),
     },
+    "dropdown": {
+        tags: ["details"],
+        many: [],
+        load: () => import("../src/components/dropdown/index").then((module) => module.dropdown satisfies setups.Dropdown),
+    },
     "newsletter-editor": {
         tags: ["div"],
         many: ["blockOption", "command", "leave"],
