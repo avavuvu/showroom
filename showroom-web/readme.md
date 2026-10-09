@@ -3,11 +3,10 @@
 I have dubbed in Ava's Max Stack
 
 - Backend: Rust Axum
-- Templating: Maud
+- Templating: Maud + `boutique` extensions
 - Islands: Vue
-- Client-side Interactivity: Alpine.js
 - Server-side Interactivity: HTMX
-- Auth, layouts, and vendored JS: `boutique` crate
+- Auth, layouts, and JS: `boutique` crate
 
 ## To do:
 - [x] edit page fetch
@@ -46,6 +45,7 @@ I have dubbed in Ava's Max Stack
 - [x] Visual themes
     - [x] Theme editor
 - [x] Profile descriptions
+- [x] Profile pictures
 - [ ] Names beyond usernames
 - [ ] Custom headers
 - [ ] Profile link trees
@@ -62,7 +62,7 @@ I have dubbed in Ava's Max Stack
 ### The editor
 - [x] Improve link editor
 - [ ] Add proper loading animation to edit
-- [ ] Add Placeholder
+- [x] Add Placeholder
 - [x] List margins (and other inconsistencies with email)
 - [ ] Code displays really weird on email
 

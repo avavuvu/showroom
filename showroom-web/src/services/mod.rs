@@ -1,3 +1,4 @@
+pub mod account;
 pub mod error_page;
 pub mod newsletter_send;
 pub mod publication;
