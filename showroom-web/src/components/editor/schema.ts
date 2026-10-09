@@ -15,14 +15,14 @@ export const schema = new Schema({
         doc: { content: "block+" },
         paragraph: {
             content: "inline*",
-            group: "block",
+            group: "block quotable",
             parseDOM: [{ tag: "p" }],
             toDOM: () => ["p", 0],
         },
         heading: {
             attrs: { level: { default: 2, validate: "number" } },
             content: "inline*",
-            group: "block",
+            group: "block quotable",
             defining: true,
             parseDOM: [
                 { tag: "h1", attrs: { level: 2 } },
@@ -42,7 +42,7 @@ export const schema = new Schema({
             toDOM: () => ["blockquote", 0],
         },
         pullquote: {
-            content: "block+ attribution",
+            content: "quotable+ attribution",
             group: "block",
             defining: true,
             isolating: true,
@@ -60,14 +60,14 @@ export const schema = new Schema({
         },
         bulletList: {
             content: "listItem+",
-            group: "block",
+            group: "block quotable",
             parseDOM: [{ tag: "ul" }],
             toDOM: () => ["ul", 0],
         },
         orderedList: {
             attrs: { start: { default: 1, validate: "number" } },
             content: "listItem+",
-            group: "block",
+            group: "block quotable",
             parseDOM: [
                 {
                     tag: "ol",
@@ -86,21 +86,21 @@ export const schema = new Schema({
             attrs: { language: { default: null } },
             content: "text*",
             marks: "",
-            group: "block",
+            group: "block quotable",
             code: true,
             defining: true,
             parseDOM: [{ tag: "pre", preserveWhitespace: "full", getAttrs: (element) => ({ language: languageOf(element) }) }],
             toDOM: (node) => ["pre", ["code", node.attrs.language ? { class: `language-${node.attrs.language}` } : {}, 0]],
         },
         horizontalRule: {
-            group: "block",
+            group: "block quotable",
             parseDOM: [{ tag: "hr" }],
             toDOM: () => ["hr"],
         },
         figure: {
             attrs: { width: { default: "normal", validate: "string" } },
             content: "image caption",
-            group: "block",
+            group: "block quotable",
             defining: true,
             isolating: true,
             draggable: true,

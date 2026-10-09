@@ -98,6 +98,19 @@ export const togglePullquote: Command = (state, dispatch) => {
         return true;
     }
 
+    const quote = findAncestor(state, (node) => node.type === blockquote);
+    if (quote) {
+        const content = Fragment.fromArray([...childrenOf(quote.node), attribution.create()]);
+        if (!pullquote.validContent(content)) return false;
+        const $quote = state.doc.resolve(quote.pos);
+        if (!$quote.parent.canReplaceWith($quote.index(), $quote.index() + 1, pullquote)) return false;
+        if (dispatch) {
+            const tr = state.tr.replaceWith(quote.pos, quote.pos + quote.node.nodeSize, pullquote.create(null, content));
+            dispatch(tr.setSelection(Selection.near(tr.doc.resolve(Math.min(state.selection.from, tr.doc.content.size)))).scrollIntoView());
+        }
+        return true;
+    }
+
     const { $from, $to } = state.selection;
     const range = $from.blockRange($to);
     if (!range || !range.parent.canReplaceWith(range.startIndex, range.endIndex, pullquote)) return false;
@@ -114,6 +127,12 @@ export const togglePullquote: Command = (state, dispatch) => {
     }
     return true;
 };
+
+function childrenOf(node: Node): Node[] {
+    const children: Node[] = [];
+    node.forEach((child) => children.push(child));
+    return children;
+}
 
 export const insertHorizontalRule: Command = (state, dispatch) => {
     if (!canInsert(state, horizontalRule)) return false;

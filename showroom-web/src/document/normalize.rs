@@ -74,8 +74,28 @@ fn block(block: Block) -> Option<Block> {
     })
 }
 
+fn unquote(content: Vec<Block>) -> Vec<Block> {
+    content
+        .into_iter()
+        .flat_map(|block| match block {
+            Block::Blockquote { content, .. } => unquote(content),
+            Block::Pullquote { content } => unquote(
+                content
+                    .into_iter()
+                    .filter_map(|child| match child {
+                        Block::Attribution { content } if content.is_empty() => None,
+                        Block::Attribution { content } => Some(Block::Paragraph { content }),
+                        other => Some(other),
+                    })
+                    .collect(),
+            ),
+            other => vec![other],
+        })
+        .collect()
+}
+
 fn quote(body: Vec<Block>, attribution: Vec<Inline>) -> Block {
-    let mut content = non_empty(blocks(body));
+    let mut content = non_empty(unquote(blocks(body)));
     content.push(Block::Attribution { content: inlines(attribution) });
     Block::Pullquote { content }
 }
