@@ -24,7 +24,7 @@ export const registry: Registry = {
     },
     "newsletter-editor": {
         tags: ["div"],
-        many: ["blockOption", "command", "leave"],
+        many: ["blockOption", "command"],
         load: () => import("../src/components/editor/index").then((module) => module.newsletterEditor satisfies setups.NewsletterEditor),
     },
     "password-toggle": {

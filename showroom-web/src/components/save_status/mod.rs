@@ -10,8 +10,8 @@ pub fn save_status() -> Markup {
         div.save-status-group {
             output.save-status bq-ref="status" data-state="saved" { "Saved" }
             span.save-actions bq-ref="save-actions" hidden {
-                Button .small .secondary bq-ref="reload" { "Reload" }
-                Button .small .secondary bq-ref="overwrite" { "Keep my version" }
+                Button .small .secondary bq-on:click="reload" { "Reload" }
+                Button .small .secondary bq-on:click="overwrite" { "Keep my version" }
             }
         }
     }

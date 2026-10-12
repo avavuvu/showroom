@@ -42,7 +42,10 @@ export class SaveController {
     constructor(private options: SaveOptions) {
         this.revision = options.revision;
         window.addEventListener("online", () => this.state === "error" && void this.save(false), { signal: options.signal });
-        options.signal.addEventListener("abort", () => this.clearTimers(), { once: true });
+    }
+
+    stop() {
+        this.clearTimers();
     }
 
     get unsaved(): boolean {

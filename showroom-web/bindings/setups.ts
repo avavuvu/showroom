@@ -1,9 +1,9 @@
 import type { Setup } from "@bq/components/src/setups";
 
-export type ColorInput = Setup<"details", { customColor: "input"; hex: "span"; preset: ("button")[] }>;
-export type ColorOverride = Setup<"div", { hex: "span"; picker: "input"; reset: "button"; toggle: "input" }>;
-export type DirtyForm = Setup<"form">;
-export type Dropdown = Setup<"details">;
-export type NewsletterEditor = Setup<"div", { blockButton: "button"; blockCurrent: "span"; blockOption: ("button")[]; blockOptions: "div"; body: "div"; command: ("button")[]; fileInput: "input"; imageFrame: "template"; leave: (string)[]; linkBar: "div"; linkInput: "input"; linkOpen: "a"; linkRemove: "button"; linkText: "input"; moreButton: "button"; moreOptions: "div"; overwrite: string; reload: string; saveActions: "span"; status: "output"; subtitle: "input"; surface: "div"; title: "input"; toolbar: "div"; uploadPlaceholder: "template" }>;
-export type PasswordToggle = Setup<"div", { toggle: "button" }>;
-export type ThemePreview = Setup<"form">;
+export type ColorInput = Setup<"details", { customColor: "input"; hex: "span"; preset: ("button")[] }, { change: { event: "input"; tag: "input" }; pick: { event: "click"; tag: "button" } }>;
+export type ColorOverride = Setup<"div", { hex: "span"; picker: "input"; reset: "button"; toggle: "input" }, { change: { event: "input"; tag: "input" }; clear: { event: "click"; tag: "button" } }>;
+export type DirtyForm = Setup<"form", {}, { leave: { event: "beforeunload"; tag: "form"; target: "window" }; reset: { event: "reset"; tag: "form" }; restore: { event: "pageshow"; tag: "form"; target: "window" }; submit: { event: "submit"; tag: "form" }; update: { event: "change"; tag: "form" } | { event: "input"; tag: "form" } }>;
+export type Dropdown = Setup<"details", {}, { close: { event: "keydown"; tag: "details" }; outside: { event: "pointerdown"; tag: "details"; target: "document" } }>;
+export type NewsletterEditor = Setup<"div", { blockButton: "button"; blockCurrent: "span"; blockOption: ("button")[]; blockOptions: "div"; body: "div"; command: ("button")[]; fileInput: "input"; imageFrame: "template"; linkBar: "div"; linkInput: "input"; linkOpen: "a"; linkRemove: "button"; linkText: "input"; moreButton: "button"; moreOptions: "div"; saveActions: "span"; status: "output"; subtitle: "input"; surface: "div"; title: "input"; toolbar: "div"; uploadPlaceholder: "template" }, { filesPicked: { event: "change"; tag: "input" }; guard: { event: "beforeunload"; tag: "div"; target: "window" }; leave: { event: "click"; tag: string }; markDirty: { event: "input"; tag: "input" }; overwrite: { event: "click"; tag: string }; reload: { event: "click"; tag: string }; save: { event: "keydown"; tag: "div"; target: "window" }; toBody: { event: "keydown"; tag: "input" }; toSubtitle: { event: "keydown"; tag: "input" } }>;
+export type PasswordToggle = Setup<"div", {}, { toggle: { event: "click"; tag: "button" } }>;
+export type ThemePreview = Setup<"form", {}, { schedule: { event: "input"; tag: "form" } }>;

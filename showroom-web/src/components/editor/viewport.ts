@@ -9,7 +9,7 @@ export function visibleBounds(): { top: number; bottom: number } {
     return { top, bottom: top + (viewport?.height ?? window.innerHeight) };
 }
 
-export function trackViewport(root: HTMLElement, header: HTMLElement | null, toolbar: HTMLElement, view: EditorView, signal: AbortSignal) {
+export function trackViewport(root: HTMLElement, header: HTMLElement | null, toolbar: HTMLElement, view: EditorView, signal: AbortSignal): () => void {
     const mobile = window.matchMedia(MOBILE);
     let frame = 0;
 
@@ -44,14 +44,10 @@ export function trackViewport(root: HTMLElement, header: HTMLElement | null, too
     observer.observe(toolbar);
     if (header) observer.observe(header);
 
-    signal.addEventListener(
-        "abort",
-        () => {
-            cancelAnimationFrame(frame);
-            observer.disconnect();
-        },
-        { once: true },
-    );
-
     update();
+
+    return () => {
+        cancelAnimationFrame(frame);
+        observer.disconnect();
+    };
 }

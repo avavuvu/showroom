@@ -65,6 +65,7 @@ pub fn color_input(
                     button.color-button
                         type="button"
                         bq-ref="preset"
+                        bq-on:click="pick"
                         value=(color)
                         title=(color)
                         aria-label=(color)
@@ -73,7 +74,7 @@ pub fn color_input(
                 }
 
                 label.custom {
-                    input type="color" name=(name) value=(current_color) bq-ref="custom-color" (..attrs);
+                    input type="color" name=(name) value=(current_color) bq-ref="custom-color" bq-on:input="change" (..attrs);
                 }
             }
         }

@@ -15,31 +15,32 @@ const isChanged = (element: Element) => {
     return false;
 };
 
-export const dirtyForm: DirtyForm = (form, { signal }) => {
+export const dirtyForm: DirtyForm = (form) => {
     let submitting = false;
 
     const isDirty = () => [...form.elements].some(isChanged);
     const update = () => form.toggleAttribute("data-dirty", isDirty());
 
-    form.addEventListener("input", update, { signal });
-    form.addEventListener("change", update, { signal });
-    form.addEventListener("reset", () => setTimeout(update), { signal });
-    form.addEventListener("submit", () => (submitting = true), { signal });
+    update();
 
-    window.addEventListener(
-        "beforeunload",
-        (event) => {
+    return {
+        update,
+
+        reset: () => setTimeout(update),
+
+        submit: () => {
+            submitting = true;
+        },
+
+        leave(event) {
             if (submitting || !isDirty()) return;
             event.preventDefault();
             event.returnValue = "";
         },
-        { signal },
-    );
 
-    window.addEventListener("pageshow", () => {
-        submitting = false;
-        update();
-    }, { signal });
-
-    update();
+        restore() {
+            submitting = false;
+            update();
+        },
+    };
 };

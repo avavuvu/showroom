@@ -1,6 +1,6 @@
 import type { ColorInput, ThemePreview } from "@setups";
 
-export const colorInput: ColorInput = (details, { customColor, preset, hex, signal }) => {
+export const colorInput: ColorInput = (details, { customColor, preset, hex }) => {
     const root = document.documentElement;
     const variable = `--${customColor.name}`;
 
@@ -13,32 +13,28 @@ export const colorInput: ColorInput = (details, { customColor, preset, hex, sign
         }
     };
 
-    customColor.addEventListener("input", () => select(customColor.value), { signal });
-
-    for (const button of preset) {
-        button.addEventListener(
-            "click",
-            () => {
-                customColor.value = button.value;
-                customColor.dispatchEvent(new Event("input", { bubbles: true }));
-            },
-            { signal },
-        );
-    }
-
-    signal.addEventListener("abort", () => root.style.removeProperty(variable), { once: true });
-
     select(customColor.value);
+
+    return {
+        change: () => select(customColor.value),
+
+        pick(_event, button) {
+            customColor.value = button.value;
+            customColor.dispatchEvent(new Event("input", { bubbles: true }));
+        },
+
+        disconnect: () => root.style.removeProperty(variable),
+    };
 };
 
-export const themePreview: ThemePreview = (form, { signal }) => {
+export const themePreview: ThemePreview = (form) => {
     const style = document.getElementById("theme");
-    if (!style) return;
 
     let timer: ReturnType<typeof setTimeout> | undefined;
     let request: AbortController | undefined;
 
     const refresh = async () => {
+        if (!style) return;
         request?.abort();
         const controller = (request = new AbortController());
         try {
@@ -51,21 +47,15 @@ export const themePreview: ThemePreview = (form, { signal }) => {
         } catch {}
     };
 
-    form.addEventListener(
-        "input",
-        () => {
+    return {
+        schedule() {
             clearTimeout(timer);
             timer = setTimeout(refresh, 100);
         },
-        { signal },
-    );
 
-    signal.addEventListener(
-        "abort",
-        () => {
+        disconnect() {
             clearTimeout(timer);
             request?.abort();
         },
-        { once: true },
-    );
+    };
 };

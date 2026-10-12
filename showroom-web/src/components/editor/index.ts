@@ -40,6 +40,7 @@ const messages = (saveKeys: string): Record<SaveState, string> => ({
     invalid: "The server did not accept this content. Undo your last change, then try again.",
 });
 
+
 export const newsletterEditor: NewsletterEditor = (root, refs) => {
     const { signal } = refs;
     const props = JSON.parse(root.dataset.props ?? "{}") as Props;
@@ -57,14 +58,13 @@ export const newsletterEditor: NewsletterEditor = (root, refs) => {
         doc = schema.nodeFromJSON(props.content);
         doc.check();
     } catch (error) {
-        console.error("[editor] the stored document does not match the editor schema", error);
         setStatus("error", "This newsletter could not be loaded. Nothing was changed.", true);
         refs.title.disabled = true;
         refs.subtitle.disabled = true;
         for (const button of refs.command) button.disabled = true;
         refs.blockButton.disabled = true;
         refs.linkInput.disabled = true;
-        return;
+        throw new Error("the stored document does not match the editor schema", { cause: error });
     }
 
     let problemTimer: ReturnType<typeof setTimeout> | undefined;
@@ -80,16 +80,6 @@ export const newsletterEditor: NewsletterEditor = (root, refs) => {
     };
 
     let pendingPick: ((files: File[]) => void) | null = null;
-    refs.fileInput.addEventListener(
-        "change",
-        () => {
-            const files = imageFiles(refs.fileInput.files);
-            refs.fileInput.value = "";
-            pendingPick?.(files);
-            pendingPick = null;
-        },
-        { signal },
-    );
     const pickFiles = (callback: (files: File[]) => void, multiple: boolean) => {
         pendingPick = callback;
         refs.fileInput.multiple = multiple;
@@ -173,90 +163,61 @@ export const newsletterEditor: NewsletterEditor = (root, refs) => {
         },
     });
 
-    signal.addEventListener(
-        "abort",
-        () => {
-            clearTimeout(problemTimer);
-            view.destroy();
-        },
-        { once: true },
-    );
-
     const toolbar = refs.toolbar.closest<HTMLElement>(".editor-toolbar") ?? refs.toolbar;
-    trackViewport(root, root.querySelector<HTMLElement>(":scope > header"), toolbar, view, signal);
+    const stopViewport = trackViewport(root, root.querySelector<HTMLElement>(":scope > header"), toolbar, view, signal);
 
-    for (const input of [refs.title, refs.subtitle]) {
-        input.addEventListener("input", () => saver.markDirty(), { signal });
-    }
-    refs.title.addEventListener(
-        "keydown",
-        (event) => {
-            if (event.key !== "Enter") return;
-            event.preventDefault();
-            refs.subtitle.focus();
+    return {
+        filesPicked() {
+            const files = imageFiles(refs.fileInput.files);
+            refs.fileInput.value = "";
+            pendingPick?.(files);
+            pendingPick = null;
         },
-        { signal },
-    );
-    refs.subtitle.addEventListener(
-        "keydown",
-        (event) => {
-            if (event.key !== "Enter" && event.key !== "ArrowDown") return;
-            event.preventDefault();
+
+        markDirty: () => saver.markDirty(),
+
+        toSubtitle: () => refs.subtitle.focus(),
+
+        toBody() {
             view.dispatch(view.state.tr.setSelection(Selection.atStart(view.state.doc)));
             view.focus();
         },
-        { signal },
-    );
 
-    window.addEventListener(
-        "keydown",
-        (event) => {
-            if (!(event.metaKey || event.ctrlKey) || event.altKey || event.key.toLowerCase() !== "s") return;
-            event.preventDefault();
-            void saver.flush();
-        },
-        { signal },
-    );
+        save: () => void saver.flush(),
 
-    window.addEventListener(
-        "beforeunload",
-        (event) => {
+        guard(event) {
             if (!saver.unsaved && !uploads.active) return;
             event.preventDefault();
             event.returnValue = "";
         },
-        { signal },
-    );
 
-    for (const link of refs.leave as HTMLElement[]) {
-        link.addEventListener(
-            "click",
-            async (event) => {
-                if (!(link instanceof HTMLAnchorElement) || !link.href) return;
-                if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                event.preventDefault();
+        async leave(event, link) {
+            if (!(link instanceof HTMLAnchorElement) || !link.href || event.defaultPrevented) return;
+            event.preventDefault();
 
-                if (uploads.active) {
-                    showProblem("Wait until the image upload is complete.");
-                    return;
-                }
-                const saved = await saver.flush();
-                if (saved || window.confirm("Your latest changes are not saved. Leave this page?")) {
-                    saver.discard();
-                    window.location.assign(link.href);
-                }
-            },
-            { signal },
-        );
-    }
+            if (uploads.active) {
+                showProblem("Wait until the image upload is complete.");
+                return;
+            }
+            const saved = await saver.flush();
+            if (saved || window.confirm("Your latest changes are not saved. Leave this page?")) {
+                saver.discard();
+                window.location.assign(link.href);
+            }
+        },
 
-    refs.reload.addEventListener(
-        "click",
-        () => {
+        reload() {
             saver.discard();
             window.location.reload();
         },
-        { signal },
-    );
-    refs.overwrite.addEventListener("click", () => void saver.overwrite(), { signal });
+
+        overwrite: () => void saver.overwrite(),
+
+        disconnect() {
+            clearTimeout(problemTimer);
+            stopViewport();
+            saver.stop();
+            view.destroy();
+        },
+    };
 };

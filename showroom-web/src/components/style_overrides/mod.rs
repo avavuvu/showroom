@@ -53,6 +53,7 @@ pub fn style_overrides(#[builder(start_fn)] theme: &Theme, #[builder(default)] a
                     button.button.ghost.small.reset
                         type="button"
                         bq-ref="reset"
+                        bq-on:click="clear"
                         aria-label={ "Reset " (row.label.to_lowercase()) " color" }
                         title="Reset"
                         hidden[!row.custom] {
@@ -63,7 +64,7 @@ pub fn style_overrides(#[builder(start_fn)] theme: &Theme, #[builder(default)] a
                     }
 
                     label.custom {
-                        input type="color" name=(row.name) value=(row.color) bq-ref="picker" aria-label={ (row.label) " color" };
+                        input type="color" name=(row.name) value=(row.color) bq-ref="picker" bq-on:input="change" aria-label={ (row.label) " color" };
                         "Override"
                     }
 

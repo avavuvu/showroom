@@ -1,6 +1,6 @@
 import type { ColorOverride } from "@setups";
 
-export const colorOverride: ColorOverride = (_row, { picker, toggle, reset, hex, signal }) => {
+export const colorOverride: ColorOverride = (_row, { picker, toggle, reset, hex }) => {
     const root = document.documentElement;
     const variable = `--${picker.name}`;
 
@@ -15,28 +15,22 @@ export const colorOverride: ColorOverride = (_row, { picker, toggle, reset, hex,
         }
     };
 
-    picker.addEventListener(
-        "input",
-        () => {
+    render();
+
+    return {
+        change() {
             toggle.checked = true;
             render();
         },
-        { signal },
-    );
 
-    reset.addEventListener(
-        "click",
-        () => {
+        clear() {
             toggle.checked = false;
             picker.value = picker.defaultValue;
             render();
             picker.focus();
             toggle.dispatchEvent(new Event("input", { bubbles: true }));
         },
-        { signal },
-    );
 
-    signal.addEventListener("abort", () => root.style.removeProperty(variable), { once: true });
-
-    render();
+        disconnect: () => root.style.removeProperty(variable),
+    };
 };

@@ -25,7 +25,9 @@ pub fn editor(title: &str, #[builder(required)] subtitle: Option<&str>) -> Marku
                     placeholder="Title"
                     aria-label="Title"
                     autocomplete="off"
-                    bq-ref="title";
+                    bq-ref="title"
+                    bq-on:input="mark-dirty"
+                    bq-on:keydown|enter|prevent="to-subtitle";
                 input.editor-subtitle
                     type="text"
                     name="subtitle"
@@ -33,14 +35,16 @@ pub fn editor(title: &str, #[builder(required)] subtitle: Option<&str>) -> Marku
                     placeholder="Subtitle (optional)"
                     aria-label="Subtitle"
                     autocomplete="off"
-                    bq-ref="subtitle";
+                    bq-ref="subtitle"
+                    bq-on:input="mark-dirty"
+                    bq-on:keydown|enter|down|prevent="to-body";
             }
 
             div.editor-body bq-ref="body" {
                 div.editor-surface.prose bq-ref="surface" {}
             }
 
-            input type="file" accept="image/png,image/jpeg,image/gif,image/webp" multiple hidden bq-ref="file-input";
+            input type="file" accept="image/png,image/jpeg,image/gif,image/webp" multiple hidden bq-ref="file-input" bq-on:change="files-picked";
 
             template bq-ref="image-frame" {
                 div.image-frame {

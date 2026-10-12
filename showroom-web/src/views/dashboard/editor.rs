@@ -25,7 +25,11 @@ pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
         @if let Some(publication) = &ctx.publication {
             style { (PreEscaped(publication.theme().css())) }
         }
-        div.edit-view bq-setup=(NewsletterEditor) data-props=(props) {
+        div.edit-view
+            bq-setup=(NewsletterEditor)
+            bq-on:keydown|mod|s|prevent|window="save"
+            bq-on:beforeunload|window="guard"
+            data-props=(props) {
             @if sent {
                 div.marquee {
                     "This newsletter has been sent. Changes made now will update online, but not in your subscribers' inboxes."
@@ -34,15 +38,15 @@ pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
 
             header {
                 div.left {
-                    Button(href = &back_url) .secondary bq-ref="leave" { "Back" }
+                    Button(href = &back_url) .secondary bq-on:click|left|exact="leave" { "Back" }
                     SaveStatus;
                 }
 
                 div {
                     @if sent {
-                        Button(href = &format!("{}/{}", ctx.publication_url(), newsletter.slug)) .primary bq-ref="leave" { "View" }
+                        Button(href = &format!("{}/{}", ctx.publication_url(), newsletter.slug)) .primary bq-on:click|left|exact="leave" { "View" }
                     } @else {
-                        Button(href = &format!("{}/send/{}", ctx.dashboard_url(), newsletter.id)) .primary bq-ref="leave" { "Publish" }
+                        Button(href = &format!("{}/send/{}", ctx.dashboard_url(), newsletter.id)) .primary bq-on:click|left|exact="leave" { "Publish" }
                     }
                 }
             }

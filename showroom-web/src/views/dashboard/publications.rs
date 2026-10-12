@@ -148,7 +148,16 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
         html! {
             section.settings-section {
                 h2 { "Details" }
-                form.settings-form method="POST" action={ (dashboard_url) "/settings" } bq-setup=(DirtyForm) {
+                form.settings-form
+                    method="POST"
+                    action={ (dashboard_url) "/settings" }
+                    bq-setup=(DirtyForm)
+                    bq-on:input="update"
+                    bq-on:change="update"
+                    bq-on:reset="reset"
+                    bq-on:submit="submit"
+                    bq-on:beforeunload|window="leave"
+                    bq-on:pageshow|window="restore" {
                     @if let Some(error) = error {
                         p.error { (error) }
                     }
@@ -175,7 +184,14 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
                 form.settings-form
                     method="POST"
                     action={ (dashboard_url) "/settings/style" }
-                    bq-setup={ (DirtyForm) " " (ThemePreview) } {
+                    bq-setup={ (DirtyForm) " " (ThemePreview) }
+                    bq-on:input="dirty-form.update"
+                    bq-on:change="dirty-form.update"
+                    bq-on:reset="dirty-form.reset"
+                    bq-on:submit="dirty-form.submit"
+                    bq-on:beforeunload|window="dirty-form.leave"
+                    bq-on:pageshow|window="dirty-form.restore"
+                    bq-on:input="theme-preview.schedule" {
                     ColorInput("ink", label = "Ink", current_color = &theme.ink, presets = DEFAULT_INK_COLORS);
                     ColorInput("paper", label = "Paper", current_color = &theme.paper, presets = DEFAULT_PAPER_COLORS);
                     ColorInput("brand", label = "Brand", current_color = &theme.brand, presets = DEFAULT_BRAND_COLORS);

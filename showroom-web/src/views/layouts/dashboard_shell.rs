@@ -53,7 +53,10 @@ pub fn dashboard_shell(view: Head, ctx: &PageContext, content: Markup) -> Markup
                                 }
                             }
                             @if !others.is_empty() {
-                                details.publications-menu bq-setup=(Dropdown) {
+                                details.publications-menu
+                                    bq-setup=(Dropdown)
+                                    bq-on:keydown|escape="close"
+                                    bq-on:pointerdown|document="outside" {
                                     summary.icon-link aria-label="Other publications" title="Other publications" {
                                         Icon(Glyph::Layers);
                                     }
