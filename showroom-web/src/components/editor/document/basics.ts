@@ -1,7 +1,7 @@
 import type { Node } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { schema } from "../schema";
+import { schema } from "./schema";
 
 const { paragraph, heading, caption, attribution } = schema.nodes;
 

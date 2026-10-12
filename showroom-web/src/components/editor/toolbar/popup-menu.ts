@@ -1,4 +1,4 @@
-import { visibleBounds } from "./viewport";
+import { visibleBounds } from "../viewport";
 
 interface PopupMenuOptions {
     button: HTMLButtonElement;

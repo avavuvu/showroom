@@ -1,7 +1,7 @@
 import { type EditorState, Plugin, PluginKey } from "prosemirror-state";
 import { insertPoint } from "prosemirror-transform";
 import { Decoration, DecorationSet, type EditorView } from "prosemirror-view";
-import { schema } from "../schema";
+import { schema } from "../document/schema";
 
 interface UploadMeta {
     add?: { id: object; pos: number; preview: string };

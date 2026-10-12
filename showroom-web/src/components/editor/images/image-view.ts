@@ -1,7 +1,7 @@
 import type { Node } from "prosemirror-model";
 import type { EditorView, NodeView } from "prosemirror-view";
-import type { Uploads } from "../plugins/upload";
-import { schema } from "../schema";
+import type { Uploads } from "./upload";
+import { schema } from "../document/schema";
 
 export interface ImageViewOptions {
     template: HTMLTemplateElement;

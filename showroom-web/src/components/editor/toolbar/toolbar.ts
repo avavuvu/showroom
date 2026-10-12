@@ -1,7 +1,9 @@
 import { Plugin } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
-import { blockTypeCommand, canChangeBlockType, currentBlockType, type ToolbarCommand } from "../commands";
-import { PopupMenu } from "../menu";
+import { blockTypeCommand, canChangeBlockType, currentBlockType } from "../document/commands";
+import { formatShortcut } from "../shortcuts";
+import type { ToolbarCommand } from "./commands";
+import { PopupMenu } from "./popup-menu";
 
 interface ToolbarRefs {
     toolbar: HTMLElement;
@@ -23,20 +25,6 @@ const OTHER_LABELS: Record<string, string> = {
     mixed: "Mixed",
 };
 
-const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
-
-export function formatShortcut(shortcut: string): string {
-    const parts = shortcut.split("-");
-    const key = parts.pop()?.toUpperCase() ?? "";
-    const has = (name: string) => parts.includes(name);
-
-    if (isMac) {
-        return [has("Ctrl") ? "⌃" : "", has("Alt") ? "⌥" : "", has("Shift") ? "⇧" : "", has("Mod") ? "⌘" : "", key].join("");
-    }
-    return [has("Mod") || has("Ctrl") ? "Ctrl" : "", has("Alt") ? "Alt" : "", has("Shift") ? "Shift" : "", key]
-        .filter(Boolean)
-        .join("+");
-}
 
 class BlockMenu {
     private current = "paragraph";

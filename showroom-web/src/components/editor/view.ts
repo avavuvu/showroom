@@ -1,0 +1,98 @@
+import type { NewsletterEditor } from "@setups";
+import { baseKeymap } from "prosemirror-commands";
+import { dropCursor } from "prosemirror-dropcursor";
+import { gapCursor } from "prosemirror-gapcursor";
+import { history } from "prosemirror-history";
+import { keymap } from "prosemirror-keymap";
+import type { Node } from "prosemirror-model";
+import { type Command, EditorState, NodeSelection } from "prosemirror-state";
+import { EditorView } from "prosemirror-view";
+import { placeholders, trailingParagraph, withTrailingParagraph } from "./document/basics";
+import { canInsert } from "./document/commands";
+import { buildInputRules } from "./document/input-rules";
+import { buildKeymap } from "./document/keymap";
+import { schema } from "./document/schema";
+import type { PickFiles } from "./images/file-picker";
+import { ImageView } from "./images/image-view";
+import { imageFiles, uploadPlugin, type Uploads } from "./images/upload";
+import { linkPlugin, openLink } from "./link_bar/link";
+import { linkBarPlugin } from "./link_bar/link-bar";
+import { toolbarCommands } from "./toolbar/commands";
+import { toolbarPlugin } from "./toolbar/toolbar";
+
+type Refs = Parameters<NewsletterEditor>[1];
+
+interface ViewOptions {
+    doc: Node;
+    uploads: Uploads;
+    pickFiles: PickFiles;
+    report: (message: string) => void;
+    onChange: () => void;
+}
+
+export function createView(refs: Refs, { doc, uploads, pickFiles, report, onChange }: ViewOptions): EditorView {
+    const { signal } = refs;
+
+    const insertImage: Command = (state, dispatch, view) => {
+        if (!canInsert(state, schema.nodes.figure)) return false;
+        if (dispatch && view) pickFiles((files) => uploads.insert(view, files), true);
+        return true;
+    };
+
+    const view: EditorView = new EditorView(refs.surface, {
+        state: EditorState.create({
+            doc: withTrailingParagraph(doc),
+            plugins: [
+                buildInputRules(),
+                keymap(buildKeymap(openLink)),
+                keymap(baseKeymap),
+                history(),
+                dropCursor({ color: false, width: 2, class: "editor-drop-cursor" }),
+                gapCursor(),
+                placeholders({ body: "Write your newsletter…", caption: "Add a caption", attribution: "Author or source" }),
+                trailingParagraph(),
+                linkPlugin(),
+                uploadPlugin(refs.uploadPlaceholder),
+                toolbarPlugin(refs, toolbarCommands({ openLink, insertImage }), signal),
+                linkBarPlugin(refs, { report, signal }),
+            ],
+        }),
+        attributes: {
+            class: "flow",
+            role: "textbox",
+            "aria-multiline": "true",
+            "aria-label": "Newsletter body",
+            spellcheck: "true",
+        },
+        nodeViews: {
+            image: (node, nodeView, getPos) => new ImageView(node, nodeView, getPos, { template: refs.imageFrame, pickFiles, uploads }),
+        },
+        handleClickOn(editor, _pos, node, nodePos, _event, direct) {
+            if (!direct || node.type !== schema.nodes.image) return false;
+            const figurePos = editor.state.doc.resolve(nodePos).before();
+            editor.dispatch(editor.state.tr.setSelection(NodeSelection.create(editor.state.doc, figurePos)));
+            return true;
+        },
+        handlePaste(editor, event) {
+            const files = imageFiles(event.clipboardData?.files);
+            if (files.length === 0) return false;
+            uploads.insert(editor, files);
+            return true;
+        },
+        handleDrop(editor, event, _slice, moved) {
+            if (moved) return false;
+            const files = imageFiles(event.dataTransfer?.files);
+            if (files.length === 0) return false;
+            event.preventDefault();
+            uploads.insert(editor, files, editor.posAtCoords({ left: event.clientX, top: event.clientY })?.pos);
+            return true;
+        },
+        dispatchTransaction(tr) {
+            const { state, transactions } = view.state.applyTransaction(tr);
+            view.updateState(state);
+            if (transactions.some((transaction) => transaction.docChanged)) onChange();
+        },
+    });
+
+    return view;
+}

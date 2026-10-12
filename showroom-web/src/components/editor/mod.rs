@@ -1,15 +1,59 @@
+mod link_bar;
+mod save_status;
 mod toolbar;
 
 use boutique::html;
 use bq_components::{component, setup};
 use maud::Markup;
 
-use toolbar::{LinkBar, Toolbar};
+use crate::components::Button;
+use link_bar::LinkBar;
+use save_status::SaveStatus;
+use toolbar::Toolbar;
 
-setup!(pub NewsletterEditor);
+setup!(NewsletterEditor);
 
 #[component]
-pub fn editor(title: &str, #[builder(required)] subtitle: Option<&str>) -> Markup {
+pub fn editor_page(
+    props: &str,
+    title: &str,
+    #[builder(required)] subtitle: Option<&str>,
+    back: &str,
+    next: &str,
+    #[builder(default)] sent: bool,
+) -> Markup {
+    html! {
+        div.edit-view
+            bq-setup=(NewsletterEditor)
+            bq-on:keydown|mod|s|prevent|window="save"
+            bq-on:beforeunload|window="guard"
+            data-props=(props) {
+            @if sent {
+                div.marquee {
+                    "This newsletter has been sent. Changes made now will update online, but not in your subscribers' inboxes."
+                }
+            }
+
+            header {
+                div.left {
+                    Button(href = back) .secondary bq-on:click|left|exact="leave" { "Back" }
+                    SaveStatus;
+                }
+
+                div {
+                    Button(href = next) .primary bq-on:click|left|exact="leave" {
+                        @if sent { "View" } @else { "Publish" }
+                    }
+                }
+            }
+
+            Editor(title = title, subtitle = subtitle);
+        }
+    }
+}
+
+#[component]
+fn editor(title: &str, #[builder(required)] subtitle: Option<&str>) -> Markup {
     html! {
         div.newsletter-editor {
             div.editor-toolbar {
