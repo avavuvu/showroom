@@ -9,6 +9,6 @@ import "../css/prose.css";
 import { defineSetups } from "@bq/components/src/setups";
 import { registry } from "../../bindings/registry";
 
-import.meta.glob("../../src/components/*/index.css", { eager: true });
+import.meta.glob("../../src/components/**/index.css", { eager: true });
 
 defineSetups(registry);

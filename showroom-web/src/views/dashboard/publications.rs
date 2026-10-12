@@ -1,41 +1,10 @@
 use boutique::html;
 use maud::Markup;
-use crate::components::color_input::{DEFAULT_BRAND_COLORS, DEFAULT_INK_COLORS, DEFAULT_PAPER_COLORS, ThemePreview};
-use crate::components::dirty_form::DirtyForm;
-use crate::components::{ArticleHeader, Button, ColorInput, Input, StyleOverrides, Textarea};
+use crate::components::{ArticleHeader, Button, DirtyForm, Input, Textarea, ThemeForm};
 use crate::views::context::PageContext;
 use crate::renderer::greeting;
 use crate::models::publication::{self, BANNER_HEIGHT, BANNER_WIDTH, DEFAULT_PICTURES, Picture};
-use crate::theme::{Font, Layout};
 use crate::views::layouts::{page, dashboard_shell};
-
-fn font_list(name: &str, label: &str, current: Font) -> Markup {
-    html! {
-        fieldset.option-list {
-            legend { (label) }
-            @for font in Font::ALL {
-                label.option style={ "font-family: " (font.stack()) } {
-                    input type="radio" name=(name) value=(font.key()) checked[font == current];
-                    span { (font.label()) }
-                }
-            }
-        }
-    }
-}
-
-fn layout_list(current: Layout) -> Markup {
-    html! {
-        fieldset.option-list.layout-fields {
-            legend { "Layout" }
-            @for layout in Layout::ALL {
-                label.option {
-                    input type="radio" name="layout" value=(layout.key()) checked[layout == current];
-                    span { (layout.label()) }
-                }
-            }
-        }
-    }
-}
 
 pub fn new_form(ctx: &PageContext, slug: &str, name: &str, error: Option<&str>) -> Markup {
     let domain = format!(".{}", ctx.urls.domain());
@@ -148,16 +117,7 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
         html! {
             section.settings-section {
                 h2 { "Details" }
-                form.settings-form
-                    method="POST"
-                    action={ (dashboard_url) "/settings" }
-                    bq-setup=(DirtyForm)
-                    bq-on:input="update"
-                    bq-on:change="update"
-                    bq-on:reset="reset"
-                    bq-on:submit="submit"
-                    bq-on:beforeunload|window="leave"
-                    bq-on:pageshow|window="restore" {
+                DirtyForm(&format!("{dashboard_url}/settings")) .settings-form {
                     @if let Some(error) = error {
                         p.error { (error) }
                     }
@@ -181,29 +141,7 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
 
             section.settings-section.style-section {
                 h2 { "Style" }
-                form.settings-form
-                    method="POST"
-                    action={ (dashboard_url) "/settings/style" }
-                    bq-setup={ (DirtyForm) " " (ThemePreview) }
-                    bq-on:input="dirty-form.update"
-                    bq-on:change="dirty-form.update"
-                    bq-on:reset="dirty-form.reset"
-                    bq-on:submit="dirty-form.submit"
-                    bq-on:beforeunload|window="dirty-form.leave"
-                    bq-on:pageshow|window="dirty-form.restore"
-                    bq-on:input="theme-preview.schedule" {
-                    ColorInput("ink", label = "Ink", current_color = &theme.ink, presets = DEFAULT_INK_COLORS);
-                    ColorInput("paper", label = "Paper", current_color = &theme.paper, presets = DEFAULT_PAPER_COLORS);
-                    ColorInput("brand", label = "Brand", current_color = &theme.brand, presets = DEFAULT_BRAND_COLORS);
-                    StyleOverrides(&theme);
-                    fieldset.font-fields {
-                        legend { "Fonts" }
-                        (font_list("font_title", "Title", theme.fonts.title))
-                        (font_list("font_body", "Body", theme.fonts.body))
-                    }
-                    (layout_list(theme.layout))
-                    Button(submit = true) .primary { "Save" }
-                }
+                ThemeForm(&format!("{dashboard_url}/settings/style"), theme = &theme);
 
                 figure.style-preview inert {
                     article.prose.flow {

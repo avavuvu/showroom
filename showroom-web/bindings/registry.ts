@@ -5,12 +5,12 @@ export const registry: Registry = {
     "color-input": {
         tags: ["details"],
         many: ["preset"],
-        load: () => import("../src/components/color_input/index").then((module) => module.colorInput satisfies setups.ColorInput),
+        load: () => import("../src/components/theme_form/color_input/index").then((module) => module.colorInput satisfies setups.ColorInput),
     },
     "color-override": {
         tags: ["div"],
         many: [],
-        load: () => import("../src/components/style_overrides/index").then((module) => module.colorOverride satisfies setups.ColorOverride),
+        load: () => import("../src/components/theme_form/style_overrides/index").then((module) => module.colorOverride satisfies setups.ColorOverride),
     },
     "dirty-form": {
         tags: ["form"],
@@ -35,6 +35,6 @@ export const registry: Registry = {
     "theme-preview": {
         tags: ["form"],
         many: [],
-        load: () => import("../src/components/color_input/index").then((module) => module.themePreview satisfies setups.ThemePreview),
+        load: () => import("../src/components/theme_form/index").then((module) => module.themePreview satisfies setups.ThemePreview),
     },
 };
