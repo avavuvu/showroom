@@ -9,7 +9,7 @@ import type { EditorView } from "prosemirror-view";
 import { editorContext } from "./context";
 import { schema } from "./document/schema";
 import { FilePicker } from "./images/file-picker";
-import { Uploads } from "./images/upload";
+import { insertImage, Uploads } from "./images/upload";
 import { SaveController } from "./save";
 import { SaveStatus } from "./save_status/status";
 import { createView } from "./view";
@@ -33,8 +33,6 @@ export const newsletterEditor: NewsletterEditor = (root, refs, { signal }) => {
         status.set("error", "This newsletter could not be loaded. Nothing was changed.", true);
         refs.title.disabled = true;
         refs.subtitle.disabled = true;
-        for (const button of refs.command) button.disabled = true;
-        refs.blockButton.disabled = true;
         throw new Error("the stored document does not match the editor schema", { cause: error });
     }
 
@@ -59,7 +57,6 @@ export const newsletterEditor: NewsletterEditor = (root, refs, { signal }) => {
         doc,
         uploads,
         pickFiles: files.pick,
-        signal,
         onChange: () => saver.markDirty(),
         onUpdate: () => listeners.forEach((listener) => listener(view)),
     });
@@ -67,6 +64,7 @@ export const newsletterEditor: NewsletterEditor = (root, refs, { signal }) => {
     provide(root, editorContext, {
         view,
         report,
+        insertImage: insertImage(uploads, files.pick),
         onUpdate(listener, signal) {
             listeners.add(listener);
             signal.addEventListener("abort", () => listeners.delete(listener), { once: true });
@@ -74,8 +72,7 @@ export const newsletterEditor: NewsletterEditor = (root, refs, { signal }) => {
         },
     });
 
-    const toolbar = refs.toolbar.closest<HTMLElement>(".editor-toolbar") ?? refs.toolbar;
-    const stopViewport = trackViewport(root, root.querySelector<HTMLElement>(":scope > header"), toolbar, view, signal);
+    const stopViewport = trackViewport(root, root.querySelector<HTMLElement>(":scope > header"), refs.toolbar, view, signal);
 
     return {
         filesPicked: () => files.picked(),

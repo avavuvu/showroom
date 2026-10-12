@@ -5,10 +5,10 @@ import { gapCursor } from "prosemirror-gapcursor";
 import { history } from "prosemirror-history";
 import { keymap } from "prosemirror-keymap";
 import type { Node } from "prosemirror-model";
-import { type Command, EditorState, NodeSelection } from "prosemirror-state";
+import { EditorState, NodeSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { placeholders, trailingParagraph, withTrailingParagraph } from "./document/basics";
-import { canInsert } from "./document/commands";
+
 import { buildInputRules } from "./document/input-rules";
 import { buildKeymap } from "./document/keymap";
 import { schema } from "./document/schema";
@@ -16,8 +16,6 @@ import type { PickFiles } from "./images/file-picker";
 import { ImageView } from "./images/image-view";
 import { imageFiles, uploadPlugin, type Uploads } from "./images/upload";
 import { linkPlugin, openLink } from "./link_bar/link";
-import { toolbarCommands } from "./toolbar/commands";
-import { toolbarPlugin } from "./toolbar/toolbar";
 
 type Refs = Parameters<NewsletterEditor>[1];
 
@@ -25,19 +23,11 @@ interface ViewOptions {
     doc: Node;
     uploads: Uploads;
     pickFiles: PickFiles;
-    signal: AbortSignal;
     onChange: () => void;
     onUpdate: () => void;
 }
 
-export function createView(refs: Refs, { doc, uploads, pickFiles, signal, onChange, onUpdate }: ViewOptions): EditorView {
-
-    const insertImage: Command = (state, dispatch, view) => {
-        if (!canInsert(state, schema.nodes.figure)) return false;
-        if (dispatch && view) pickFiles((files) => uploads.insert(view, files), true);
-        return true;
-    };
-
+export function createView(refs: Refs, { doc, uploads, pickFiles, onChange, onUpdate }: ViewOptions): EditorView {
     const view: EditorView = new EditorView(refs.surface, {
         state: EditorState.create({
             doc: withTrailingParagraph(doc),
@@ -52,7 +42,6 @@ export function createView(refs: Refs, { doc, uploads, pickFiles, signal, onChan
                 trailingParagraph(),
                 linkPlugin(),
                 uploadPlugin(refs.uploadPlaceholder),
-                toolbarPlugin(refs, toolbarCommands({ openLink, insertImage }), signal),
             ],
         }),
         attributes: {

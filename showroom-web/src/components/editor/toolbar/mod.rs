@@ -1,13 +1,25 @@
 use boutique::html;
-use bq_components::component;
+use bq_components::{component, setup};
 use maud::Markup;
 
-use crate::components::icon::{Glyph, Icon};
+use crate::components::{
+    Menu,
+    icon::{Glyph, Icon},
+};
+
+setup!(EditorToolbar);
 
 #[component]
 pub fn toolbar() -> Markup {
     html! {
-        div.toolbar role="toolbar" aria-label="Formatting" bq-ref="toolbar" {
+        div.toolbar
+            role="toolbar"
+            aria-label="Formatting"
+            bq-setup=(EditorToolbar)
+            bq-on:mousedown|prevent
+            bq-on:keydown="navigate"
+            bq-on:focusin="track"
+        {
             div.toolbar-group {
                 (toolbar_button("undo", "Undo", "Mod-z", Glyph::Undo, false))
                 (toolbar_button("redo", "Redo", "Shift-Mod-z", Glyph::Redo, true))
@@ -39,18 +51,10 @@ pub fn toolbar() -> Markup {
             }
 
             div.toolbar-group.more-group {
-                button.toolbar-button.more-button
-                    type="button"
+                Menu("More formatting", anchor = ".editor-toolbar", button = html! { Icon(Glyph::Ellipsis); })
+                    .toolbar-button.more-button
                     tabindex="-1"
-                    aria-haspopup="menu"
-                    aria-expanded="false"
-                    aria-label="More formatting"
-                    title="More formatting"
-                    bq-ref="more-button"
                 {
-                    Icon(Glyph::Ellipsis);
-                }
-                div.menu-panel role="menu" aria-label="More formatting" hidden bq-ref="more-options" {
                     (more_option("redo", "Redo", "Shift-Mod-z", Glyph::Redo))
                     (more_option("underline", "Underline", "Mod-u", Glyph::Underline))
                     (more_option("strike", "Strikethrough", "Shift-Mod-x", Glyph::Strikethrough))
@@ -71,6 +75,7 @@ fn more_option(command: &str, label: &str, shortcut: &str, glyph: Glyph) -> Mark
             role="menuitem"
             tabindex="-1"
             bq-ref="command"
+            bq-on:click="run-command"
             data-command=(command)
             data-shortcut=[(!shortcut.is_empty()).then_some(shortcut)]
         {
@@ -82,30 +87,20 @@ fn more_option(command: &str, label: &str, shortcut: &str, glyph: Glyph) -> Mark
 }
 
 fn block_menu() -> Markup {
+    let current = html! {
+        span.block-current bq-ref="block-current" {
+            Icon(Glyph::Pilcrow);
+            span.option-label { "Paragraph" }
+        }
+        Icon(Glyph::ChevronDown);
+    };
     html! {
-        div.block-menu {
-            button.block-button
-                type="button"
-                tabindex="-1"
-                aria-haspopup="menu"
-                aria-expanded="false"
-                aria-label="Text style"
-                title="Text style"
-                bq-ref="block-button"
-            {
-                span.block-current bq-ref="block-current" {
-                    Icon(Glyph::Pilcrow);
-                    span.option-label { "Paragraph" }
-                }
-                Icon(Glyph::ChevronDown);
-            }
-            div.menu-panel role="menu" aria-label="Text style" hidden bq-ref="block-options" {
-                (block_option("paragraph", "Paragraph", "Mod-Alt-0", Glyph::Pilcrow))
-                (block_option("heading-2", "Heading", "Mod-Alt-2", Glyph::Heading2))
-                (block_option("heading-3", "Subheading", "Mod-Alt-3", Glyph::Heading3))
-                (block_option("heading-4", "Minor heading", "Mod-Alt-4", Glyph::Heading4))
-                (block_option("code-block", "Code block", "Mod-Alt-c", Glyph::CodeXml))
-            }
+        Menu("Text style", anchor = ".editor-toolbar", button = current) .block-button tabindex="-1" bq-ref="block-button" {
+            (block_option("paragraph", "Paragraph", "Mod-Alt-0", Glyph::Pilcrow))
+            (block_option("heading-2", "Heading", "Mod-Alt-2", Glyph::Heading2))
+            (block_option("heading-3", "Subheading", "Mod-Alt-3", Glyph::Heading3))
+            (block_option("heading-4", "Minor heading", "Mod-Alt-4", Glyph::Heading4))
+            (block_option("code-block", "Code block", "Mod-Alt-c", Glyph::CodeXml))
         }
     }
 }
@@ -120,6 +115,7 @@ fn block_option(value: &str, label: &str, shortcut: &str, glyph: Glyph) -> Marku
             data-block=(value)
             data-shortcut=(shortcut)
             bq-ref="block-option"
+            bq-on:click="set-block"
         {
             Icon(glyph);
             span.option-label { (label) }
@@ -134,6 +130,7 @@ fn toolbar_button(command: &str, label: &str, shortcut: &str, glyph: Glyph, seco
             type="button"
             tabindex="-1"
             bq-ref="command"
+            bq-on:click="run-command"
             data-command=(command)
             data-shortcut=[(!shortcut.is_empty()).then_some(shortcut)]
             aria-label=(label)

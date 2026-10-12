@@ -56,7 +56,7 @@ pub fn editor_page(
 fn editor(title: &str, #[builder(required)] subtitle: Option<&str>) -> Markup {
     html! {
         div.newsletter-editor {
-            div.editor-toolbar {
+            div.editor-toolbar bq-ref="toolbar" {
                 Toolbar;
                 LinkBar;
             }

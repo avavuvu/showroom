@@ -1,7 +1,9 @@
-import { type EditorState, Plugin, PluginKey } from "prosemirror-state";
+import { type Command, type EditorState, Plugin, PluginKey } from "prosemirror-state";
 import { insertPoint } from "prosemirror-transform";
 import { Decoration, DecorationSet, type EditorView } from "prosemirror-view";
+import { canInsert } from "../document/commands";
 import { schema } from "../document/schema";
+import type { PickFiles } from "./file-picker";
 
 interface UploadMeta {
     add?: { id: object; pos: number; preview: string };
@@ -29,6 +31,14 @@ interface Signature {
 const uploadKey = new PluginKey<DecorationSet>("upload");
 const TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
 const MAX_BYTES = 10 * 1024 * 1024;
+
+export function insertImage(uploads: Uploads, pickFiles: PickFiles): Command {
+    return (state, dispatch, view) => {
+        if (!canInsert(state, schema.nodes.figure)) return false;
+        if (dispatch && view) pickFiles((files) => uploads.insert(view, files), true);
+        return true;
+    };
+}
 
 export function uploadPlugin(template: HTMLTemplateElement) {
     const placeholder = (preview: string) => () => {

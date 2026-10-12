@@ -403,8 +403,7 @@
         }
 
         & .toolbar-group,
-        & .more-group,
-        & .block-menu {
+        & .more-group {
             display: contents;
         }
 
