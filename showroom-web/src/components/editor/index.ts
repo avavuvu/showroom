@@ -1,9 +1,12 @@
 import "prosemirror-view/style/prosemirror.css";
 import "prosemirror-gapcursor/style/gapcursor.css";
 
+import { provide } from "@bq/components/src/setups";
 import type { NewsletterEditor } from "@setups";
 import type { Node } from "prosemirror-model";
 import { Selection } from "prosemirror-state";
+import type { EditorView } from "prosemirror-view";
+import { editorContext } from "./context";
 import { schema } from "./document/schema";
 import { FilePicker } from "./images/file-picker";
 import { Uploads } from "./images/upload";
@@ -32,7 +35,6 @@ export const newsletterEditor: NewsletterEditor = (root, refs) => {
         refs.subtitle.disabled = true;
         for (const button of refs.command) button.disabled = true;
         refs.blockButton.disabled = true;
-        refs.linkInput.disabled = true;
         throw new Error("the stored document does not match the editor schema", { cause: error });
     }
 
@@ -52,7 +54,24 @@ export const newsletterEditor: NewsletterEditor = (root, refs) => {
         signal: refs.signal,
     });
 
-    const view = createView(refs, { doc, uploads, pickFiles: files.pick, report, onChange: () => saver.markDirty() });
+    const listeners = new Set<(view: EditorView) => void>();
+    const view = createView(refs, {
+        doc,
+        uploads,
+        pickFiles: files.pick,
+        onChange: () => saver.markDirty(),
+        onUpdate: () => listeners.forEach((listener) => listener(view)),
+    });
+
+    provide(root, editorContext, {
+        view,
+        report,
+        onUpdate(listener, signal) {
+            listeners.add(listener);
+            signal.addEventListener("abort", () => listeners.delete(listener), { once: true });
+            listener(view);
+        },
+    });
 
     const toolbar = refs.toolbar.closest<HTMLElement>(".editor-toolbar") ?? refs.toolbar;
     const stopViewport = trackViewport(root, root.querySelector<HTMLElement>(":scope > header"), toolbar, view, refs.signal);

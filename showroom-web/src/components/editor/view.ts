@@ -16,7 +16,6 @@ import type { PickFiles } from "./images/file-picker";
 import { ImageView } from "./images/image-view";
 import { imageFiles, uploadPlugin, type Uploads } from "./images/upload";
 import { linkPlugin, openLink } from "./link_bar/link";
-import { linkBarPlugin } from "./link_bar/link-bar";
 import { toolbarCommands } from "./toolbar/commands";
 import { toolbarPlugin } from "./toolbar/toolbar";
 
@@ -26,11 +25,11 @@ interface ViewOptions {
     doc: Node;
     uploads: Uploads;
     pickFiles: PickFiles;
-    report: (message: string) => void;
     onChange: () => void;
+    onUpdate: () => void;
 }
 
-export function createView(refs: Refs, { doc, uploads, pickFiles, report, onChange }: ViewOptions): EditorView {
+export function createView(refs: Refs, { doc, uploads, pickFiles, onChange, onUpdate }: ViewOptions): EditorView {
     const { signal } = refs;
 
     const insertImage: Command = (state, dispatch, view) => {
@@ -54,7 +53,6 @@ export function createView(refs: Refs, { doc, uploads, pickFiles, report, onChan
                 linkPlugin(),
                 uploadPlugin(refs.uploadPlaceholder),
                 toolbarPlugin(refs, toolbarCommands({ openLink, insertImage }), signal),
-                linkBarPlugin(refs, { report, signal }),
             ],
         }),
         attributes: {
@@ -90,6 +88,7 @@ export function createView(refs: Refs, { doc, uploads, pickFiles, report, onChan
         dispatchTransaction(tr) {
             const { state, transactions } = view.state.applyTransaction(tr);
             view.updateState(state);
+            onUpdate();
             if (transactions.some((transaction) => transaction.docChanged)) onChange();
         },
     });

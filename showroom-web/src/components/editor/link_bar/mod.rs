@@ -1,20 +1,26 @@
 use boutique::html;
-use bq_components::component;
+use bq_components::{component, setup};
 use maud::Markup;
 
 use crate::components::icon::{Glyph, Icon};
 
+setup!(EditorLinkBar);
+
 #[component]
 pub fn link_bar() -> Markup {
     html! {
-        div.link-bar.is-idle bq-ref="link-bar" {
+        div.link-bar.is-idle bq-setup=(EditorLinkBar) {
             input.link-input.link-text
                 type="text"
                 name="text"
                 placeholder="Display text"
                 aria-label="Display text"
                 autocomplete="off"
-                bq-ref="link-text";
+                bq-ref="text"
+                bq-on:focus="start"
+                bq-on:blur="leave"
+                bq-on:keydown|escape|prevent="cancel"
+                bq-on:keydown|enter|prevent="apply";
             input.link-input.link-url
                 type="text"
                 inputmode="url"
@@ -23,7 +29,12 @@ pub fn link_bar() -> Markup {
                 aria-label="Link address"
                 autocomplete="off"
                 spellcheck="false"
-                bq-ref="link-input";
+                bq-ref="url"
+                bq-on:focus="start"
+                bq-on:blur="leave"
+                bq-on:keydown|escape|prevent="cancel"
+                bq-on:keydown|enter|prevent="apply"
+                bq-on:input="clear-problem";
             a.icon-button
                 href="#"
                 target="_blank"
@@ -31,11 +42,20 @@ pub fn link_bar() -> Markup {
                 aria-label="Open link in a new tab"
                 title="Open link in a new tab"
                 aria-disabled="true"
-                bq-ref="link-open"
+                bq-ref="open"
+                bq-on:click="follow"
             {
                 Icon(Glyph::ExternalLink);
             }
-            button.icon-button type="button" aria-label="Remove link" title="Remove link" disabled bq-ref="link-remove" {
+            button.icon-button
+                type="button"
+                aria-label="Remove link"
+                title="Remove link"
+                disabled
+                bq-ref="remove"
+                bq-on:mousedown="keep-focus"
+                bq-on:click="unlink"
+            {
                 Icon(Glyph::Unlink);
             }
         }

@@ -22,6 +22,11 @@ export const registry: Registry = {
         many: [],
         load: () => import("../src/components/dropdown/index").then((module) => module.dropdown satisfies setups.Dropdown),
     },
+    "editor-link-bar": {
+        tags: ["div"],
+        many: [],
+        load: () => import("../src/components/editor/link_bar/index").then((module) => module.editorLinkBar satisfies setups.EditorLinkBar),
+    },
     "newsletter-editor": {
         tags: ["div"],
         many: ["blockOption", "command"],
