@@ -74,8 +74,8 @@ fn more_option(command: &str, label: &str, shortcut: &str, glyph: Glyph) -> Mark
             type="button"
             role="menuitem"
             tabindex="-1"
-            bq-ref="command"
-            bq-on:click="run-command"
+            bq-ref="editor-toolbar.command"
+            bq-on:click="editor-toolbar.run-command"
             data-command=(command)
             data-shortcut=[(!shortcut.is_empty()).then_some(shortcut)]
         {
@@ -88,14 +88,14 @@ fn more_option(command: &str, label: &str, shortcut: &str, glyph: Glyph) -> Mark
 
 fn block_menu() -> Markup {
     let current = html! {
-        span.block-current bq-ref="block-current" {
+        span.block-current bq-ref="editor-toolbar.block-current" {
             Icon(Glyph::Pilcrow);
             span.option-label { "Paragraph" }
         }
         Icon(Glyph::ChevronDown);
     };
     html! {
-        Menu("Text style", anchor = ".editor-toolbar", button = current) .block-button tabindex="-1" bq-ref="block-button" {
+        Menu("Text style", anchor = ".editor-toolbar", button = current) .block-button tabindex="-1" bq-ref="editor-toolbar.block-button" {
             (block_option("paragraph", "Paragraph", "Mod-Alt-0", Glyph::Pilcrow))
             (block_option("heading-2", "Heading", "Mod-Alt-2", Glyph::Heading2))
             (block_option("heading-3", "Subheading", "Mod-Alt-3", Glyph::Heading3))
@@ -114,8 +114,8 @@ fn block_option(value: &str, label: &str, shortcut: &str, glyph: Glyph) -> Marku
             tabindex="-1"
             data-block=(value)
             data-shortcut=(shortcut)
-            bq-ref="block-option"
-            bq-on:click="set-block"
+            bq-ref="editor-toolbar.block-option"
+            bq-on:click="editor-toolbar.set-block"
         {
             Icon(glyph);
             span.option-label { (label) }

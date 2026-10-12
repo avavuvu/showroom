@@ -15,12 +15,12 @@ pub fn dirty_form(
             method="POST"
             action=(action)
             bq-setup=(DirtyForm)
-            bq-on:input="update"
-            bq-on:change="update"
-            bq-on:reset="reset"
-            bq-on:submit="submit"
-            bq-on:beforeunload|window="leave"
-            bq-on:pageshow|window="restore"
+            bq-on:input="dirty-form.update"
+            bq-on:change="dirty-form.update"
+            bq-on:reset="dirty-form.reset"
+            bq-on:submit="dirty-form.submit"
+            bq-on:beforeunload|window="dirty-form.leave"
+            bq-on:pageshow|window="dirty-form.restore"
             (..attrs)
         {
             (children)
