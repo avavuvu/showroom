@@ -25,12 +25,12 @@ interface ViewOptions {
     doc: Node;
     uploads: Uploads;
     pickFiles: PickFiles;
+    signal: AbortSignal;
     onChange: () => void;
     onUpdate: () => void;
 }
 
-export function createView(refs: Refs, { doc, uploads, pickFiles, onChange, onUpdate }: ViewOptions): EditorView {
-    const { signal } = refs;
+export function createView(refs: Refs, { doc, uploads, pickFiles, signal, onChange, onUpdate }: ViewOptions): EditorView {
 
     const insertImage: Command = (state, dispatch, view) => {
         if (!canInsert(state, schema.nodes.figure)) return false;

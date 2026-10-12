@@ -3,8 +3,7 @@ import type { EditorLinkBar } from "@setups";
 import { editorContext } from "../context";
 import { applyLink, closeLink, linkEditing, linkText, openLink, removeLink, selectedLink } from "./link";
 
-export const editorLinkBar: EditorLinkBar = async (root, refs) => {
-    const { text, url, open, remove, signal } = refs;
+export const editorLinkBar: EditorLinkBar = async (root, { text, url, open, remove }, { signal }) => {
     const { view, report, onUpdate } = await inject(root, editorContext).catch((error: unknown) => {
         text.disabled = true;
         url.disabled = true;

@@ -21,7 +21,7 @@ interface Props {
     content: unknown;
 }
 
-export const newsletterEditor: NewsletterEditor = (root, refs) => {
+export const newsletterEditor: NewsletterEditor = (root, refs, { signal }) => {
     const props = JSON.parse(root.dataset.props ?? "{}") as Props;
     const status = new SaveStatus(refs.status, refs.saveActions);
 
@@ -51,7 +51,7 @@ export const newsletterEditor: NewsletterEditor = (root, refs) => {
             content: view.state.doc.toJSON(),
         }),
         onChange: (state) => status.render(state),
-        signal: refs.signal,
+        signal,
     });
 
     const listeners = new Set<(view: EditorView) => void>();
@@ -59,6 +59,7 @@ export const newsletterEditor: NewsletterEditor = (root, refs) => {
         doc,
         uploads,
         pickFiles: files.pick,
+        signal,
         onChange: () => saver.markDirty(),
         onUpdate: () => listeners.forEach((listener) => listener(view)),
     });
@@ -74,7 +75,7 @@ export const newsletterEditor: NewsletterEditor = (root, refs) => {
     });
 
     const toolbar = refs.toolbar.closest<HTMLElement>(".editor-toolbar") ?? refs.toolbar;
-    const stopViewport = trackViewport(root, root.querySelector<HTMLElement>(":scope > header"), toolbar, view, refs.signal);
+    const stopViewport = trackViewport(root, root.querySelector<HTMLElement>(":scope > header"), toolbar, view, signal);
 
     return {
         filesPicked: () => files.picked(),
