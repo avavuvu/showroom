@@ -50,6 +50,9 @@ export function createView(refs: Refs, { doc, uploads, pickFiles, onChange, onUp
             "aria-multiline": "true",
             "aria-label": "Newsletter body",
             spellcheck: "true",
+            autocapitalize: "sentences",
+            autocorrect: "on",
+            enterkeyhint: "enter",
         },
         nodeViews: {
             image: (node, nodeView, getPos) => new ImageView(node, nodeView, getPos, { template: refs.imageFrame, pickFiles, uploads }),

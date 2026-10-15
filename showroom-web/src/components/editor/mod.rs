@@ -69,6 +69,8 @@ fn editor(title: &str, #[builder(required)] subtitle: Option<&str>) -> Markup {
                     placeholder="Title"
                     aria-label="Title"
                     autocomplete="off"
+                    autocapitalize="sentences"
+                    enterkeyhint="next"
                     bq-ref="title"
                     bq-on:input="mark-dirty"
                     bq-on:keydown|enter|prevent="to-subtitle";
@@ -79,6 +81,8 @@ fn editor(title: &str, #[builder(required)] subtitle: Option<&str>) -> Markup {
                     placeholder="Subtitle (optional)"
                     aria-label="Subtitle"
                     autocomplete="off"
+                    autocapitalize="sentences"
+                    enterkeyhint="next"
                     bq-ref="subtitle"
                     bq-on:input="mark-dirty"
                     bq-on:keydown|enter|down|prevent="to-body";

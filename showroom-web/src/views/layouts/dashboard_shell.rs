@@ -2,9 +2,10 @@ use boutique::html;
 use bq_components::Button;
 use crate::components::{Wordmark, dropdown::Dropdown, icon::{Glyph, Icon}};
 use maud::{Markup, PreEscaped};
-use crate::views::{context::PageContext, layouts::{Head, base}};
+use crate::views::{context::PageContext, layouts::{Head, base, installable}};
 
 pub fn dashboard_shell(view: Head, ctx: &PageContext, content: Markup) -> Markup {
+    let view = installable(view);
     let user = ctx.user.as_ref().expect("user is defined");
     let domain = ctx.urls.domain();
 

@@ -22,6 +22,7 @@ pub fn create_server(state: &AppState) -> (Server<models::user::Model>, Subdomai
 
     let server = Server::new(state.auth.clone())
         .file("/favicon.ico", "resources/static/favicon.ico")
+        .file("/manifest.webmanifest", "resources/static/manifest.webmanifest")
         .static_dir("/assets", "resources/static/assets")
         .static_dir("/icons", "resources/static/icons")
         .static_dir("/avatars", "resources/static/avatars")

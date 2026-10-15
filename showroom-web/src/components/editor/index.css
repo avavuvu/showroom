@@ -1,3 +1,7 @@
+html:has(.newsletter-editor) {
+    overscroll-behavior-y: none;
+}
+
 .newsletter-editor {
     --editor-accent: var(--color-primary);
     --editor-on-accent: var(--color-on-primary);
@@ -18,6 +22,7 @@
         top: 4em;
         z-index: 9;
         overflow-x: auto;
+        overscroll-behavior-x: contain;
         scrollbar-width: thin;
         background-color: var(--color-surface);
     }
@@ -410,6 +415,10 @@
     @media (pointer: coarse) {
         & .editor-surface .ProseMirror {
             font-size: max(1rem, 1em);
+        }
+
+        & :is(.toolbar-button, .icon-button, .block-button, .image-actions button):active:not(:disabled) {
+            background-color: var(--editor-hover);
         }
 
         & .toolbar-button,
