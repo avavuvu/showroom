@@ -2,6 +2,11 @@ import type { Registry } from "./boutique/setups";
 import type * as setups from "./setups";
 
 export const registry: Registry = {
+    "ascii-background": {
+        tags: ["div"],
+        many: [],
+        load: () => import("../src/components/ascii_background/index").then((module) => module.asciiBackground satisfies setups.AsciiBackground),
+    },
     "color-input": {
         tags: ["details"],
         many: ["preset"],

@@ -1,3 +1,4 @@
+import type { AsciiBackground } from "@setups";
 import {
     VERTEX_SHADER,
     FRAGMENT_SHADER,
@@ -12,18 +13,9 @@ import { getCharArray } from "./lib/ascii-charsets";
 const FONT_SIZE = 16;
 const CHAR_WIDTH_RATIO = 1;
 
-export function initAsciiBackground(container: HTMLElement): () => void {
+export const asciiBackground: AsciiBackground = (_root, { video, canvas }, { signal }) => {
     const chars = getCharArray("showroom");
     const charWidth = FONT_SIZE * CHAR_WIDTH_RATIO;
-
-    // Video is declared in the server-rendered HTML with autoplay/muted/loop/playsinline
-    const video = document.getElementById(
-        "ascii-video",
-    ) as HTMLVideoElement | null;
-    if (!video) return () => {};
-
-    const canvas = document.createElement("canvas");
-    container.append(canvas);
 
     let gl: WebGL2RenderingContext | null = null;
     let videoTexture: WebGLTexture | null = null;
@@ -116,11 +108,17 @@ export function initAsciiBackground(container: HTMLElement): () => void {
         raf = requestAnimationFrame(render);
     };
 
-    const onResize = () => init();
-    window.addEventListener("resize", onResize);
+    window.addEventListener("resize", init, { signal });
 
     const startRender = () => {
-        if (!raf) raf = requestAnimationFrame(render);
+        if (!raf && !signal.aborted) raf = requestAnimationFrame(render);
+    };
+
+    const retry = () => {
+        video
+            .play()
+            .then(startRender)
+            .catch(() => {});
     };
 
     const tryPlay = () => {
@@ -128,43 +126,25 @@ export function initAsciiBackground(container: HTMLElement): () => void {
             .play()
             .then(startRender)
             .catch(() => {
-                document.addEventListener(
-                    "click",
-                    () =>
-                        video
-                            .play()
-                            .then(startRender)
-                            .catch(() => {}),
-                    { once: true },
-                );
-                document.addEventListener(
-                    "touchstart",
-                    () =>
-                        video
-                            .play()
-                            .then(startRender)
-                            .catch(() => {}),
-                    { once: true },
-                );
+                if (signal.aborted) return;
+                document.addEventListener("click", retry, { once: true, signal });
+                document.addEventListener("touchstart", retry, { once: true, signal });
             });
     };
 
-    if (video.readyState >= 1) {
+    const start = () => {
         init();
         tryPlay();
-    } else {
-        video.addEventListener("loadedmetadata", () => {
-            init();
-            tryPlay();
-        });
-    }
-
-    return () => {
-        window.removeEventListener("resize", onResize);
-        cancelAnimationFrame(raf);
-        video.pause();
-        teardown();
-        canvas.remove();
-        // Don't remove the video — it lives in the server-rendered HTML
     };
-}
+
+    if (video.readyState >= 1) start();
+    else video.addEventListener("loadedmetadata", start, { once: true, signal });
+
+    return {
+        disconnect() {
+            cancelAnimationFrame(raf);
+            video.pause();
+            teardown();
+        },
+    };
+};

@@ -1,27 +1,16 @@
 use boutique::html;
 use maud::Markup;
-use crate::{components::header, views::{context::PageContext, layouts::{page, Metadata}}};
+use crate::{components::{header, AsciiBackground}, views::{context::PageContext, layouts::{page, Metadata}}};
 use super::layouts::base;
 
 pub fn index(ctx: &PageContext) -> Markup {
     base(
         &page("Showroom")
-            .entry("ascii")
             .seo(Metadata::website("A newsletter platform for the little guy")),
         html! {
         (header(ctx))
         div.lander {
-            div id="ascii-background" {
-                video id="ascii-video"
-                    autoplay?[true]
-                    muted?[true]
-                    loop?[true]
-                    playsinline?[true]
-                    {
-                    source src="/assets/flower-loop.webm" type="video/webm";
-                    source src="/assets/flower-loop.mp4" type="video/mp4";
-                }
-            }
+            AsciiBackground(webm = "/assets/flower-loop.webm", mp4 = "/assets/flower-loop.mp4");
             div.container {
                 main {
                     p {

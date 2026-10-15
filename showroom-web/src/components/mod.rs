@@ -1,4 +1,5 @@
 pub mod article_header;
+pub mod ascii_background;
 pub mod button;
 pub mod editor;
 pub mod email;
@@ -14,6 +15,7 @@ pub mod dropdown;
 pub mod wordmark;
 
 pub use article_header::ArticleHeader;
+pub use ascii_background::AsciiBackground;
 pub use button::Button;
 pub use editor::EditorPage;
 pub use footer::footer;

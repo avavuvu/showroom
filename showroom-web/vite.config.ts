@@ -18,7 +18,6 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 site: "resources/js/site.ts",
-                ascii: "resources/js/ascii/index.ts",
             },
             output: {
                 entryFileNames: "[name]-[hash].js",

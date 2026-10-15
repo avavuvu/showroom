@@ -1,5 +1,6 @@
 import type { Setup } from "./boutique/setups";
 
+export type AsciiBackground = Setup<"div", { canvas: "canvas"; video: "video" }>;
 export type ColorInput = Setup<"details", { customColor: "input"; hex: "span"; preset: ("button")[] }, { change: { event: "input"; tag: "input" }; pick: { event: "click"; tag: "button" } }>;
 export type ColorOverride = Setup<"div", { hex: "span"; picker: "input"; reset: "button"; toggle: "input" }, { change: { event: "input"; tag: "input" }; clear: { event: "click"; tag: "button" } }>;
 export type DirtyForm = Setup<"form", {}, { leave: { event: "beforeunload"; tag: "form"; target: "window" }; reset: { event: "reset"; tag: "form" }; restore: { event: "pageshow"; tag: "form"; target: "window" }; submit: { event: "submit"; tag: "form" }; update: { event: "change"; tag: "form" } | { event: "input"; tag: "form" } }>;
