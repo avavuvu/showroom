@@ -3,7 +3,7 @@ mod save_status;
 mod toolbar;
 
 use boutique::html;
-use bq_components::{component, setup};
+use bq_components::component;
 use maud::Markup;
 
 use crate::components::Button;
@@ -11,9 +11,7 @@ use link_bar::LinkBar;
 use save_status::SaveStatus;
 use toolbar::Toolbar;
 
-setup!(NewsletterEditor);
-
-#[component]
+#[component(setup = "newsletter-editor")]
 pub fn editor_page(
     props: &str,
     title: &str,
@@ -24,7 +22,7 @@ pub fn editor_page(
 ) -> Markup {
     html! {
         div.edit-view
-            bq-setup=(NewsletterEditor)
+            bq-setup
             bq-on:keydown|mod|s|prevent|window="save"
             bq-on:beforeunload|window="guard"
             data-props=(props) {

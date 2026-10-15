@@ -1,5 +1,5 @@
 use boutique::html;
-use bq_components::{component, setup};
+use bq_components::component;
 use maud::Markup;
 
 use crate::components::{
@@ -7,7 +7,6 @@ use crate::components::{
     icon::{Glyph, Icon},
 };
 
-setup!(EditorToolbar);
 
 struct Tool {
     command: &'static str,
@@ -58,14 +57,14 @@ const BLOCKS: &[(&str, &str, &str, Glyph)] = &[
 
 const OTHER_BLOCKS: &[(&str, &str)] = &[("caption", "Caption"), ("attribution", "Source"), ("mixed", "Mixed")];
 
-#[component]
+#[component(setup = "editor-toolbar")]
 pub fn toolbar() -> Markup {
     let secondary = || std::iter::once(HISTORY).chain(GROUPS.iter().copied()).flatten().filter(|tool| tool.secondary);
     html! {
         div.toolbar
             role="toolbar"
             aria-label="Formatting"
-            bq-setup=(EditorToolbar)
+            bq-setup
             bq-on:mousedown|prevent
             bq-on:keydown="navigate"
             bq-on:focusin="track"

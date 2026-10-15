@@ -1,15 +1,13 @@
 use boutique::html;
-use bq_components::{component, setup};
+use bq_components::component;
 use maud::Markup;
 
 use crate::components::icon::{Glyph, Icon};
 
-setup!(EditorLinkBar);
-
-#[component]
+#[component(setup = "editor-link-bar")]
 pub fn link_bar() -> Markup {
     html! {
-        div.link-bar.is-idle bq-setup=(EditorLinkBar) {
+        div.link-bar.is-idle bq-setup {
             input.link-input.link-text
                 type="text"
                 name="text"

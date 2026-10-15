@@ -1,8 +1,6 @@
 use boutique::html;
-use bq_components::{Attrs, component, setup};
+use bq_components::{Attrs, component};
 use maud::Markup;
-
-setup!(DirtyForm);
 
 #[component]
 pub fn dirty_form(
@@ -14,7 +12,7 @@ pub fn dirty_form(
         form
             method="POST"
             action=(action)
-            bq-setup=(DirtyForm)
+            bq-setup
             bq-on:input="dirty-form.update"
             bq-on:change="dirty-form.update"
             bq-on:reset="dirty-form.reset"

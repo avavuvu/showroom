@@ -1,10 +1,8 @@
 use boutique::html;
-use bq_components::{Attrs, component, setup};
+use bq_components::{Attrs, component};
 use maud::Markup;
 
 use crate::theme::{Color, Theme};
-
-setup!(ColorOverride);
 
 struct Row {
     name: &'static str,
@@ -13,7 +11,7 @@ struct Row {
     custom: bool,
 }
 
-#[component]
+#[component(setup = "color-override")]
 pub fn style_overrides(#[builder(start_fn)] theme: &Theme, #[builder(default)] attrs: Attrs) -> Markup {
     let rows = [
         Row {
@@ -43,7 +41,7 @@ pub fn style_overrides(#[builder(start_fn)] theme: &Theme, #[builder(default)] a
             }
 
             @for row in &rows {
-                div.options.override bq-setup=(ColorOverride) style={ "--color: var(--" (row.name) ")" } {
+                div.options.override bq-setup style={ "--color: var(--" (row.name) ")" } {
                     span.swatch {}
                     span.label { (row.label) }
                     span.hex bq-ref="hex" {

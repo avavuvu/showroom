@@ -1,8 +1,6 @@
 use boutique::html;
-use bq_components::{Attrs, component, setup};
+use bq_components::{Attrs, component};
 use maud::Markup;
-
-setup!(Menu);
 
 #[component]
 pub fn menu(
@@ -14,7 +12,7 @@ pub fn menu(
 ) -> Markup {
     let anchor = format!("--{id}");
     html! {
-        div.menu bq-setup=(Menu) {
+        div.menu bq-setup {
             button
                 type="button"
                 aria-haspopup="menu"

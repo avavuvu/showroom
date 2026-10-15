@@ -1,10 +1,8 @@
 use boutique::html;
-use bq_components::{Attrs, component, setup};
+use bq_components::{Attrs, component};
 use maud::Markup;
 
 use crate::theme::Color;
-
-setup!(ColorInput);
 
 #[component]
 pub fn color_input(
@@ -15,7 +13,7 @@ pub fn color_input(
     #[builder(default)] attrs: Attrs,
 ) -> Markup {
     html! {
-        details.color-input bq-setup=(ColorInput) style={ "--color: " (current_color) } {
+        details.color-input bq-setup style={ "--color: " (current_color) } {
             summary {
                 span.swatch {}
                 span.label { (label) }

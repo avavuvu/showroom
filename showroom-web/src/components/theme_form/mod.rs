@@ -2,7 +2,7 @@ mod color_input;
 mod style_overrides;
 
 use boutique::html;
-use bq_components::{component, setup};
+use bq_components::component;
 use maud::Markup;
 
 use crate::components::{Button, DirtyForm};
@@ -10,7 +10,6 @@ use crate::theme::{Color, Font, Layout, Theme};
 use color_input::ColorInput;
 use style_overrides::StyleOverrides;
 
-setup!(ThemePreview);
 
 const DEFAULT_INK_COLORS: &[Color] = &[
     Color::hex(0x000000),
@@ -49,10 +48,10 @@ const DEFAULT_BRAND_COLORS: &[Color] = &[
     Color::hex(0x315178),
 ];
 
-#[component]
+#[component(setup = "theme-preview")]
 pub fn theme_form(#[builder(start_fn)] action: &str, theme: &Theme) -> Markup {
     html! {
-        DirtyForm(action) .settings-form bq-setup=(ThemePreview) bq-on:input="theme-preview.schedule" {
+        DirtyForm(action) .settings-form bq-setup bq-on:input="theme-preview.schedule" {
             ColorInput("ink", label = "Ink", current_color = &theme.ink, presets = DEFAULT_INK_COLORS);
             ColorInput("paper", label = "Paper", current_color = &theme.paper, presets = DEFAULT_PAPER_COLORS);
             ColorInput("brand", label = "Brand", current_color = &theme.brand, presets = DEFAULT_BRAND_COLORS);
