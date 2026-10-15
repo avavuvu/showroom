@@ -46,7 +46,7 @@ async fn setup() -> AppEnv {
     dotenvy::dotenv().ok();
 
     tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")))
+        .with_env_filter(EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info,sqlx=warn")))
         .init();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
