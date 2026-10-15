@@ -1,4 +1,4 @@
-import type { Setup } from "@bq/components/src/setups";
+import type { Setup } from "./boutique/setups";
 
 export type ColorInput = Setup<"details", { customColor: "input"; hex: "span"; preset: ("button")[] }, { change: { event: "input"; tag: "input" }; pick: { event: "click"; tag: "button" } }>;
 export type ColorOverride = Setup<"div", { hex: "span"; picker: "input"; reset: "button"; toggle: "input" }, { change: { event: "input"; tag: "input" }; clear: { event: "click"; tag: "button" } }>;

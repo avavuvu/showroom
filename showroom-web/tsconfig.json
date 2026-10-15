@@ -6,9 +6,8 @@
         "types": ["vite/client"],
         "strict": true,
         "paths": {
-            "@bq/*": ["../../../dev/boutique/*", "./node_modules/boutique/*"],
             "@setups": ["./bindings/setups.ts"]
         }
     },
-    "include": ["resources/js/**/*.ts", "src/**/*.ts", "bindings/**/*.ts", "../../../dev/boutique/components/src"]
+    "include": ["resources/js/**/*.ts", "src/**/*.ts", "bindings/**/*.ts"]
 }

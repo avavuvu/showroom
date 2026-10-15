@@ -1,7 +1,7 @@
 import "prosemirror-view/style/prosemirror.css";
 import "prosemirror-gapcursor/style/gapcursor.css";
 
-import { provide } from "@bq/components/src/setups";
+import { provide } from "../../../bindings/boutique/setups";
 import type { NewsletterEditor } from "@setups";
 import type { Node } from "prosemirror-model";
 import { Selection } from "prosemirror-state";

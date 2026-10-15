@@ -1,4 +1,4 @@
-import { context } from "@bq/components/src/setups";
+import { context } from "../../../bindings/boutique/setups";
 import type { Command } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 

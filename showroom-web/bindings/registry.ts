@@ -1,4 +1,4 @@
-import type { Registry } from "@bq/components/src/setups";
+import type { Registry } from "./boutique/setups";
 import type * as setups from "./setups";
 
 export const registry: Registry = {
@@ -45,7 +45,7 @@ export const registry: Registry = {
     "password-toggle": {
         tags: ["div"],
         many: [],
-        load: () => import("@bq/components/src/input/index").then((module) => module.passwordToggle satisfies setups.PasswordToggle),
+        load: () => import("./boutique/input/index").then((module) => module.passwordToggle satisfies setups.PasswordToggle),
     },
     "theme-preview": {
         tags: ["form"],

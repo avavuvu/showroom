@@ -1,0 +1,67 @@
+@layer bq.base {
+    :root {
+        background-color: var(--color-surface);
+        color: var(--color-text);
+        accent-color: var(--color-primary);
+        scrollbar-gutter: stable;
+        interpolate-size: allow-keywords;
+    }
+
+    :focus-visible {
+        outline: var(--focus-ring-width) solid var(--focus-ring-color);
+        outline-offset: var(--focus-ring-offset);
+    }
+
+    :is(h1, h2, h3, h4, h5, h6) {
+        text-wrap: balance;
+    }
+
+    p {
+        text-wrap: pretty;
+    }
+
+    textarea {
+        field-sizing: content;
+        min-block-size: 4lh;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        ::before,
+        ::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+
+    .error {
+        color: var(--color-error);
+        font-size: 0.875em;
+
+        &:empty {
+            display: none;
+        }
+    }
+
+    [aria-busy="true"] {
+        cursor: progress;
+    }
+
+    .htmx-request {
+        cursor: progress;
+    }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+}

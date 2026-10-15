@@ -1,4 +1,4 @@
-import { inject } from "@bq/components/src/setups";
+import { inject } from "../../../../bindings/boutique/setups";
 import type { EditorToolbar } from "@setups";
 import { editorContext } from "../context";
 import { BLOCKS, canChangeBlockType, currentBlockType } from "../prosemirror/commands";

@@ -1,12 +1,5 @@
 import { defineConfig } from "vite";
 import { fileURLToPath } from "node:url";
-import { existsSync } from "node:fs";
-
-const localBoutique = fileURLToPath(new URL("../../../dev/boutique", import.meta.url));
-const boutique = existsSync(localBoutique)
-    ? localBoutique
-    : fileURLToPath(new URL("./node_modules/boutique", import.meta.url));
-
 
 export default defineConfig({
     publicDir: false,
@@ -14,7 +7,6 @@ export default defineConfig({
 
     resolve: {
         alias: {
-            "@bq": boutique,
             "@setups": fileURLToPath(new URL("./bindings/setups.ts", import.meta.url)),
         },
     },

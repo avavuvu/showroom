@@ -1,0 +1,69 @@
+@layer bq.components {
+    .input-component {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25em;
+
+        & label {
+            font-weight: bold;
+            font-size: 0.875em;
+        }
+
+        & input,
+        & textarea {
+            width: 100%;
+            padding: 0.5em 0.75em;
+            border: var(--border-width) solid var(--color-border);
+            border-radius: var(--radius);
+            background: var(--color-surface);
+            color: var(--color-text);
+
+            &:focus-visible {
+                outline-offset: 1px;
+            }
+        }
+
+        & .shell {
+            display: flex;
+
+            & input {
+                flex: 1;
+                min-width: 0;
+            }
+
+            &.password button {
+                border: 0;
+                background: none;
+                font-size: 0.875em;
+                cursor: pointer;
+                padding: 0.5em;
+                min-width: max(15%, 4em);
+
+                &:hover {
+                    background-color: var(--color-surface-muted);
+                }
+            }
+
+            &.prefixed {
+                justify-content: center;
+                align-items: center;
+                gap: 0.5em;
+            }
+        }
+
+        & .password-input::-ms-reveal {
+            display: none;
+        }
+
+        & .prefix,
+        & .suffix {
+            color: var(--color-muted);
+            white-space: nowrap;
+        }
+
+        & .hint {
+            color: var(--color-muted);
+            font-size: 0.875em;
+        }
+    }
+}

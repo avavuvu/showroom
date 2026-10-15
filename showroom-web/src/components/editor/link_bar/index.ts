@@ -1,4 +1,4 @@
-import { inject } from "@bq/components/src/setups";
+import { inject } from "../../../../bindings/boutique/setups";
 import type { EditorLinkBar } from "@setups";
 import { editorContext } from "../context";
 import { applyLink, closeLink, linkEditing, linkText, openLink, removeLink, selectedLink } from "./link";
