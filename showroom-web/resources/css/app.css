@@ -9,6 +9,8 @@
 @import "views/sending.css";
 
 :root {
+    color-scheme: light;
+
     --ink: #000000;
     --paper: #ffffff;
     --brand: #92ca3a;
@@ -27,6 +29,7 @@
     --color-muted: color-mix(in srgb, var(--ink) 33%, var(--paper));
     --color-surface-muted: color-mix(in srgb, var(--ink) 7%, var(--paper));
     --color-placeholder: var(--color-muted);
+    --button-weight: normal;
 
     background-color: var(--color-surface);
     color: var(--color-text);
@@ -59,7 +62,7 @@ body {
     align-content: start;
 
     & > * {
-        grid-column-start: 2;
+        grid-column: 2;
         padding: 0 0.5em;
     }
 

@@ -8,6 +8,7 @@
     }
 
     & .title {
+        text-align: inherit;
         font-size: var(--article-title-size, var(--prose-h1-size, 1.4rem));
     }
 
