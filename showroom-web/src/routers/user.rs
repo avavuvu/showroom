@@ -9,7 +9,7 @@ pub fn create_router(state: AppState) -> Router {
         .route("/api/newsletters", get(handlers::api::get_newsletters))
         .route("/api/newsletters/{slug}", get(handlers::api::get_newsletter))
         .route("/subscribe", post(handlers::subscriber::subscribe))
-        .route("/confirm", get(handlers::subscriber::confirm))
-        .route("/unsubscribe", get(handlers::subscriber::unsubscribe).post(handlers::subscriber::unsubscribe))
+        .route("/confirm", get(handlers::subscriber::confirm_page).post(handlers::subscriber::confirm))
+        .route("/unsubscribe", get(handlers::subscriber::unsubscribe_page).post(handlers::subscriber::unsubscribe))
         .with_state(state)
 }

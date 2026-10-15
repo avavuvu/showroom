@@ -1,6 +1,6 @@
 use boutique::html;
 use maud::Markup;
-use crate::views::layouts::page;
+use crate::{components::Button, views::layouts::page};
 
 use super::layouts::base;
 
@@ -28,6 +28,30 @@ pub fn subscribe_error(message: &str) -> Markup {
             p { (message) }
         }
     }
+}
+
+pub fn confirm_subscription(publication_name: &str) -> Markup {
+    base(
+        &page("Confirm your subscription"),
+        html! {
+        form method="post" {
+            h1 { "Confirm your subscription" }
+            p { "Subscribe to " (publication_name) "?" }
+            Button(submit = true) .primary { "Confirm" }
+        }
+    })
+}
+
+pub fn confirm_unsubscribe(publication_name: &str) -> Markup {
+    base(
+        &page("Unsubscribe"),
+        html! {
+        form method="post" {
+            h1 { "Unsubscribe" }
+            p { "Stop receiving emails from " (publication_name) "?" }
+            Button(submit = true) .primary { "Unsubscribe" }
+        }
+    })
 }
 
 pub fn unsubscribed(publication_name: &str) -> Markup {

@@ -35,6 +35,14 @@ pub async fn subscribe(
     Ok(insert_or_resend(&state, &publication, &form).await)
 }
 
+pub async fn confirm_page(CurrentPublication(publication): CurrentPublication) -> Markup {
+    views::subscriber::confirm_subscription(&publication.name)
+}
+
+pub async fn unsubscribe_page(CurrentPublication(publication): CurrentPublication) -> Markup {
+    views::subscriber::confirm_unsubscribe(&publication.name)
+}
+
 pub async fn confirm(
     State(state): State<AppState>,
     CurrentPublication(publication): CurrentPublication,
