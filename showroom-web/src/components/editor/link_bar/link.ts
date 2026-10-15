@@ -1,8 +1,8 @@
 import type { Mark, ResolvedPos } from "prosemirror-model";
 import { type Command, type EditorState, Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet, type EditorView } from "prosemirror-view";
-import { schema } from "../document/schema";
-import { displayHref, normalizeHref } from "../document/url";
+import { schema } from "../prosemirror/schema";
+import { displayHref, normalizeHref } from "../prosemirror/url";
 
 export interface Editing {
     from: number;

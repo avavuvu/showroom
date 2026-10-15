@@ -1,11 +1,12 @@
 import type { Node } from "prosemirror-model";
 import type { EditorView, NodeView } from "prosemirror-view";
+import { schema } from "../prosemirror/schema";
+import type { PickFiles } from "./file-picker";
 import type { Uploads } from "./upload";
-import { schema } from "../document/schema";
 
 export interface ImageViewOptions {
     template: HTMLTemplateElement;
-    pickFiles: (callback: (files: File[]) => void, multiple: boolean) => void;
+    pickFiles: PickFiles;
     uploads: Uploads;
 }
 

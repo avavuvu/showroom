@@ -4,7 +4,7 @@ import { editorContext } from "../context";
 import { applyLink, closeLink, linkEditing, linkText, openLink, removeLink, selectedLink } from "./link";
 
 export const editorLinkBar: EditorLinkBar = async (root, { text, url, open, remove }, { signal }) => {
-    const { view, report, onUpdate } = await inject(root, editorContext).catch((error: unknown) => {
+    const { view, onUpdate } = await inject(root, editorContext).catch((error: unknown) => {
         text.disabled = true;
         url.disabled = true;
         throw error;
@@ -21,14 +21,14 @@ export const editorLinkBar: EditorLinkBar = async (root, { text, url, open, remo
         const focused = root.contains(document.activeElement);
 
         root.classList.toggle("is-idle", !target);
-        open.href = href || "#";
-        open.setAttribute("aria-disabled", String(!href));
+        if (href) open.href = href;
+        else open.removeAttribute("href");
         remove.disabled = !href;
 
         if (!focused) {
             text.value = target ? linkText(state, target) : "";
             url.value = href;
-            url.removeAttribute("aria-invalid");
+            url.setCustomValidity("");
         }
 
         if (editing && !wasEditing && !focused) {
@@ -67,18 +67,11 @@ export const editorLinkBar: EditorLinkBar = async (root, { text, url, open, remo
                 view.focus();
                 return;
             }
-            url.setAttribute("aria-invalid", "true");
-            url.focus();
-            report(problem);
+            url.setCustomValidity(problem);
+            url.reportValidity();
         },
 
-        clearProblem: () => url.removeAttribute("aria-invalid"),
-
-        follow(event) {
-            if (open.getAttribute("aria-disabled") === "true") event.preventDefault();
-        },
-
-        keepFocus: (event) => event.preventDefault(),
+        clearProblem: () => url.setCustomValidity(""),
 
         unlink() {
             removeLink(view);

@@ -34,7 +34,7 @@ pub fn editor_page(
                 }
             }
 
-            header {
+            header bq-ref="header" {
                 div.left {
                     Button(href = back) .secondary bq-on:click|left|exact="leave" { "Back" }
                     SaveStatus;
@@ -84,7 +84,7 @@ fn editor(title: &str, #[builder(required)] subtitle: Option<&str>) -> Markup {
                     bq-on:keydown|enter|down|prevent="to-body";
             }
 
-            div.editor-body bq-ref="body" {
+            div.editor-body {
                 div.editor-surface.prose bq-ref="surface" {}
             }
 

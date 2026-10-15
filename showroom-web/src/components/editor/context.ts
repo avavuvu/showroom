@@ -5,7 +5,7 @@ import type { EditorView } from "prosemirror-view";
 export interface Editor {
     view: EditorView;
     onUpdate(listener: (view: EditorView) => void, signal: AbortSignal): void;
-    report(message: string): void;
+
     insertImage: Command;
 }
 

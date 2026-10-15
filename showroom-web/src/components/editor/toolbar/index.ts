@@ -1,84 +1,37 @@
 import { inject } from "@bq/components/src/setups";
 import type { EditorToolbar } from "@setups";
 import { editorContext } from "../context";
-import { blockTypeCommand, canChangeBlockType, currentBlockType } from "../document/commands";
-import { openLink } from "../link_bar/link";
+import { BLOCKS, canChangeBlockType, currentBlockType } from "../prosemirror/commands";
 import { formatShortcut } from "../shortcuts";
 import { toolbarCommands } from "./commands";
-
-const OTHER_LABELS: Record<string, string> = {
-    caption: "Caption",
-    attribution: "Source",
-    mixed: "Mixed",
-};
 
 const isVisible = (element: HTMLElement) => element.getClientRects().length > 0;
 const inMenu = (element: Element) => element.closest('[role="menu"]') !== null;
 
-export const editorToolbar: EditorToolbar = async (root, { command, blockButton, blockCurrent, blockOption }, { signal }) => {
+export const editorToolbar: EditorToolbar = async (root, { command, blockButton, blockLabel, blockOption }, { signal }) => {
     const { view, onUpdate, insertImage } = await inject(root, editorContext).catch((error: unknown) => {
         for (const button of command) button.disabled = true;
         blockButton.disabled = true;
         throw error;
     });
-    const commands = toolbarCommands({ openLink, insertImage });
+    const commands = toolbarCommands(insertImage);
 
-    for (const option of blockOption) {
-        const label = option.querySelector(".shortcut");
-        if (label && option.dataset.shortcut) label.textContent = formatShortcut(option.dataset.shortcut);
+    for (const element of root.querySelectorAll<HTMLElement>("[data-shortcut]")) {
+        const text = formatShortcut(element.dataset.shortcut ?? "");
+        const label = element.querySelector(".shortcut");
+        if (label) label.textContent = text;
+        else element.title = `${element.getAttribute("aria-label")} (${text})`;
     }
 
-    for (const button of command) {
-        const name = button.dataset.command ?? "";
-        const found = commands[name];
-        if (!found) {
-            console.warn(`[editor] there is no toolbar command named "${name}"`);
-            button.hidden = true;
-            continue;
-        }
-        if (inMenu(button)) {
-            button.setAttribute("role", found.active ? "menuitemcheckbox" : "menuitem");
-            const shortcut = button.querySelector(".shortcut");
-            if (shortcut && button.dataset.shortcut) shortcut.textContent = formatShortcut(button.dataset.shortcut);
-        } else if (button.dataset.shortcut) {
-            button.title = `${button.getAttribute("aria-label") ?? name} (${formatShortcut(button.dataset.shortcut)})`;
-        }
-    }
+    let current: HTMLButtonElement | null = null;
 
-    let current: HTMLElement | null = null;
+    const items = () => [...root.querySelectorAll<HTMLButtonElement>("button")].filter((item) => !inMenu(item) && !item.disabled && isVisible(item));
 
-    const items = (): HTMLElement[] =>
-        [...root.querySelectorAll<HTMLElement>("button, input, a")].filter(
-            (item) =>
-                !inMenu(item) &&
-                isVisible(item) &&
-                !item.hidden &&
-                !(item as HTMLButtonElement | HTMLInputElement).disabled &&
-                item.getAttribute("aria-disabled") !== "true",
-        );
-
-    const makeCurrent = (item: HTMLElement | null) => {
-        for (const element of root.querySelectorAll<HTMLElement>("button, input, a")) {
-            if (!inMenu(element)) element.tabIndex = element === item ? 0 : -1;
+    const makeCurrent = (item: HTMLButtonElement | null) => {
+        for (const button of root.querySelectorAll("button")) {
+            if (!inMenu(button)) button.tabIndex = button === item ? 0 : -1;
         }
         current = item;
-    };
-
-    const syncBlock = () => {
-        const type = currentBlockType(view.state);
-        let selected: HTMLButtonElement | undefined;
-        for (const option of blockOption) {
-            const checked = option.dataset.block === type;
-            option.setAttribute("aria-checked", String(checked));
-            if (checked) selected = option;
-        }
-
-        const icon = selected?.querySelector("svg")?.cloneNode(true);
-        const label = document.createElement("span");
-        label.className = "option-label";
-        label.textContent = selected?.querySelector(".option-label")?.textContent ?? OTHER_LABELS[type] ?? "Mixed";
-        blockCurrent.replaceChildren(...(icon ? [icon, label] : [label]));
-        blockButton.disabled = !canChangeBlockType(view.state);
     };
 
     const sync = () => {
@@ -88,10 +41,17 @@ export const editorToolbar: EditorToolbar = async (root, { command, blockButton,
             button.disabled = !found.run(view.state, undefined, view);
             if (found.active) button.setAttribute(inMenu(button) ? "aria-checked" : "aria-pressed", String(found.active(view.state)));
         }
-        syncBlock();
 
-        const list = items();
-        if (!current || !list.includes(current)) makeCurrent(list[0] ?? null);
+        const type = currentBlockType(view.state);
+        for (const option of blockOption) option.setAttribute("aria-checked", String(option.dataset.block === type));
+        const known = blockLabel.some((label) => label.dataset.block === type);
+        for (const label of blockLabel) label.hidden = label.dataset.block !== (known ? type : "mixed");
+
+        blockButton.disabled = !canChangeBlockType(view.state);
+        const panel = blockButton.popoverTargetElement as HTMLElement | null;
+        if (blockButton.disabled && panel?.matches(":popover-open")) panel.hidePopover();
+
+        if (!current || current.disabled || !isVisible(current)) makeCurrent(items()[0] ?? null);
     };
 
     onUpdate(sync, signal);
@@ -104,43 +64,31 @@ export const editorToolbar: EditorToolbar = async (root, { command, blockButton,
         },
 
         setBlock(_event, option) {
-            blockTypeCommand(option.dataset.block ?? "")?.(view.state, view.dispatch, view);
+            BLOCKS[option.dataset.block ?? ""]?.(view.state, view.dispatch, view);
             view.focus();
         },
 
         track(event) {
-            if (event.target instanceof HTMLElement && items().includes(event.target)) makeCurrent(event.target);
+            if (event.target instanceof HTMLButtonElement && !inMenu(event.target)) makeCurrent(event.target);
         },
 
         navigate(event) {
-            if (event.defaultPrevented || event.target instanceof HTMLInputElement) return;
-            if (event.target instanceof Element && inMenu(event.target)) return;
+            if (event.defaultPrevented || (event.target instanceof Element && inMenu(event.target))) return;
 
             const list = items();
             const index = current ? list.indexOf(current) : -1;
-            let next: HTMLElement | undefined;
+            const next = {
+                ArrowRight: list[(index + 1) % list.length],
+                ArrowLeft: list[(index - 1 + list.length) % list.length],
+                Home: list[0],
+                End: list.at(-1),
+            }[event.key];
 
-            switch (event.key) {
-                case "ArrowRight":
-                    next = list[(index + 1) % list.length];
-                    break;
-                case "ArrowLeft":
-                    next = list[(index - 1 + list.length) % list.length];
-                    break;
-                case "Home":
-                    next = list[0];
-                    break;
-                case "End":
-                    next = list[list.length - 1];
-                    break;
-                case "Escape":
-                    event.preventDefault();
-                    view.focus();
-                    return;
-                default:
-                    return;
+            if (event.key === "Escape") {
+                event.preventDefault();
+                view.focus();
+                return;
             }
-
             if (!next) return;
             event.preventDefault();
             makeCurrent(next);

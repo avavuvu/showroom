@@ -1,13 +1,14 @@
-import { chainCommands, exitCode, setBlockType, splitBlockAs, toggleMark } from "prosemirror-commands";
+import { chainCommands, exitCode, splitBlockAs, toggleMark } from "prosemirror-commands";
 import { redo, undo } from "prosemirror-history";
 import { undoInputRule } from "prosemirror-inputrules";
 import { Fragment, type Node, NodeRange } from "prosemirror-model";
 import { liftListItem, sinkListItem, splitListItem } from "prosemirror-schema-list";
 import { type Command, NodeSelection, Selection, TextSelection } from "prosemirror-state";
-import { canInsert, findAncestor, toggleBlockquote, toggleList } from "./commands";
+import { openLink } from "../link_bar/link";
+import { BLOCKS, canInsert, findAncestor, toggleBlockquote, toggleList } from "./commands";
 import { schema } from "./schema";
 
-const { paragraph, heading, codeBlock, pullquote, attribution, bulletList, orderedList, listItem, hardBreak, caption } = schema.nodes;
+const { paragraph, pullquote, attribution, bulletList, orderedList, listItem, hardBreak, caption } = schema.nodes;
 
 const insertHardBreak: Command = (state, dispatch) => {
     if (!canInsert(state, hardBreak)) return false;
@@ -156,7 +157,7 @@ const selectFigure: Command = (state, dispatch) => {
     return true;
 };
 
-export function buildKeymap(openLink: Command): Record<string, Command> {
+export function buildKeymap(): Record<string, Command> {
     const { bold, italic, underline, strike, code } = schema.marks;
     return {
         "Mod-z": undo,
@@ -173,11 +174,11 @@ export function buildKeymap(openLink: Command): Record<string, Command> {
             return true;
         },
 
-        "Mod-Alt-0": setBlockType(paragraph),
-        "Mod-Alt-2": setBlockType(heading, { level: 2 }),
-        "Mod-Alt-3": setBlockType(heading, { level: 3 }),
-        "Mod-Alt-4": setBlockType(heading, { level: 4 }),
-        "Mod-Alt-c": setBlockType(codeBlock),
+        "Mod-Alt-0": BLOCKS.paragraph,
+        "Mod-Alt-2": BLOCKS["heading-2"],
+        "Mod-Alt-3": BLOCKS["heading-3"],
+        "Mod-Alt-4": BLOCKS["heading-4"],
+        "Mod-Alt-c": BLOCKS["code-block"],
         "Shift-Mod-7": toggleList(orderedList),
         "Shift-Mod-8": toggleList(bulletList),
         "Shift-Mod-9": toggleBlockquote,

@@ -4,6 +4,8 @@
     --editor-hover: var(--color-surface-muted);
 
     padding-bottom: 30vh;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 
     & .icon {
         width: 1rem;
@@ -68,18 +70,14 @@
         color: inherit;
         cursor: pointer;
 
-        &:hover:not(:disabled, [aria-disabled="true"]) {
+        &:hover:not(:disabled, a:not([href])) {
             border-color: var(--editor-accent);
         }
 
         &:disabled,
-        &[aria-disabled="true"] {
+        &:is(a):not([href]) {
             opacity: 0.35;
             cursor: default;
-        }
-
-        &[aria-disabled="true"] {
-            pointer-events: none;
         }
     }
 
@@ -110,7 +108,7 @@
         cursor: pointer;
 
         &:hover:not(:disabled),
-        &[aria-expanded="true"] {
+        .menu:has(:popover-open) > & {
             background-color: var(--editor-hover);
         }
 
@@ -124,56 +122,10 @@
         display: none;
     }
 
-    & .block-current {
+    & .block-label {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-    }
-
-    & .menu-panel {
-        position: fixed;
-        z-index: 20;
-        display: flex;
-        flex-direction: column;
-        min-width: 15rem;
-        border: 1px solid var(--editor-accent);
-        background-color: var(--color-surface);
-        color: var(--color-text);
-    }
-
-    & .menu-option {
-        display: grid;
-        grid-template-columns: 1rem 1fr auto;
-        align-items: center;
-        gap: 0.625rem;
-        padding: 0.5rem 0.75rem;
-        border: none;
-        background: transparent;
-        color: inherit;
-        font: inherit;
-        font-size: 0.875rem;
-        text-align: left;
-        cursor: pointer;
-
-        &:hover,
-        &:focus-visible {
-            background-color: var(--editor-hover);
-        }
-
-        &[aria-checked="true"] {
-            background-color: var(--editor-accent);
-            color: var(--editor-on-accent);
-        }
-
-        &:disabled {
-            opacity: 0.35;
-            cursor: default;
-        }
-
-        & .shortcut {
-            opacity: 0.6;
-            font-size: 0.8125rem;
-        }
     }
 
     & .editor-meta {
@@ -281,7 +233,7 @@
             outline-offset: -2px;
         }
 
-        &[aria-invalid="true"] {
+        &:invalid {
             outline: 2px solid var(--color-error);
             outline-offset: -2px;
         }
@@ -452,12 +404,14 @@
             margin-inline: 1rem;
         }
 
-        & .menu-panel {
-            max-width: calc(100vw - 1rem);
-        }
+
     }
 
     @media (pointer: coarse) {
+        & .editor-surface .ProseMirror {
+            font-size: max(1rem, 1em);
+        }
+
         & .toolbar-button,
         & .icon-button {
             width: 2.75rem;
@@ -482,14 +436,6 @@
             font-size: 1rem;
         }
 
-        & .menu-option {
-            padding: 0.75rem 1rem;
-            font-size: 1rem;
-
-            & .shortcut {
-                display: none;
-            }
-        }
 
         & .image-actions {
             font-size: 0.9375rem;

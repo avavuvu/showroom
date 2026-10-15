@@ -149,6 +149,7 @@ export class SaveController {
             const response = await fetch(this.options.url, {
                 method: "PUT",
                 redirect: "manual",
+                signal: this.options.signal,
                 headers: { "Content-Type": "application/json", Accept: "application/json" },
                 body: JSON.stringify({ ...payload, revision: this.revision }),
             });

@@ -2,8 +2,9 @@ import { toggleMark } from "prosemirror-commands";
 import { redo, undo } from "prosemirror-history";
 import type { NodeType } from "prosemirror-model";
 import type { Command, EditorState } from "prosemirror-state";
-import { findAncestor, insertHorizontalRule, isList, isMarkActive, toggleBlockquote, toggleList, togglePullquote } from "../document/commands";
-import { schema } from "../document/schema";
+import { findAncestor, insertHorizontalRule, isList, isMarkActive, toggleBlockquote, toggleList, togglePullquote } from "../prosemirror/commands";
+import { openLink } from "../link_bar/link";
+import { schema } from "../prosemirror/schema";
 
 export interface ToolbarCommand {
     run: Command;
@@ -12,7 +13,7 @@ export interface ToolbarCommand {
 
 const { blockquote, pullquote, bulletList, orderedList } = schema.nodes;
 
-export function toolbarCommands(actions: { openLink: Command; insertImage: Command }): Record<string, ToolbarCommand> {
+export function toolbarCommands(insertImage: Command): Record<string, ToolbarCommand> {
     const { bold, italic, underline, strike, code, link } = schema.marks;
     const listType = (state: EditorState) => findAncestor(state, isList)?.node.type ?? null;
     const inside = (type: NodeType) => (state: EditorState) => !!findAncestor(state, (node) => node.type === type);
@@ -25,12 +26,12 @@ export function toolbarCommands(actions: { openLink: Command; insertImage: Comma
         underline: { run: toggleMark(underline), active: (state) => isMarkActive(state, underline) },
         strike: { run: toggleMark(strike), active: (state) => isMarkActive(state, strike) },
         code: { run: toggleMark(code), active: (state) => isMarkActive(state, code) },
-        link: { run: actions.openLink, active: (state) => isMarkActive(state, link) },
+        link: { run: openLink, active: (state) => isMarkActive(state, link) },
         "bullet-list": { run: toggleList(bulletList), active: (state) => listType(state) === bulletList },
         "ordered-list": { run: toggleList(orderedList), active: (state) => listType(state) === orderedList },
         blockquote: { run: toggleBlockquote, active: inside(blockquote) },
         pullquote: { run: togglePullquote, active: inside(pullquote) },
         "horizontal-rule": { run: insertHorizontalRule },
-        image: { run: actions.insertImage },
+        image: { run: insertImage },
     };
 }

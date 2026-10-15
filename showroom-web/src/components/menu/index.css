@@ -1,3 +1,70 @@
 .menu {
     display: contents;
 }
+
+.menu-panel {
+    inset: auto;
+    flex-direction: column;
+    min-width: 15rem;
+    max-width: calc(100vw - 1rem);
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--color-primary);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    position-area: block-end span-inline-end;
+    position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
+
+    &:popover-open {
+        display: flex;
+    }
+
+    @supports not (position-area: block-end) {
+        inset: 0;
+        margin: auto;
+    }
+}
+
+.menu-option {
+    display: grid;
+    grid-template-columns: 1rem 1fr auto;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.875rem;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        background-color: var(--color-surface-muted);
+    }
+
+    &[aria-checked="true"] {
+        background-color: var(--color-primary);
+        color: var(--color-on-primary);
+    }
+
+    &:disabled {
+        opacity: 0.35;
+        cursor: default;
+    }
+
+    & .shortcut {
+        opacity: 0.6;
+        font-size: 0.8125rem;
+    }
+
+    @media (pointer: coarse) {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+
+        & .shortcut {
+            display: none;
+        }
+    }
+}

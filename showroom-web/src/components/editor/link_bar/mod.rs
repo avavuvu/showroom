@@ -36,14 +36,11 @@ pub fn link_bar() -> Markup {
                 bq-on:keydown|enter|prevent="apply"
                 bq-on:input="clear-problem";
             a.icon-button
-                href="#"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Open link in a new tab"
                 title="Open link in a new tab"
-                aria-disabled="true"
                 bq-ref="open"
-                bq-on:click="follow"
             {
                 Icon(Glyph::ExternalLink);
             }
@@ -53,7 +50,7 @@ pub fn link_bar() -> Markup {
                 title="Remove link"
                 disabled
                 bq-ref="remove"
-                bq-on:mousedown="keep-focus"
+                bq-on:mousedown|prevent
                 bq-on:click="unlink"
             {
                 Icon(Glyph::Unlink);

@@ -167,25 +167,14 @@ export function currentBlockType(state: EditorState): string {
     return values.size === 1 ? [...values][0] : "mixed";
 }
 
-export const BLOCK_TYPES = ["paragraph", "heading-2", "heading-3", "heading-4", "code-block"];
-
-export function blockTypeCommand(value: string): Command | null {
-    switch (value) {
-        case "paragraph":
-            return setBlockType(paragraph);
-        case "heading-2":
-            return setBlockType(heading, { level: 2 });
-        case "heading-3":
-            return setBlockType(heading, { level: 3 });
-        case "heading-4":
-            return setBlockType(heading, { level: 4 });
-        case "code-block":
-            return setBlockType(codeBlock);
-        default:
-            return null;
-    }
-}
+export const BLOCKS: Record<string, Command> = {
+    paragraph: setBlockType(paragraph),
+    "heading-2": setBlockType(heading, { level: 2 }),
+    "heading-3": setBlockType(heading, { level: 3 }),
+    "heading-4": setBlockType(heading, { level: 4 }),
+    "code-block": setBlockType(codeBlock),
+};
 
 export function canChangeBlockType(state: EditorState): boolean {
-    return BLOCK_TYPES.some((value) => blockTypeCommand(value)?.(state) ?? false);
+    return Object.values(BLOCKS).some((command) => command(state));
 }

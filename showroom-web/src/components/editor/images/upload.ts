@@ -1,8 +1,8 @@
 import { type Command, type EditorState, Plugin, PluginKey } from "prosemirror-state";
 import { insertPoint } from "prosemirror-transform";
 import { Decoration, DecorationSet, type EditorView } from "prosemirror-view";
-import { canInsert } from "../document/commands";
-import { schema } from "../document/schema";
+import { canInsert } from "../prosemirror/commands";
+import { schema } from "../prosemirror/schema";
 import type { PickFiles } from "./file-picker";
 
 interface UploadMeta {

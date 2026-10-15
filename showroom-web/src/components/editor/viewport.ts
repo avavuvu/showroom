@@ -3,11 +3,6 @@ import type { EditorView } from "prosemirror-view";
 const MOBILE = "(max-width: 48rem)";
 const GAP = 16;
 
-export function visibleBounds(): { top: number; bottom: number } {
-    const viewport = window.visualViewport;
-    const top = viewport?.offsetTop ?? 0;
-    return { top, bottom: top + (viewport?.height ?? window.innerHeight) };
-}
 
 export function trackViewport(root: HTMLElement, header: HTMLElement | null, toolbar: HTMLElement, view: EditorView, signal: AbortSignal): () => void {
     const mobile = window.matchMedia(MOBILE);

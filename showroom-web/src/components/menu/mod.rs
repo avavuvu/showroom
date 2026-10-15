@@ -7,38 +7,40 @@ setup!(Menu);
 #[component]
 pub fn menu(
     #[builder(start_fn)] label: &str,
+    id: &str,
     button: Markup,
-    anchor: Option<&str>,
     #[builder(default)] attrs: Attrs,
     children: Markup,
 ) -> Markup {
+    let anchor = format!("--{id}");
     html! {
-        div.menu bq-setup=(Menu) data-anchor=[anchor] {
+        div.menu bq-setup=(Menu) {
             button
                 type="button"
                 aria-haspopup="menu"
-                aria-expanded="false"
                 aria-label=(label)
                 title=(label)
+                popovertarget=(id)
+                style={ "anchor-name: " (anchor) }
                 bq-ref="button"
                 bq-on:mousedown|prevent
-                bq-on:click="toggle"
+                bq-on:click="remember"
                 bq-on:keydown|down|up|prevent|stop="open-from-key"
                 (..attrs)
             {
                 (button)
             }
             div.menu-panel
+                #(id)
+                popover
                 role="menu"
                 aria-label=(label)
-                hidden
+                style={ "position-anchor: " (anchor) }
                 bq-ref="panel"
                 bq-on:mousedown|prevent
                 bq-on:click="choose"
                 bq-on:keydown="navigate"
-                bq-on:pointerdown|document="outside"
-                bq-on:resize|window="position"
-                bq-on:scroll|window|passive="position"
+                bq-on:toggle="opened"
             {
                 (children)
             }

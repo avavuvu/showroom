@@ -7,8 +7,8 @@ import type { Node } from "prosemirror-model";
 import { Selection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { editorContext } from "./context";
-import { schema } from "./document/schema";
-import { FilePicker } from "./images/file-picker";
+import { schema } from "./prosemirror/schema";
+import { filePicker } from "./images/file-picker";
 import { insertImage, Uploads } from "./images/upload";
 import { SaveController } from "./save";
 import { SaveStatus } from "./save_status/status";
@@ -37,7 +37,7 @@ export const newsletterEditor: NewsletterEditor = (root, refs, { signal }) => {
     }
 
     const report = (message: string) => status.problem(message, () => saver.state);
-    const files = new FilePicker(refs.fileInput);
+    const files = filePicker(refs.fileInput);
     const uploads = new Uploads(report);
 
     const saver = new SaveController({
@@ -63,7 +63,6 @@ export const newsletterEditor: NewsletterEditor = (root, refs, { signal }) => {
 
     provide(root, editorContext, {
         view,
-        report,
         insertImage: insertImage(uploads, files.pick),
         onUpdate(listener, signal) {
             listeners.add(listener);
@@ -72,7 +71,7 @@ export const newsletterEditor: NewsletterEditor = (root, refs, { signal }) => {
         },
     });
 
-    const stopViewport = trackViewport(root, root.querySelector<HTMLElement>(":scope > header"), refs.toolbar, view, signal);
+    const stopViewport = trackViewport(root, refs.header, refs.toolbar, view, signal);
 
     return {
         filesPicked: () => files.picked(),

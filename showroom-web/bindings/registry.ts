@@ -29,7 +29,7 @@ export const registry: Registry = {
     },
     "editor-toolbar": {
         tags: ["div"],
-        many: ["blockOption", "command"],
+        many: ["blockLabel", "blockOption", "command"],
         load: () => import("../src/components/editor/toolbar/index").then((module) => module.editorToolbar satisfies setups.EditorToolbar),
     },
     "menu": {

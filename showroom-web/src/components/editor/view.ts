@@ -7,15 +7,15 @@ import { keymap } from "prosemirror-keymap";
 import type { Node } from "prosemirror-model";
 import { EditorState, NodeSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import { placeholders, trailingParagraph, withTrailingParagraph } from "./document/basics";
+import { placeholders, trailingParagraph, withTrailingParagraph } from "./prosemirror/basics";
 
-import { buildInputRules } from "./document/input-rules";
-import { buildKeymap } from "./document/keymap";
-import { schema } from "./document/schema";
+import { buildInputRules } from "./prosemirror/input-rules";
+import { buildKeymap } from "./prosemirror/keymap";
+import { schema } from "./prosemirror/schema";
 import type { PickFiles } from "./images/file-picker";
 import { ImageView } from "./images/image-view";
 import { imageFiles, uploadPlugin, type Uploads } from "./images/upload";
-import { linkPlugin, openLink } from "./link_bar/link";
+import { linkPlugin } from "./link_bar/link";
 
 type Refs = Parameters<NewsletterEditor>[1];
 
@@ -33,7 +33,7 @@ export function createView(refs: Refs, { doc, uploads, pickFiles, onChange, onUp
             doc: withTrailingParagraph(doc),
             plugins: [
                 buildInputRules(),
-                keymap(buildKeymap(openLink)),
+                keymap(buildKeymap()),
                 keymap(baseKeymap),
                 history(),
                 dropCursor({ color: false, width: 2, class: "editor-drop-cursor" }),
