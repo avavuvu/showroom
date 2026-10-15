@@ -1,8 +1,11 @@
+use std::sync::Arc;
+
 use aws_sdk_sesv2::Client as SesClient;
 use axum::extract::FromRef;
 use boutique::{AuthConfig, AuthState, store::sea_orm::SeaOrmStore};
 use sea_orm::DatabaseConnection;
 use boutique::cloudinary::Cloudinary;
+use tokio::sync::Notify;
 
 use crate::models::user;
 
@@ -115,12 +118,13 @@ pub struct AppState {
     pub auth: AuthState<user::Model>,
     pub ses: SesClient,
     pub cloudinary: Cloudinary,
+    pub sends: Arc<Notify>,
 }
 
 impl AppState {
     pub fn new(db: DatabaseConnection, ses: SesClient, cloudinary: Cloudinary, urls: Urls, secret: String) -> Self {
         let auth = AuthState::new(SeaOrmStore::new(db.clone()), secret).config(urls.auth_config());
-        Self { db, urls, auth, ses, cloudinary }
+        Self { db, urls, auth, ses, cloudinary, sends: Arc::new(Notify::new()) }
     }
 }
 

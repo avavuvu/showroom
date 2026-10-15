@@ -3,6 +3,8 @@ use std::{
     time::Duration,
 };
 
+use tokio::time::Instant;
+
 use chrono::{DateTime, FixedOffset, Utc};
 use sea_orm::{
     ActiveValue::Set, ColumnTrait, Condition, ConnectionTrait, DatabaseConnection, DbErr, EntityTrait, ModelTrait, Order,
@@ -22,7 +24,8 @@ use crate::{
 };
 
 const MAX_ATTEMPTS: i32 = 4;
-const IDLE: Duration = Duration::from_secs(2);
+const SWEEP_EVERY: Duration = Duration::from_secs(5 * 60);
+const ERROR_PAUSE: Duration = Duration::from_secs(10);
 const PREPARE_RETRY: chrono::Duration = chrono::Duration::seconds(60);
 const STALE_CLAIM: chrono::Duration = chrono::Duration::minutes(10);
 const INSERT_CHUNK: usize = 500;
@@ -189,32 +192,68 @@ pub async fn progress(db: &DatabaseConnection, newsletter_id: &str) -> Result<Pr
 
 pub async fn run_worker(state: AppState) {
     let rate = send_rate(&state).await;
+    let mut swept_at: Option<Instant> = None;
 
     loop {
+        if swept_at.is_none_or(|at| at.elapsed() >= SWEEP_EVERY) {
+            match sweep_stale(&state.db).await {
+                Ok(()) => swept_at = Some(Instant::now()),
+                Err(e) => tracing::error!("send worker: sweeping stale claims failed: {e}"),
+            }
+        }
+
         match work(&state, rate).await {
             Ok(true) => {}
-            Ok(false) => tokio::time::sleep(IDLE).await,
+            Ok(false) => idle(&state, swept_at).await,
             Err(e) => {
-                eprintln!("[send worker] database error: {e}");
-                tokio::time::sleep(IDLE * 5).await;
+                tracing::error!("send worker: database error: {e}");
+                tokio::time::sleep(ERROR_PAUSE).await;
             }
         }
     }
+}
+
+async fn idle(state: &AppState, swept_at: Option<Instant>) {
+    let until_sweep = swept_at.map_or(ERROR_PAUSE, |at| SWEEP_EVERY.saturating_sub(at.elapsed()));
+
+    let until_due = match next_attempt(&state.db).await {
+        Ok(next) => next.map(|at| (at - now()).to_std().unwrap_or(Duration::ZERO)),
+        Err(e) => {
+            tracing::error!("send worker: reading the next retry time failed: {e}");
+            Some(ERROR_PAUSE)
+        }
+    };
+
+    let wait = until_due.map_or(until_sweep, |due| due.min(until_sweep));
+
+    tokio::select! {
+        _ = state.sends.notified() => {}
+        _ = tokio::time::sleep(wait) => {}
+    }
+}
+
+async fn next_attempt(db: &DatabaseConnection) -> Result<Option<Timestamp>, DbErr> {
+    let next: Option<Option<Timestamp>> = delivery::Entity::find()
+        .select_only()
+        .column_as(Expr::col(delivery::Column::NextAttemptAt).min(), "next")
+        .filter(delivery::Column::Status.eq(Status::Queued))
+        .into_tuple()
+        .one(db)
+        .await?;
+    Ok(next.flatten())
 }
 
 async fn send_rate(state: &AppState) -> f64 {
     match state.ses.get_account().send().await {
         Ok(account) => account.send_quota().map(|quota| quota.max_send_rate()).filter(|rate| *rate > 0.0).unwrap_or(1.0),
         Err(e) => {
-            eprintln!("[send worker] could not read the SES send rate, using 1 per second: {e}");
+            tracing::warn!("send worker: could not read the SES send rate, using 1 per second: {e}");
             1.0
         }
     }
 }
 
 async fn work(state: &AppState, rate: f64) -> Result<bool, DbErr> {
-    sweep_stale(&state.db).await?;
-
     let next: Option<String> = delivery::Entity::find()
         .select_only()
         .column(delivery::Column::NewsletterId)
@@ -246,7 +285,7 @@ async fn process(state: &AppState, newsletter_id: &str, rate: f64) -> Result<(),
     let result = send_batches(state, newsletter_id, &mailing, rate).await;
 
     if let Err(e) = mailing.finish().await {
-        eprintln!("[send worker] newsletter {newsletter_id}: {e}");
+        tracing::error!("send worker: newsletter {newsletter_id}: {e}");
     }
 
     result

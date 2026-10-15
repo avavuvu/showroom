@@ -42,7 +42,9 @@ pub async fn post_retry(
     Path((_, id)): Path<(String, String)>,
 ) -> AppResult<Redirect> {
     let newsletter = find(&state.db, &owned.publication.id, &id).await?;
-    newsletter_send::retry_failed(&state.db, &newsletter.id).await?;
+    if newsletter_send::retry_failed(&state.db, &newsletter.id).await? > 0 {
+        state.sends.notify_one();
+    }
     Ok(Redirect::to(&send_url(&state, &owned.publication.slug, &newsletter.id)))
 }
 
@@ -70,7 +72,9 @@ pub async fn post_send(
     active.slug = Set(slug);
     let newsletter = active.update(&state.db).await?;
 
-    newsletter_send::enqueue(&state.db, &newsletter, &publication).await?;
+    if newsletter_send::enqueue(&state.db, &newsletter, &publication).await? {
+        state.sends.notify_one();
+    }
 
     Ok(Redirect::to(&send_url(&state, &publication.slug, &newsletter.id)))
 }

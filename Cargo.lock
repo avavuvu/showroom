@@ -4049,6 +4049,7 @@ dependencies = [
  "slugify",
  "tokio",
  "tower",
+ "tracing",
  "tracing-subscriber",
  "url",
  "uuid",
