@@ -149,7 +149,7 @@ pub fn newsletter_body(
                     Section(bottom = "32px") { (PreEscaped(s)) }
                 }
                 EmailBlock::FullWidthImage { src, caption } => {
-                    FullWidthImage(src, caption = caption.as_deref());
+                    FullWidthImage(src, caption = [caption.as_deref()]);
                 }
             }
         }

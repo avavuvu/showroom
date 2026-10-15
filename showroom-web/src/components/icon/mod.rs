@@ -71,7 +71,7 @@ impl Glyph {
 }
 
 #[component]
-pub fn icon(#[builder(start_fn)] glyph: Glyph) -> Markup {
+pub fn icon(#[positional] glyph: Glyph) -> Markup {
     html! {
         svg.icon
             xmlns="http://www.w3.org/2000/svg"

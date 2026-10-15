@@ -4,9 +4,9 @@ use maud::Markup;
 
 #[component]
 pub fn dirty_form(
-    #[builder(start_fn)] action: &str,
-    #[builder(default)] attrs: Attrs,
-    #[builder(default = html! {})] children: Markup,
+    #[positional] action: &str,
+    attrs: Attrs,
+    children: Markup,
 ) -> Markup {
     html! {
         form

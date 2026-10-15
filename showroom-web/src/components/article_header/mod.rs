@@ -6,11 +6,11 @@ use maud::Markup;
 pub fn article_header(
     date: &str,
     title: &str,
-    #[builder(required)] subtitle: Option<&str>,
+    subtitle: Option<&str>,
     name: &str,
     href: &str,
     picture: &str,
-    #[builder(default)] attrs: Attrs,
+    attrs: Attrs,
 ) -> Markup {
     html! {
         div.article-header (..attrs) {

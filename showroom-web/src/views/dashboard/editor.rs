@@ -31,7 +31,7 @@ pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
             EditorPage(
                 props = &props,
                 title = &newsletter.title,
-                subtitle = newsletter.subtitle.as_deref(),
+                subtitle = [newsletter.subtitle.as_deref()],
                 back = &ctx.dashboard_url(),
                 next = &next,
                 sent = sent,

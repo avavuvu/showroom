@@ -12,7 +12,7 @@ struct Row {
 }
 
 #[component(setup = "color-override")]
-pub fn style_overrides(#[builder(start_fn)] theme: &Theme, #[builder(default)] attrs: Attrs) -> Markup {
+pub fn style_overrides(#[positional] theme: &Theme, attrs: Attrs) -> Markup {
     let rows = [
         Row {
             name: "link",

@@ -148,7 +148,7 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
                         ArticleHeader(
                             date = &today,
                             title = "Marley’s Ghost",
-                            subtitle = Some("A Christmas Carol, Stave One"),
+                            subtitle = "A Christmas Carol, Stave One",
                             name = &publication.name,
                             href = "#",
                             picture = &publication.picture_url(&ctx.urls),

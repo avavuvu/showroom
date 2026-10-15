@@ -6,11 +6,11 @@ use crate::theme::Color;
 
 #[component]
 pub fn color_input(
-    #[builder(start_fn)] name: &str,
+    #[positional] name: &str,
     label: &str,
     current_color: &Color,
-    #[builder(default)] presets: &[Color],
-    #[builder(default)] attrs: Attrs,
+    #[default] presets: &[Color],
+    attrs: Attrs,
 ) -> Markup {
     html! {
         details.color-input bq-setup style={ "--color: " (current_color) } {

@@ -56,8 +56,8 @@ pub fn stylesheet(theme: &EmailTheme) -> String {
 
 #[component]
 pub fn section(
-    #[builder(default = "0")] top: &str,
-    #[builder(default = "0")] bottom: &str,
+    #[default = "0"] top: &str,
+    #[default = "0"] bottom: &str,
     align: Option<Align>,
     children: Markup,
 ) -> Markup {
@@ -76,7 +76,7 @@ pub fn section(
 }
 
 #[component]
-pub fn button(#[builder(start_fn)] href: &str, children: Markup) -> Markup {
+pub fn button(#[positional] href: &str, children: Markup) -> Markup {
     html! {
         table role="presentation" cellpadding="0" cellspacing="0" border="0" {
             tr {
@@ -89,7 +89,7 @@ pub fn button(#[builder(start_fn)] href: &str, children: Markup) -> Markup {
 }
 
 #[component]
-pub fn full_width_image(#[builder(start_fn)] src: &str, #[builder(required)] caption: Option<&str>) -> Markup {
+pub fn full_width_image(#[positional] src: &str, caption: Option<&str>) -> Markup {
     html! {
         tr {
             td.email-full-width colspan="3" width="600" {

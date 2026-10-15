@@ -15,10 +15,10 @@ use toolbar::Toolbar;
 pub fn editor_page(
     props: &str,
     title: &str,
-    #[builder(required)] subtitle: Option<&str>,
+    subtitle: Option<&str>,
     back: &str,
     next: &str,
-    #[builder(default)] sent: bool,
+    sent: bool,
 ) -> Markup {
     html! {
         div.edit-view
@@ -45,13 +45,13 @@ pub fn editor_page(
                 }
             }
 
-            Editor(title = title, subtitle = subtitle);
+            Editor(title = title, subtitle = [subtitle]);
         }
     }
 }
 
 #[component]
-fn editor(title: &str, #[builder(required)] subtitle: Option<&str>) -> Markup {
+fn editor(title: &str, subtitle: Option<&str>) -> Markup {
     html! {
         div.newsletter-editor {
             div.editor-toolbar bq-ref="toolbar" {

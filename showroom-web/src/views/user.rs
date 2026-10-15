@@ -62,7 +62,7 @@ pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
                 ArticleHeader(
                     date = &date,
                     title = newsletter.display_title(),
-                    subtitle = newsletter.subtitle.as_deref(),
+                    subtitle = [newsletter.subtitle.as_deref()],
                     name = &publication.name,
                     href = &publication_url,
                     picture = &publication.picture_url(&ctx.urls),

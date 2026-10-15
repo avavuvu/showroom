@@ -4,10 +4,10 @@ use maud::Markup;
 
 #[component]
 pub fn menu(
-    #[builder(start_fn)] label: &str,
+    #[positional] label: &str,
     id: &str,
     button: Markup,
-    #[builder(default)] attrs: Attrs,
+    attrs: Attrs,
     children: Markup,
 ) -> Markup {
     let anchor = format!("--{id}");
