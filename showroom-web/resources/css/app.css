@@ -1,13 +1,3 @@
-@import "components/newsletter.css";
-@import "components/auth.css";
-@import "views/lander.css";
-@import "views/edit.css";
-@import "views/preview.css";
-@import "views/user.css";
-@import "views/dashboard.css";
-@import "views/subscribers.css";
-@import "views/sending.css";
-
 :root {
     color-scheme: light;
 
