@@ -11,7 +11,7 @@ pub fn index(ctx: &PageContext, newsletters: Vec<newsletter::Model>) -> Markup {
     let (published, drafts): (Vec<_>, Vec<_>) = newsletters.into_iter().partition(|n| n.published_at.is_some());
 
     dashboard_shell(
-        page(&ctx.publication().name).htmx().class("overview".into()),
+        page(&ctx.publication().name).htmx().class("overview"),
         ctx,
         html! {
         div.dashboard-content {

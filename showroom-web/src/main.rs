@@ -1,7 +1,6 @@
-use std::env;
+use std::{env, time::Duration};
 use aws_config::{BehaviorVersion, Region};
 use sea_orm::{Database, DatabaseConnection};
-mod auth;
 mod document;
 mod mailer;
 mod handlers;
@@ -16,6 +15,7 @@ mod components;
 mod views;
 
 use boutique::cloudinary::Cloudinary;
+use tracing_subscriber::EnvFilter;
 
 #[derive(Clone)]
 struct AppEnv {
@@ -44,6 +44,10 @@ fn ensure_ssl(url: &str) -> String {
 
 async fn setup() -> AppEnv {
     dotenvy::dotenv().ok();
+
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")))
+        .init();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
@@ -82,6 +86,7 @@ async fn server(env: AppEnv) {
 
     let state = state::AppState::new(env.db, env.ses, env.cloudinary, urls, env.secret);
     let _worker = AbortOnDrop(tokio::spawn(services::newsletter_send::run_worker(state.clone())));
+    let _session_cleanup = AbortOnDrop(boutique::session::spawn_cleanup(state.auth.clone(), Duration::from_secs(60 * 60)));
 
     let (server, routes) = router::create_server(&state);
 

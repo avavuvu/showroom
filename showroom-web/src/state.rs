@@ -1,10 +1,10 @@
 use aws_sdk_sesv2::Client as SesClient;
 use axum::extract::FromRef;
-use boutique::{AuthConfig, AuthState};
+use boutique::{AuthConfig, AuthState, store::sea_orm::SeaOrmStore};
 use sea_orm::DatabaseConnection;
 use boutique::cloudinary::Cloudinary;
 
-use crate::{auth, models::user};
+use crate::models::user;
 
 #[derive(Clone)]
 pub struct Urls {
@@ -119,7 +119,7 @@ pub struct AppState {
 
 impl AppState {
     pub fn new(db: DatabaseConnection, ses: SesClient, cloudinary: Cloudinary, urls: Urls, secret: String) -> Self {
-        let auth = AuthState::with_config(auth::Store::new(db.clone()), secret, urls.auth_config());
+        let auth = AuthState::new(SeaOrmStore::new(db.clone()), secret).config(urls.auth_config());
         Self { db, urls, auth, ses, cloudinary }
     }
 }

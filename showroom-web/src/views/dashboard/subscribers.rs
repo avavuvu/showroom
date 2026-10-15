@@ -10,7 +10,7 @@ pub fn index(ctx: &PageContext, subscribers: &[Subscriber]) -> Markup {
         page("Subscribers")
 
             .htmx()
-            .class("subscribers".into()),
+            .class("subscribers"),
         ctx,
         html! {
             section.subscribers-section {

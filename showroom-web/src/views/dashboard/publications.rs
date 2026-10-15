@@ -10,7 +10,7 @@ pub fn new_form(ctx: &PageContext, slug: &str, name: &str, error: Option<&str>) 
     let domain = format!(".{}", ctx.urls.domain());
 
     dashboard_shell(
-        page("New publication").class("settings".into()),
+        page("New publication").class("settings"),
         ctx,
         html! {
             section.settings-section {
@@ -112,7 +112,7 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
     let today = chrono::Utc::now().format("%B %-d, %Y").to_string();
 
     dashboard_shell(
-        page("Settings").class("settings".into()),
+        page("Settings").class("settings"),
         ctx,
         html! {
             section.settings-section {

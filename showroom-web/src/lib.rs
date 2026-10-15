@@ -1,4 +1,3 @@
-pub mod auth;
 pub mod document;
 pub mod renderer;
 pub mod models;

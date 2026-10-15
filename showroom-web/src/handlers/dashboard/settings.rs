@@ -22,13 +22,7 @@ pub async fn request_password_change(
     State(state): State<AppState>,
     AuthenticatedUser(user): AuthenticatedUser<user::Model>,
 ) -> Markup {
-    let token = match reset::token_for(&state.auth, &user) {
-        Ok(t) => t,
-        Err(e) => {
-            eprintln!("[password reset] token generation failed: {e}");
-            return views::dashboard::settings::change_password_error("Something went wrong, please try again");
-        }
-    };
+    let token = reset::token_for(&state.auth, &user);
 
     let reset_url = format!("{}/reset-password?token={}", state.urls.base(), token);
 

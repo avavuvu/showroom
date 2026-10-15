@@ -7,7 +7,7 @@ pub fn index(ctx: &PageContext) -> Markup {
     let domain = ctx.urls.domain();
 
     dashboard_shell(
-        page("Account").htmx().class("settings".into()),
+        page("Account").htmx().class("settings"),
         ctx,
         html! {
             section.settings-section {

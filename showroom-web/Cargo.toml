@@ -31,6 +31,7 @@ aws-sdk-sesv2 = "1"
 slugify = "0.1.0"
 csv = "1"
 css-inline = { version = "0.22", default-features = false }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [build-dependencies]
 bq_setups = { git = "https://github.com/avavuvu/boutique.git", rev = "7369760a4afd963f57f3a9a93c10959e0eeeb221" }

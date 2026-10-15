@@ -3,14 +3,16 @@ use boutique::html;
 use maud::Markup;
 use crate::views::{context::PageContext, layouts::{page, shell}};
 
-pub fn error_page(ctx: &PageContext, status: StatusCode, message: Option<Markup>) -> Markup {
+pub fn error_page(ctx: &PageContext, status: StatusCode, message: Option<Markup>, back: Option<&str>) -> Markup {
     let fallback = if status.is_server_error() {
         "Something went wrong. Please try again."
     } else {
         status.canonical_reason().unwrap_or("The request could not be completed.")
     };
 
-    let (href, label) = if ctx.user.is_some() {
+    let (href, label) = if let Some(back) = back {
+        (back.to_string(), "Back")
+    } else if ctx.user.is_some() {
         (ctx.urls.app(), "Back to dashboard")
     } else {
         (ctx.urls.base(), "Back to home")

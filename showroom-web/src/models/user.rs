@@ -1,4 +1,7 @@
-use boutique::AuthUser;
+use boutique::{
+    AuthUser,
+    store::sea_orm::{SeaOrmStore, UserEntity},
+};
 use sea_orm::{ActiveValue::Set, entity::prelude::*};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
@@ -34,8 +37,14 @@ impl Related<super::session::Entity> for Entity {
 
 impl ActiveModelBehavior for ActiveModel {}
 
+impl UserEntity for Entity {
+    const ID: Column = Column::Id;
+    const EMAIL: Column = Column::Email;
+    const PASSWORD_HASH: Column = Column::Password;
+}
+
 impl AuthUser for Model {
-    type Store = crate::auth::Store;
+    type Store = SeaOrmStore<Entity, super::session::Entity>;
 
     fn id(&self) -> &str {
         &self.id

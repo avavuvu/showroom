@@ -1,3 +1,4 @@
+use boutique::store::sea_orm::SessionEntity;
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
@@ -28,3 +29,10 @@ impl Related<super::user::Entity> for Entity {
 }
 
 impl ActiveModelBehavior for ActiveModel {}
+
+impl SessionEntity for Entity {
+    const TOKEN_HASH: Column = Column::Id;
+    const USER_ID: Column = Column::UserId;
+    const CREATED_AT: Column = Column::CreatedAt;
+    const EXPIRES_AT: Column = Column::ExpiresAt;
+}

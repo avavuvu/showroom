@@ -16,7 +16,7 @@ pub fn page(ctx: &PageContext, newsletter: &newsletter::Model, progress: &Progre
     base(
         &head(&title)
             .htmx()
-            .class("sending".into()),
+            .class("sending"),
         html! {
             style { (PreEscaped(ctx.publication().theme().css())) }
             div.preview-view {
