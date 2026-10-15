@@ -1,3 +1,5 @@
+import { GLYPH_COLOR, GLYPH_FONT, GLYPH_SCALE } from "../glyphs";
+
 // Compiles a GLSL shader from source code
 export function compileShader(
     gl: WebGL2RenderingContext,
@@ -126,8 +128,8 @@ export function createAsciiAtlas(
 
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#92ca3a";
-    ctx.font = `${charSize * 0.8}px Times New Roman`;
+    ctx.fillStyle = GLYPH_COLOR;
+    ctx.font = `${charSize * GLYPH_SCALE}px ${GLYPH_FONT}`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 

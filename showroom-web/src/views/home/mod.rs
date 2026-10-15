@@ -10,7 +10,12 @@ pub fn index(ctx: &PageContext) -> Markup {
         html! {
         (header(ctx))
         div.lander {
-            AsciiBackground(webm = "/assets/flower-loop.webm", mp4 = "/assets/flower-loop.mp4");
+            AsciiBackground(
+                webm = "/assets/flower-loop.webm",
+                mp4 = "/assets/flower-loop.mp4",
+                still = "/assets/flower-loop-ascii-landscape.svg",
+                still_portrait = "/assets/flower-loop-ascii-portrait.svg",
+            );
             div.container {
                 main {
                     p {

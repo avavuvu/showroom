@@ -9,10 +9,7 @@ import {
     createAsciiAtlas,
 } from "./lib/webgl";
 import { getCharArray } from "./lib/ascii-charsets";
-
-const FONT_SIZE = 16;
-const CHAR_WIDTH_RATIO = 1;
-const SCALE = 1.5;
+import { BRIGHTNESS, CHARSET, CHAR_WIDTH_RATIO, FONT_SIZE, SCALE } from "./lib/glyphs";
 
 const prepare = (gl: WebGL2RenderingContext, chars: string[]) => {
     const vert = compileShader(gl, VERTEX_SHADER, gl.VERTEX_SHADER);
@@ -35,7 +32,7 @@ const prepare = (gl: WebGL2RenderingContext, chars: string[]) => {
     gl.uniform1i(uniform("u_video"), 0);
     gl.uniform1i(uniform("u_asciiAtlas"), 1);
     gl.uniform1f(uniform("u_numChars"), chars.length);
-    gl.uniform1f(uniform("u_brightness"), 1.0);
+    gl.uniform1f(uniform("u_brightness"), BRIGHTNESS);
 
     return { gridSize: uniform("u_gridSize") };
 };
@@ -48,7 +45,7 @@ export const asciiBackground: AsciiBackground = (root, { video, canvas }, { sign
         powerPreference: "low-power",
         preserveDrawingBuffer: false,
     });
-    const renderer = gl && prepare(gl, getCharArray("showroom"));
+    const renderer = gl && prepare(gl, getCharArray(CHARSET));
 
     if (!gl || !renderer) {
         video.pause();
@@ -71,6 +68,7 @@ export const asciiBackground: AsciiBackground = (root, { video, canvas }, { sign
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
         gl.generateMipmap(gl.TEXTURE_2D);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
+        root.toggleAttribute("data-live", true);
     };
 
     const frame = () => {
@@ -139,6 +137,7 @@ export const asciiBackground: AsciiBackground = (root, { video, canvas }, { sign
             cancelAnimationFrame(raf);
             video.pause();
             gl.getExtension("WEBGL_lose_context")?.loseContext();
+            root.removeAttribute("data-live");
         },
     };
 };
