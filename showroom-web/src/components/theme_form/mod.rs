@@ -51,7 +51,7 @@ const DEFAULT_BRAND_COLORS: &[Color] = &[
 #[component(setup = "theme-preview")]
 pub fn theme_form(#[positional] action: &str, theme: &Theme) -> Markup {
     html! {
-        DirtyForm(action) .settings-form bq-setup bq-on:input="theme-preview.schedule" {
+        DirtyForm(action) .settings-form.theme-form bq-setup bq-on:input="theme-preview.schedule" {
             ColorInput("ink", label = "Ink", current_color = &theme.ink, presets = DEFAULT_INK_COLORS);
             ColorInput("paper", label = "Paper", current_color = &theme.paper, presets = DEFAULT_PAPER_COLORS);
             ColorInput("brand", label = "Brand", current_color = &theme.brand, presets = DEFAULT_BRAND_COLORS);

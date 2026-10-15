@@ -36,86 +36,6 @@
         }
     }
 
-    & .settings-form {
-        & .font-fields {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1em;
-            margin: 0;
-            padding: 0;
-            border: 0;
-
-            & > legend {
-                margin-bottom: 0.5em;
-                padding: 0;
-                font-family: var(--font-title);
-            }
-
-            & > .option-list > legend {
-                font-family: inherit;
-                font-weight: bold;
-                font-size: 0.875em;
-            }
-        }
-
-        & .option-list {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            margin: 0;
-            padding: 0;
-            border: 0;
-
-            & > legend {
-                margin-bottom: 0.375em;
-                padding: 0;
-                font-family: var(--font-title);
-            }
-        }
-
-        & .option {
-            position: relative;
-            display: block;
-
-            & input {
-                position: absolute;
-                width: 1px;
-                height: 1px;
-                margin: 0;
-                padding: 0;
-                border: 0;
-                opacity: 0;
-                pointer-events: none;
-            }
-
-            & span {
-                display: block;
-                padding: 0.375em 0.75em;
-                border: 1px solid var(--color-border);
-                cursor: pointer;
-
-                &:hover {
-                    background-color: var(--color-surface-muted);
-                }
-
-            }
-
-            & + .option span {
-                border-top: 0;
-            }
-
-            & input:checked + span {
-                background-color: var(--color-primary);
-                color: var(--color-on-primary);
-            }
-
-            & input:focus-visible + span {
-                outline: 2px solid var(--color-text);
-                outline-offset: -4px;
-            }
-        }
-    }
-
     & .danger-zone h2 {
         color: var(--color-error);
     }
@@ -188,10 +108,6 @@
     }
 
     @media (max-width: 48rem) {
-        & .settings-form .font-fields {
-            grid-template-columns: minmax(0, 1fr);
-        }
-
         & .style-section > .style-preview {
             padding: 1em;
         }
