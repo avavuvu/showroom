@@ -7,7 +7,7 @@
         "build": "vite build",
         "typecheck": "tsc --noEmit",
         "setups": "cargo check -q -p showroom-web",
-        "setups:check": "npm run setups && git diff --exit-code -- bindings && test -z \"$(git ls-files --others --exclude-standard -- bindings)\"",
+        "setups:check": "bun run setups && git diff --exit-code -- bindings && test -z \"$(git ls-files --others --exclude-standard -- bindings)\"",
         "dev": "~/.cargo/bin/dx serve --hot-patch --features local --package showroom-web"
     },
     "devDependencies": {

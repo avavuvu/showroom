@@ -2,9 +2,9 @@
     "name": "showroom-rs",
     "private": true,
     "scripts": {
-        "dev": "cd showroom-web && npm run dev",
-        "dev:js": "cd showroom-web && npm run dev:js",
-        "build": "cd showroom-web && npm install --include=dev && npm run build"
+        "dev": "cd showroom-web && bun run dev",
+        "dev:js": "cd showroom-web && bun run dev:js",
+        "build": "cd showroom-web && bun install && bun run build"
 
     }
 }

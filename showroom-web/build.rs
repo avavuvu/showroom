@@ -7,6 +7,6 @@ fn main() {
 
     println!("cargo:rerun-if-changed={MANIFEST}");
     if env::var("PROFILE").as_deref() == Ok("release") && !Path::new(MANIFEST).exists() {
-        panic!("{MANIFEST} not found: run `npm run build` before a release build");
+        panic!("{MANIFEST} not found: run `bun run build` before a release build");
     }
 }
