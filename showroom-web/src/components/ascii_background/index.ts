@@ -12,139 +12,133 @@ import { getCharArray } from "./lib/ascii-charsets";
 
 const FONT_SIZE = 16;
 const CHAR_WIDTH_RATIO = 1;
+const SCALE = 1.5;
 
-export const asciiBackground: AsciiBackground = (_root, { video, canvas }, { signal }) => {
-    const chars = getCharArray("showroom");
+const prepare = (gl: WebGL2RenderingContext, chars: string[]) => {
+    const vert = compileShader(gl, VERTEX_SHADER, gl.VERTEX_SHADER);
+    const frag = compileShader(gl, FRAGMENT_SHADER, gl.FRAGMENT_SHADER);
+    if (!vert || !frag) return null;
+
+    const program = createProgram(gl, vert, frag);
+    if (!program) return null;
+
+    gl.useProgram(program);
+    createFullscreenQuad(gl, program);
+
+    gl.activeTexture(gl.TEXTURE1);
+    if (!createAsciiAtlas(gl, chars, FONT_SIZE)) return null;
+    gl.activeTexture(gl.TEXTURE0);
+    if (!createVideoTexture(gl)) return null;
+
+    const uniform = (name: string) => gl.getUniformLocation(program, name);
+
+    gl.uniform1i(uniform("u_video"), 0);
+    gl.uniform1i(uniform("u_asciiAtlas"), 1);
+    gl.uniform1f(uniform("u_numChars"), chars.length);
+    gl.uniform1f(uniform("u_brightness"), 1.0);
+
+    return { gridSize: uniform("u_gridSize") };
+};
+
+export const asciiBackground: AsciiBackground = (root, { video, canvas }, { signal }) => {
+    const gl = canvas.getContext("webgl2", {
+        antialias: false,
+        depth: false,
+        stencil: false,
+        powerPreference: "low-power",
+        preserveDrawingBuffer: false,
+    });
+    const renderer = gl && prepare(gl, getCharArray("showroom"));
+
+    if (!gl || !renderer) {
+        video.pause();
+        gl?.getExtension("WEBGL_lose_context")?.loseContext();
+        return;
+    }
+
     const charWidth = FONT_SIZE * CHAR_WIDTH_RATIO;
+    const motion = matchMedia("(prefers-reduced-motion: reduce)");
 
-    let gl: WebGL2RenderingContext | null = null;
-    let videoTexture: WebGLTexture | null = null;
-    let atlasTexture: WebGLTexture | null = null;
+    let cols = 0;
+    let rows = 0;
+    let shown = -1;
     let raf = 0;
+    let onscreen = true;
 
-    const teardown = () => {
-        if (gl) {
-            if (videoTexture) gl.deleteTexture(videoTexture);
-            if (atlasTexture) gl.deleteTexture(atlasTexture);
-            gl = null;
-        }
+    const draw = () => {
+        if (video.readyState < video.HAVE_CURRENT_DATA) return;
+        shown = video.currentTime;
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
     };
 
-    const init = () => {
-        if (!video.videoWidth) return;
+    const frame = () => {
+        raf = 0;
+        if (video.currentTime !== shown) draw();
+        if (!video.paused) schedule();
+    };
 
-        teardown();
+    const schedule = () => {
+        if (!raf) raf = requestAnimationFrame(frame);
+    };
 
-        const cols = Math.floor(window.innerWidth / charWidth) * 1.5;
-        const rows = Math.floor(window.innerHeight / FONT_SIZE) * 1.5;
-        const w = cols * charWidth;
-        const h = rows * FONT_SIZE;
+    const resize = () => {
+        const nextCols = Math.max(1, Math.floor((root.clientWidth * SCALE) / charWidth));
+        const nextRows = Math.max(1, Math.floor((root.clientHeight * SCALE) / FONT_SIZE));
+        if (nextCols === cols && nextRows === rows) return;
 
-        canvas.width = w;
-        canvas.height = h;
+        cols = nextCols;
+        rows = nextRows;
+        canvas.width = cols * charWidth;
+        canvas.height = rows * FONT_SIZE;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.uniform2f(renderer.gridSize, cols, rows);
+        draw();
+    };
 
-        gl = canvas.getContext("webgl2", {
-            antialias: false,
-            preserveDrawingBuffer: false,
+
+    const play = () => {
+        video.play().catch((error: unknown) => {
+            if (signal.aborted || !(error instanceof DOMException) || error.name !== "NotAllowedError") return;
+            document.addEventListener("click", update, { once: true, signal });
+            document.addEventListener("touchstart", update, { once: true, passive: true, signal });
         });
-        if (!gl) return;
-
-        const vert = compileShader(gl, VERTEX_SHADER, gl.VERTEX_SHADER);
-        const frag = compileShader(gl, FRAGMENT_SHADER, gl.FRAGMENT_SHADER);
-        if (!vert || !frag) return;
-
-        const program = createProgram(gl, vert, frag);
-        if (!program) return;
-
-        gl.useProgram(program);
-        createFullscreenQuad(gl, program);
-
-        videoTexture = createVideoTexture(gl);
-        atlasTexture = createAsciiAtlas(gl, chars, FONT_SIZE);
-
-        const u = (name: string) => gl!.getUniformLocation(program!, name);
-
-        gl.uniform1i(u("u_video"), 0);
-        gl.uniform1i(u("u_asciiAtlas"), 1);
-        gl.uniform2f(u("u_resolution"), w, h);
-        gl.uniform2f(u("u_charSize"), charWidth, FONT_SIZE);
-        gl.uniform2f(u("u_gridSize"), cols, rows);
-        gl.uniform1f(u("u_numChars"), chars.length);
-        gl.uniform1i(u("u_colored"), 0);
-        gl.uniform1f(u("u_blend"), 0);
-        gl.uniform1f(u("u_highlight"), 0);
-        gl.uniform1f(u("u_brightness"), 1.0);
-        gl.uniform2f(u("u_mouse"), -1, -1);
-        gl.uniform1f(u("u_mouseRadius"), 0);
-        gl.uniform1i(u("u_trailLength"), 0);
-        gl.uniform1f(u("u_rippleEnabled"), 0);
-        gl.uniform1f(u("u_audioLevel"), 0);
-        gl.uniform1f(u("u_audioReactivity"), 0);
-        gl.uniform1f(u("u_audioSensitivity"), 0);
-
-        gl.viewport(0, 0, w, h);
     };
 
-    const render = () => {
-        if (gl && video.readyState >= 2) {
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, videoTexture);
-            gl.texImage2D(
-                gl.TEXTURE_2D,
-                0,
-                gl.RGBA,
-                gl.RGBA,
-                gl.UNSIGNED_BYTE,
-                video,
-            );
-            gl.generateMipmap(gl.TEXTURE_2D);
-
-            gl.activeTexture(gl.TEXTURE1);
-            gl.bindTexture(gl.TEXTURE_2D, atlasTexture);
-
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
+    const update = () => {
+        if (onscreen && document.visibilityState === "visible" && !motion.matches) {
+            play();
+            schedule();
+        } else {
+            video.pause();
         }
-
-        raf = requestAnimationFrame(render);
     };
 
-    window.addEventListener("resize", init, { signal });
+    video.addEventListener("loadeddata", draw, { signal });
+    video.addEventListener("playing", schedule, { signal });
+    document.addEventListener("visibilitychange", update, { signal });
+    motion.addEventListener("change", update, { signal });
 
-    const startRender = () => {
-        if (!raf && !signal.aborted) raf = requestAnimationFrame(render);
-    };
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(root);
 
-    const retry = () => {
-        video
-            .play()
-            .then(startRender)
-            .catch(() => {});
-    };
+    const intersectionObserver = new IntersectionObserver((entries) => {
+        onscreen = entries.at(-1)?.isIntersecting ?? onscreen;
+        update();
+    });
+    intersectionObserver.observe(root);
 
-    const tryPlay = () => {
-        video
-            .play()
-            .then(startRender)
-            .catch(() => {
-                if (signal.aborted) return;
-                document.addEventListener("click", retry, { once: true, signal });
-                document.addEventListener("touchstart", retry, { once: true, signal });
-            });
-    };
-
-    const start = () => {
-        init();
-        tryPlay();
-    };
-
-    if (video.readyState >= 1) start();
-    else video.addEventListener("loadedmetadata", start, { once: true, signal });
+    resize();
+    update();
 
     return {
         disconnect() {
+            resizeObserver.disconnect();
+            intersectionObserver.disconnect();
             cancelAnimationFrame(raf);
             video.pause();
-            teardown();
+            gl.getExtension("WEBGL_lose_context")?.loseContext();
         },
     };
 };

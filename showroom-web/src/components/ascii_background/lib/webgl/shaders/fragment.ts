@@ -6,33 +6,10 @@ uniform sampler2D u_video;
 uniform sampler2D u_asciiAtlas;
 
 // Dimensions
-uniform vec2 u_resolution;
-uniform vec2 u_charSize;
 uniform vec2 u_gridSize;
 uniform float u_numChars;
 
-// Rendering options
-uniform bool u_colored;
-uniform float u_blend;
-uniform float u_highlight;
 uniform float u_brightness;
-
-// Audio
-uniform float u_audioLevel;
-uniform float u_audioReactivity;
-uniform float u_audioSensitivity;
-
-// Mouse
-uniform vec2 u_mouse;
-uniform float u_mouseRadius;
-uniform vec2 u_trail[24];
-uniform int u_trailLength;
-
-// Ripple
-uniform vec4 u_ripples[8];
-uniform float u_time;
-uniform float u_rippleEnabled;
-uniform float u_rippleSpeed;
 
 in vec2 v_texCoord;
 out vec4 fragColor;
@@ -40,7 +17,6 @@ out vec4 fragColor;
 void main() {
   // Figure out which ASCII cell this pixel is in
   vec2 cellCoord = floor(v_texCoord * u_gridSize);
-  vec2 thisCell = cellCoord;
 
   // Sample video at cell center (mipmaps handle averaging)
   vec2 cellCenter = (cellCoord + 0.5) / u_gridSize;
@@ -72,16 +48,10 @@ void main() {
   vec2 atlasCoord = vec2(atlasX + cellPos.x / u_numChars, cellPos.y);
   vec4 charColor = texture(u_asciiAtlas, atlasCoord);
 
-  // Pick the color - video colors or green terminal aesthetic
-  vec3 baseColor = vec3(1.0, 1.0, 1.0);
-
-
   // White background, atlas-coloured text
   vec3 bgColor = vec3(1.0, 1.0, 1.0);
   float charMask = dot(charColor.rgb, vec3(0.299, 0.587, 0.114));
   vec3 finalColor = mix(bgColor, charColor.rgb, smoothstep(0.05, 0.6, charMask));
-
-  // Blend with original video if requested
 
   fragColor = vec4(finalColor, 1.0);
 }
