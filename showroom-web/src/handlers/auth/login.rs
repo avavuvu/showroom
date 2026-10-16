@@ -1,5 +1,5 @@
 use axum::{Form, extract::State, response::{IntoResponse, Redirect, Response}};
-use boutique::{AppError, AppResult, htmx, session::{self, LoginError}};
+use boutique::{AppResult, htmx, session};
 use serde::Deserialize;
 use validator::Validate;
 
@@ -30,9 +30,6 @@ pub async fn login(
 ) -> AppResult {
     form.validate()?;
 
-    match session::login(&state.auth, &form.email, &form.password).await {
-        Ok((_, session)) => Ok((session, htmx::redirect(&state.urls.app())).into_response()),
-        Err(LoginError::InvalidCredentials) => Err(AppError::message("Incorrect email or password")),
-        Err(e) => Err(AppError::internal("login", e)),
-    }
+    let (_, session) = session::login(&state.auth, &form.email, &form.password).await?;
+    Ok((session, htmx::redirect(&state.urls.app())).into_response())
 }

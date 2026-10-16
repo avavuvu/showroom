@@ -24,15 +24,11 @@ pub async fn forgot_password(
 ) -> AppResult {
     form.validate()?;
 
-    match reset::request(&state.auth, &form.email).await {
-        Ok(Some((user, token))) => {
-            let reset_url = format!("{}/reset-password?token={}", state.urls.base(), token);
-            mailer::send_password_reset(&state.ses, &user.email, &reset_url, &state.urls)
-                .await
-                .map_err(|e| AppError::internal(&format!("forgot-password email failed for {}", user.email), e))?;
-        }
-        Ok(None) => {}
-        Err(e) => return Err(AppError::internal("forgot-password", e)),
+    if let Some((user, token)) = reset::request(&state.auth, &form.email).await? {
+        let reset_url = format!("{}/reset-password?token={}", state.urls.base(), token);
+        mailer::send_password_reset(&state.ses, &user.email, &reset_url, &state.urls)
+            .await
+            .map_err(|e| AppError::internal(&format!("forgot-password email failed for {}", user.email), e))?;
     }
 
     Ok(views::auth::forgot_password_sent().into_response())
