@@ -1,5 +1,9 @@
-use boutique::Server;
+use std::time::Duration;
+
+use boutique::{Cache, Server};
 use crate::{routers::*, services::{error_page, subdomain::SubdomainRouter}, state::AppState};
+
+const DAY: u64 = 24 * 60 * 60;
 
 pub fn create_server(state: &AppState) -> (Server, SubdomainRouter) {
     let routes = SubdomainRouter::new(
@@ -14,8 +18,8 @@ pub fn create_server(state: &AppState) -> (Server, SubdomainRouter) {
         .file("/favicon.ico", "resources/static/favicon.ico")
         .file("/manifest.webmanifest", "resources/static/manifest.webmanifest")
         .static_dir("/assets", "resources/static/assets")
-        .static_dir("/icons", "resources/static/icons")
-        .static_dir("/avatars", "resources/static/avatars")
+        .static_dir_with("/icons", "resources/static/icons", Cache::MaxAge(Duration::from_secs(7 * DAY)))
+        .static_dir_with("/avatars", "resources/static/avatars", Cache::MaxAge(Duration::from_secs(30 * DAY)))
         .error_page_with_state(state.clone(), error_page::render)
         .debug(cfg!(debug_assertions));
 
