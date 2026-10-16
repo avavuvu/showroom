@@ -9,8 +9,8 @@ edition = "2024"
 build = "build.rs"
 
 [dependencies]
-boutique = { git = "https://github.com/avavuvu/boutique.git", rev = "7369760a4afd963f57f3a9a93c10959e0eeeb221", features = ["cloudinary", "sea-orm"] }
-bq_components = { git = "https://github.com/avavuvu/boutique.git", rev = "7369760a4afd963f57f3a9a93c10959e0eeeb221" }
+boutique = { git = "https://github.com/avavuvu/boutique.git", rev = "4e8a02885caec2f04a60ecd1fd2f2c03c0ffa4b5", features = ["cloudinary", "sea-orm"] }
+bq_components = { git = "https://github.com/avavuvu/boutique.git", rev = "4e8a02885caec2f04a60ecd1fd2f2c03c0ffa4b5" }
 axum = { version = "0.8.9", features = ["multipart"] }
 sea-orm = { version = "1", features = ["sqlx-postgres", "runtime-tokio-rustls", "macros"] }
 serde = { version = "1.0.228", features = ["derive"] }
@@ -35,4 +35,4 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [build-dependencies]
-bq_setups = { git = "https://github.com/avavuvu/boutique.git", rev = "7369760a4afd963f57f3a9a93c10959e0eeeb221" }
+bq_setups = { git = "https://github.com/avavuvu/boutique.git", rev = "4e8a02885caec2f04a60ecd1fd2f2c03c0ffa4b5" }
