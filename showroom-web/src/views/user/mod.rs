@@ -1,11 +1,10 @@
-use boutique::html;
-use maud::Markup;
+use boutique::prelude::*;
 use crate::{document::Document, models::{newsletter::Model as Newsletter, publication::{self, Picture}}, renderer::html::render, components::{ArticleHeader, subscribe_form}, state::Urls, views::{context::PageContext, layouts::{Metadata, page, shell}}};
 
 fn with_share_image(metadata: Metadata, publication: &publication::Model, urls: &Urls) -> Metadata {
     match (publication.banner_url(urls), publication.picture()) {
-        (Some(banner), _) => metadata.with_image(&banner),
-        (None, Picture::Upload(_)) => metadata.with_image(&publication.picture_url(urls)),
+        (Some(banner), _) => metadata.image(&banner),
+        (None, Picture::Upload(_)) => metadata.image(publication.picture_url(urls)),
         (None, Picture::Default(_)) => metadata,
     }
 }

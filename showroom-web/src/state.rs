@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
 use aws_sdk_sesv2::Client as SesClient;
-use axum::extract::FromRef;
-use boutique::{AuthConfig, AuthState, store::sea_orm::SeaOrmStore};
+use boutique::{AuthConfig, AuthState, HasAuth, store::sea_orm::SeaOrmStore};
 use sea_orm::DatabaseConnection;
 use boutique::cloudinary::Cloudinary;
 use tokio::sync::Notify;
@@ -115,7 +114,7 @@ impl Urls {
 pub struct AppState {
     pub db: DatabaseConnection,
     pub urls: Urls,
-    pub auth: AuthState<user::Model>,
+    pub auth: AuthState<user::Store>,
     pub ses: SesClient,
     pub cloudinary: Cloudinary,
     pub sends: Arc<Notify>,
@@ -123,13 +122,15 @@ pub struct AppState {
 
 impl AppState {
     pub fn new(db: DatabaseConnection, ses: SesClient, cloudinary: Cloudinary, urls: Urls, secret: String) -> Self {
-        let auth = AuthState::new(SeaOrmStore::new(db.clone()), secret).config(urls.auth_config());
+        let auth = AuthState::new(SeaOrmStore::new(db.clone()), secret).with_config(urls.auth_config());
         Self { db, urls, auth, ses, cloudinary, sends: Arc::new(Notify::new()) }
     }
 }
 
-impl FromRef<AppState> for AuthState<user::Model> {
-    fn from_ref(state: &AppState) -> Self {
-        state.auth.clone()
+impl HasAuth for AppState {
+    type Store = user::Store;
+
+    fn auth(&self) -> &AuthState<user::Store> {
+        &self.auth
     }
 }

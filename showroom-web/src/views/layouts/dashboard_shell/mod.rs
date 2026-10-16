@@ -1,7 +1,6 @@
-use boutique::html;
+use boutique::prelude::*;
 use bq_components::Button;
 use crate::components::{Wordmark, dropdown::Dropdown, icon::{Glyph, Icon}};
-use maud::{Markup, PreEscaped};
 use crate::views::{context::PageContext, layouts::{Head, base, installable}};
 
 pub fn dashboard_shell(view: Head, ctx: &PageContext, content: Markup) -> Markup {
@@ -14,7 +13,7 @@ pub fn dashboard_shell(view: Head, ctx: &PageContext, content: Markup) -> Markup
         None => user.email.clone(),
     };
 
-    let class = view.class.as_deref().unwrap_or("");
+    let class = view.html_class().unwrap_or("");
     let current = |item: &str| -> Option<&'static str> {
         let active = match item {
             "home" => class == "overview",
@@ -122,10 +121,10 @@ pub fn dashboard_shell(view: Head, ctx: &PageContext, content: Markup) -> Markup
                     }
                     }
                 }
-                main class=[&view.class] {
+                main class=[view.html_class()] {
                     header {
                         div {
-                            h1 { (view.title) }
+                            h1 { (view.title()) }
                             p.subtitle { (subtitle) }
                         }
                     }

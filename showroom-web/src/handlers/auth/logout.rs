@@ -1,5 +1,5 @@
 use axum::{extract::State, response::{IntoResponse, Redirect, Response}};
-use boutique::session::{self, CookieJar};
+use boutique::{CookieJar, session};
 
 use crate::state::AppState;
 

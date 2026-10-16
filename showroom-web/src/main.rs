@@ -95,7 +95,10 @@ async fn server(env: AppEnv) {
     #[cfg(not(feature = "local"))]
     println!("listening on http://0.0.0.0:{}", env.port);
 
-    server.serve(routes, &env.port).await;
+    if let Err(error) = server.serve(routes, format!("0.0.0.0:{}", env.port)).await {
+        tracing::error!(%error, "server failed");
+        std::process::exit(1);
+    }
 }
 
 struct AbortOnDrop(tokio::task::JoinHandle<()>);

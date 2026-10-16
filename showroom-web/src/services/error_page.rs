@@ -2,8 +2,7 @@ use axum::{
     extract::State,
     http::{HeaderMap, StatusCode, header::REFERER},
 };
-use boutique::{AppError, ErrorReport, html};
-use maud::Markup;
+use boutique::{AuthRejection, prelude::*};
 
 use crate::{
     state::AppState,
@@ -12,14 +11,14 @@ use crate::{
 
 pub async fn render(
     State(state): State<AppState>,
-    viewer: Result<Viewer, AppError>,
+    viewer: Result<Viewer, AuthRejection>,
     headers: HeaderMap,
     report: ErrorReport,
 ) -> Markup {
     let message = (!report.messages.is_empty()).then(|| {
         html! {
-            @for (_, message) in &report.messages {
-                p { (message) }
+            @for message in &report.messages {
+                p { (message.text) }
             }
         }
     });

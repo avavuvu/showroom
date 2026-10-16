@@ -1,5 +1,5 @@
 use axum::{Form, extract::State, response::{IntoResponse, Redirect, Response}};
-use boutique::{AppError, AppResult, htmx, session};
+use boutique::{AppError, AppResult, ErrorMessage, htmx, session};
 
 use crate::{
     services::account::{self, AccountError, NewAccount},
@@ -25,7 +25,7 @@ pub async fn signup(
 ) -> AppResult {
     let user = account::create(&state.db, &form).await.map_err(|e| match e {
         AccountError::Invalid(errors) => AppError::Validation(errors),
-        AccountError::Fields(fields) => AppError::Fields(fields),
+        AccountError::Fields(fields) => AppError::Fields(fields.into_iter().map(|(field, text)| ErrorMessage::field(field, text)).collect()),
         AccountError::Hash(e) => AppError::internal("signup password hash", e),
         AccountError::Database(e) => AppError::internal("signup", e),
     })?;

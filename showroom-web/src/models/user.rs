@@ -43,15 +43,11 @@ impl UserEntity for Entity {
     const PASSWORD_HASH: Column = Column::Password;
 }
 
-impl AuthUser for Model {
-    type Store = SeaOrmStore<Entity, super::session::Entity>;
+pub type Store = SeaOrmStore<Entity, super::session::Entity>;
 
+impl AuthUser for Model {
     fn id(&self) -> &str {
         &self.id
-    }
-
-    fn email(&self) -> &str {
-        &self.email
     }
 
     fn password_hash(&self) -> &str {
@@ -59,7 +55,7 @@ impl AuthUser for Model {
     }
 }
 
-pub fn new(email: &str, plain_password: &str) -> Result<ActiveModel, boutique::argon2::password_hash::Error> {
+pub fn new(email: &str, plain_password: &str) -> Result<ActiveModel, boutique::password::HashError> {
     Ok(ActiveModel {
         id: Set(uuid::Uuid::new_v4().to_string()),
         email: Set(email.to_string()),
