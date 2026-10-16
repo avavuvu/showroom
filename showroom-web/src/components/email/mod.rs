@@ -5,7 +5,7 @@ use maud::Markup;
 use crate::{models::publication::EMAIL_PICTURE_SIZE, theme::EmailTheme};
 
 const GUTTER: &str = "32";
-const STYLESHEET: &str = include_str!("email.css");
+const STYLESHEET: &str = include_str!("email.email.css");
 
 #[allow(dead_code)]
 #[derive(Clone, Copy)]
@@ -47,8 +47,8 @@ pub fn stylesheet(theme: &EmailTheme) -> String {
         .fold(STYLESHEET.to_string(), |css, (name, value)| css.replace(&format!("var(--{name})"), value));
 
     if css.contains("var(") {
-        eprintln!("[email] email.css uses a variable that stylesheet() does not set");
-        debug_assert!(false, "email.css uses a variable that stylesheet() does not set");
+        eprintln!("[email] email.email.css uses a variable that stylesheet() does not set");
+        debug_assert!(false, "email.email.css uses a variable that stylesheet() does not set");
     }
 
     css

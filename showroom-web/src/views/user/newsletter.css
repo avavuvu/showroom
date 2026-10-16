@@ -1,6 +1,4 @@
 .newsletter {
-    min-height: 100vh;
-
     & .subscribe {
 
         --color-border: var(--color-on-primary);
