@@ -849,6 +849,7 @@ dependencies = [
 [[package]]
 name = "boutique"
 version = "0.2.0"
+source = "git+https://github.com/avavuvu/boutique.git?rev=430115b4593f9afea4103843e07880d724fc507a#430115b4593f9afea4103843e07880d724fc507a"
 dependencies = [
  "argon2",
  "axum",
@@ -879,10 +880,12 @@ dependencies = [
 [[package]]
 name = "bq_assets"
 version = "0.2.0"
+source = "git+https://github.com/avavuvu/boutique.git?rev=430115b4593f9afea4103843e07880d724fc507a#430115b4593f9afea4103843e07880d724fc507a"
 
 [[package]]
 name = "bq_components"
 version = "0.2.0"
+source = "git+https://github.com/avavuvu/boutique.git?rev=430115b4593f9afea4103843e07880d724fc507a#430115b4593f9afea4103843e07880d724fc507a"
 dependencies = [
  "bon",
  "bq_assets",
@@ -893,6 +896,7 @@ dependencies = [
 [[package]]
 name = "bq_html"
 version = "0.2.0"
+source = "git+https://github.com/avavuvu/boutique.git?rev=430115b4593f9afea4103843e07880d724fc507a#430115b4593f9afea4103843e07880d724fc507a"
 dependencies = [
  "heck 0.5.0",
  "proc-macro2",
@@ -904,6 +908,7 @@ dependencies = [
 [[package]]
 name = "bq_macros"
 version = "0.2.0"
+source = "git+https://github.com/avavuvu/boutique.git?rev=430115b4593f9afea4103843e07880d724fc507a#430115b4593f9afea4103843e07880d724fc507a"
 dependencies = [
  "bq_html",
  "proc-macro-crate",
@@ -915,6 +920,7 @@ dependencies = [
 [[package]]
 name = "bq_setups"
 version = "0.2.0"
+source = "git+https://github.com/avavuvu/boutique.git?rev=430115b4593f9afea4103843e07880d724fc507a#430115b4593f9afea4103843e07880d724fc507a"
 dependencies = [
  "bq_assets",
  "bq_html",
