@@ -31,7 +31,6 @@ struct AppEnv {
     secret: String,
 }
 
-// this is used in prod, cargo misses that
 #[allow(unused)]
 fn ensure_ssl(url: &str) -> String {
     if url.contains("sslmode") {
@@ -86,7 +85,7 @@ async fn server(env: AppEnv) {
     }
 
     let state = state::AppState::new(env.db, env.ses, env.cloudinary, urls, env.secret);
-    let _worker = AbortOnDrop(tokio::spawn(services::newsletter_send::run_worker(state.clone())));
+    let _worker = AbortOnDrop(tokio::spawn(services::newsletter_send::supervise_worker(state.clone())));
     let _session_cleanup = AbortOnDrop(boutique::session::spawn_cleanup(state.auth.clone(), Duration::from_secs(60 * 60)));
 
     let (server, routes) = router::create_server(&state);

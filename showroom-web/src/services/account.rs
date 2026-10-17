@@ -5,8 +5,11 @@ use serde::Deserialize;
 use validator::{Validate, ValidationErrors};
 
 use crate::{
-    models::{publication::{self, Entity as Publication}, user::{self, Entity as User}},
-    renderer::greeting,
+    models::{
+        publication::{self, Entity as Publication},
+        publication_name::{NameCase, PublicationName},
+        user::{self, Entity as User},
+    },
 };
 
 
@@ -100,10 +103,10 @@ pub async fn create(db: &DatabaseConnection, account: &NewAccount) -> Result<use
         id: Set(uuid::Uuid::new_v4().to_string()),
         owner_id: new_user.id.clone(),
         slug: Set(slug.clone()),
-        name: Set(format!("{slug}'s room")),
+        name: Set(PublicationName::for_slug(&slug).render(NameCase::Typed)),
+        name_case: Set(NameCase::Typed),
         description: Set(None),
         theme: Set(None),
-        greeting: Set(greeting::DEFAULT.to_string()),
         image: Set(publication::random_picture()),
         banner: Set(None),
         pictures: Set(Default::default()),

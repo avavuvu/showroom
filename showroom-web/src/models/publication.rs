@@ -1,7 +1,7 @@
 use sea_orm::{FromJsonQueryResult, QueryOrder, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
-use crate::{state::Urls, theme::Theme};
+use crate::{models::publication_name::NameCase, state::Urls, theme::Theme};
 
 pub const DEFAULT_PICTURES: u8 = 10;
 pub const BANNER_WIDTH: u32 = 1200;
@@ -16,9 +16,9 @@ pub struct Model {
     pub owner_id: String,
     pub slug: String,
     pub name: String,
+    pub name_case: NameCase,
     pub description: Option<String>,
     pub theme: Option<Theme>,
-    pub greeting: String,
     pub image: String,
     pub banner: Option<String>,
     pub pictures: Pictures,

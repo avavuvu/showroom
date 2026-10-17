@@ -95,7 +95,28 @@ pub enum Inline {
         marks: Vec<Mark>,
     },
     HardBreak {},
+    Name {
+        #[serde(default)]
+        attrs: NameAttrs,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        marks: Vec<Mark>,
+    },
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct NameAttrs {
+    #[serde(default, deserialize_with = "null_string")]
+    pub fallback: String,
+}
+
+impl NameAttrs {
+    pub fn with_fallback(fallback: &str) -> Self {
+        Self { fallback: fallback.to_string() }
+    }
+}
+
+pub const NAME_TOKEN: &str = "{{name}}";
+pub const MAX_FALLBACK: usize = 40;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
@@ -220,9 +241,19 @@ impl Document {
 
     pub fn from_stored(value: &Value) -> Self {
         Self::from_value(value).unwrap_or_else(|error| {
-            eprintln!("[error] stored document is not valid: {error}");
+            tracing::error!(%error, "a stored document is not valid");
             Self::default()
         })
+    }
+
+    pub fn greeting() -> Self {
+        let text = |text: &str| Inline::Text { text: text.to_string(), marks: Vec::new() };
+        Self {
+            content: vec![
+                Block::Paragraph { content: vec![text("Hi "), Inline::Name { attrs: NameAttrs::with_fallback("friend"), marks: Vec::new() }, text(",")] },
+                Block::Paragraph { content: Vec::new() },
+            ],
+        }
     }
 
     pub fn to_value(&self) -> Value {
@@ -240,6 +271,15 @@ impl Document {
 }
 
 impl Block {
+    pub fn requires_name(&self) -> bool {
+        match self {
+            Block::Paragraph { content } | Block::Heading { content, .. } | Block::Caption { content } | Block::Attribution { content } => {
+                requires_name(content)
+            }
+            _ => false,
+        }
+    }
+
     fn is_empty_paragraph(&self) -> bool {
         matches!(self, Block::Paragraph { content } if content.is_empty())
     }
@@ -273,8 +313,25 @@ pub fn inline_text(content: &[Inline]) -> String {
         .map(|inline| match inline {
             Inline::Text { text, .. } => text.as_str(),
             Inline::HardBreak {} => " ",
+            Inline::Name { .. } => NAME_TOKEN,
         })
         .collect()
+}
+
+pub fn alt_text(content: &[Inline]) -> String {
+    let text: String = content
+        .iter()
+        .map(|inline| match inline {
+            Inline::Text { text, .. } => text.as_str(),
+            Inline::HardBreak {} => " ",
+            Inline::Name { attrs, .. } => attrs.fallback.as_str(),
+        })
+        .collect();
+    text.split_whitespace().collect::<Vec<_>>().join(" ")
+}
+
+pub fn requires_name(content: &[Inline]) -> bool {
+    content.iter().any(|inline| matches!(inline, Inline::Name { attrs, .. } if attrs.fallback.is_empty()))
 }
 
 pub fn code_text(content: &[Inline]) -> String {
@@ -283,6 +340,7 @@ pub fn code_text(content: &[Inline]) -> String {
         .map(|inline| match inline {
             Inline::Text { text, .. } => text.as_str(),
             Inline::HardBreak {} => "\n",
+            Inline::Name { .. } => NAME_TOKEN,
         })
         .collect()
 }

@@ -1,4 +1,4 @@
-use sea_orm::entity::prelude::*;
+use sea_orm::{QuerySelect, entity::prelude::*};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
 #[sea_orm(table_name = "newsletters")]
@@ -13,6 +13,9 @@ pub struct Model {
     pub revision: i32,
     pub published_at: Option<DateTimeWithTimeZone>,
     pub send_started_at: Option<DateTimeWithTimeZone>,
+    pub email_subject: Option<String>,
+    pub email_html: Option<String>,
+    pub email_text: Option<String>,
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,
 }
@@ -34,6 +37,29 @@ impl Related<super::publication::Entity> for Entity {
 }
 
 impl ActiveModelBehavior for ActiveModel {}
+
+impl Entity {
+    pub fn find_summaries() -> Select<Entity> {
+        Entity::find()
+            .select_only()
+            .columns([
+                Column::Id,
+                Column::PublicationId,
+                Column::Title,
+                Column::Slug,
+                Column::Subtitle,
+                Column::Revision,
+                Column::PublishedAt,
+                Column::SendStartedAt,
+                Column::CreatedAt,
+                Column::UpdatedAt,
+            ])
+            .column_as(Expr::cust("'null'::jsonb"), Column::Content)
+            .column_as(Expr::cust("NULL::text"), Column::EmailSubject)
+            .column_as(Expr::cust("NULL::text"), Column::EmailHtml)
+            .column_as(Expr::cust("NULL::text"), Column::EmailText)
+    }
+}
 
 impl Model {
     pub fn display_title(&self) -> &str {

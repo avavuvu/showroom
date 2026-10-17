@@ -2,17 +2,22 @@ use axum::{http::header, response::{IntoResponse, Response}};
 use boutique::html;
 use maud::{Markup, PreEscaped};
 
-use crate::{
-    models::{newsletter::Model as Newsletter, publication::Model as Publication},
-    state::Urls,
-};
+use chrono::{DateTime, FixedOffset};
+
+use crate::state::Urls;
+
+pub struct NewsletterEntry {
+    pub publication_slug: String,
+    pub slug: String,
+    pub updated_at: DateTime<FixedOffset>,
+}
 
 pub struct Xml(Markup);
 
 impl IntoResponse for Xml {
     fn into_response(self) -> Response {
         (
-            [(header::CONTENT_TYPE, "application/xml; charset=utf-8")],
+            [(header::CONTENT_TYPE, "application/xml; charset=utf-8"), (header::CACHE_CONTROL, "public, max-age=3600")],
             self.0.into_string(),
         )
             .into_response()
@@ -44,27 +49,25 @@ pub fn pages(base: &str) -> Xml {
     })
 }
 
-pub fn publications(publications: &[Publication], urls: &Urls) -> Xml {
+pub fn publications(slugs: &[String], urls: &Urls) -> Xml {
     Xml(html! {
         (decl())
         urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" {
-            @for publication in publications {
-                url { loc { (urls.publication(&publication.slug)) "/" } }
+            @for slug in slugs {
+                url { loc { (urls.publication(slug)) "/" } }
             }
         }
     })
 }
 
-pub fn newsletters(items: &[(Newsletter, Publication)], urls: &Urls) -> Xml {
+pub fn newsletters(entries: &[NewsletterEntry], urls: &Urls) -> Xml {
     Xml(html! {
         (decl())
         urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" {
-            @for (newsletter, publication) in items {
+            @for entry in entries {
                 url {
-                    loc { (urls.publication(&publication.slug)) "/" (newsletter.slug) }
-                    @if let Some(published_at) = newsletter.published_at {
-                        lastmod { (published_at.format("%Y-%m-%d")) }
-                    }
+                    loc { (urls.publication(&entry.publication_slug)) "/" (entry.slug) }
+                    lastmod { (entry.updated_at.format("%Y-%m-%d")) }
                 }
             }
         }

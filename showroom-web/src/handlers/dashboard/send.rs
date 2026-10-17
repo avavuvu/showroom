@@ -4,7 +4,8 @@ use maud::Markup;
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter};
 use slugify::slugify;
 use crate::{
-    services::{newsletter_send, publication::OwnedPublication},
+    mailer,
+    services::{newsletter_send, publication::{OwnedPublication, find_newsletter as find}},
     models::newsletter::{self, Entity as Newsletter},
     state::AppState,
     views,
@@ -72,19 +73,15 @@ pub async fn post_send(
     active.slug = Set(slug);
     let newsletter = active.update(&state.db).await?;
 
-    if newsletter_send::enqueue(&state.db, &newsletter, &publication).await? {
+    let started_at = chrono::Utc::now().fixed_offset();
+    let email = mailer::send_newsletter::render(&newsletter, &publication, started_at, &state.urls)
+        .map_err(|error| AppError::message(error.message))?;
+
+    if newsletter_send::enqueue(&state.db, &newsletter, email, started_at).await? {
         state.sends.notify_one();
     }
 
     Ok(Redirect::to(&send_url(&state, &publication.slug, &newsletter.id)))
-}
-
-async fn find(db: &DatabaseConnection, publication_id: &str, id: &str) -> AppResult<newsletter::Model> {
-    Newsletter::find_by_id(id)
-        .filter(newsletter::Column::PublicationId.eq(publication_id))
-        .one(db)
-        .await?
-        .ok_or(AppError::NotFound)
 }
 
 fn send_url(state: &AppState, slug: &str, id: &str) -> String {

@@ -48,5 +48,6 @@ pub async fn lookup(client: &reqwest::Client, link: &MusicUrl) -> Result<Option<
         title: title.unwrap_or_default(),
         artist: item.artist_name.unwrap_or_default(),
         artwork: item.artwork_url100.map(|artwork| artwork.replace("100x100bb", "600x600bb")),
+        color: None,
     }))
 }

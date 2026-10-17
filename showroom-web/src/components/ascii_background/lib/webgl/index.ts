@@ -1,6 +1,6 @@
 // Shaders
-export { VERTEX_SHADER } from "./shaders/vertex";
-export { FRAGMENT_SHADER } from "./shaders/fragment";
+export { VERTEX_SHADER } from "./shaders/vertex"
+export { FRAGMENT_SHADER } from "./shaders/fragment"
 
 // Utilities
 export {
@@ -11,4 +11,4 @@ export {
     createAsciiAtlas,
     calculateGridDimensions,
     createUniformSetter,
-} from "./utils";
+} from "./utils"

@@ -8,27 +8,43 @@ use serde::Deserialize;
 
 use boutique::{AppError, AppResult, AuthenticatedUser};
 use crate::{
-    renderer::greeting,
     services::publication::OwnedPublication,
     models::{
         newsletter::{self, Entity as Newsletter},
         publication::{self, Entity as Publication},
+        publication_name::{Article, NameCase, Noun, Possessive, PublicationName},
         subscriber::{self, Entity as Subscriber},
         user,
     },
     state::AppState,
     theme::{Color, Font, Fonts, Layout, Overrides, Theme},
+    components::NameCases,
     views::{self, PageContext},
 };
 
-async fn account_context(user: &user::Model, state: &AppState) -> PageContext {
-    let publications = publication::for_owner(&user.id, &state.db)
-        .await
-        .unwrap_or_else(|e| {
-            eprintln!("[publications] failed to load publications for {}: {e}", user.id);
-            Vec::new()
-        });
-    PageContext::from_user(user, state.urls.clone()).with_publications(publications)
+#[derive(Deserialize)]
+pub struct NameForm {
+    pub article: Article,
+    pub label: String,
+    pub possessive: Possessive,
+    pub noun: Noun,
+    pub name_case: NameCase,
+}
+
+impl NameForm {
+    fn name(&self) -> PublicationName {
+        let label = self.label.split_whitespace().collect::<Vec<_>>().join(" ");
+        PublicationName { article: self.article, label, possessive: self.possessive, noun: self.noun }
+    }
+}
+
+pub async fn preview_name(_: AuthenticatedUser<user::Model>, Form(form): Form<NameForm>) -> Markup {
+    boutique::html! { NameCases(&form.name(), case = form.name_case); }
+}
+
+async fn account_context(user: &user::Model, state: &AppState) -> Result<PageContext, sea_orm::DbErr> {
+    let publications = publication::for_owner(&user.id, &state.db).await?;
+    Ok(PageContext::from_user(user, state.urls.clone()).with_publications(publications))
 }
 
 pub async fn index(
@@ -48,14 +64,15 @@ pub async fn index(
 #[derive(Deserialize)]
 pub struct NewPublicationForm {
     pub slug: String,
-    pub name: String,
+    #[serde(flatten)]
+    pub name: NameForm,
 }
 
 pub async fn new_form(
     State(state): State<AppState>,
     AuthenticatedUser(user): AuthenticatedUser<user::Model>,
-) -> Markup {
-    views::dashboard::publications::new_form(&account_context(&user, &state).await, "", "", None)
+) -> AppResult<Markup> {
+    Ok(views::dashboard::publications::new_form(&account_context(&user, &state).await?, "", &PublicationName::default(), NameCase::default(), None))
 }
 
 pub async fn create(
@@ -63,27 +80,31 @@ pub async fn create(
     AuthenticatedUser(user): AuthenticatedUser<user::Model>,
     Form(form): Form<NewPublicationForm>,
 ) -> Response {
-    let ctx = account_context(&user, &state).await;
+    let ctx = match account_context(&user, &state).await {
+        Ok(ctx) => ctx,
+        Err(error) => return AppError::from(error).into_response(),
+    };
     let slug = form.slug.trim().to_lowercase();
-    let name = form.name.trim().to_string();
+    let name = form.name.name();
+    let case = form.name.name_case;
 
-    let retry = |message: &str| views::dashboard::publications::new_form(&ctx, &slug, &name, Some(message)).into_response();
+    let retry = |message: &str| views::dashboard::publications::new_form(&ctx, &slug, &name, case, Some(message)).into_response();
 
-    if name.is_empty() {
-        return retry("A name is required");
+    if let Err(message) = name.validate() {
+        return retry(message);
     }
 
     if let Err(message) = publication::validate_slug(&slug) {
         return retry(message);
     }
 
-    let taken = Publication::find()
-        .filter(publication::Column::Slug.eq(&slug))
-        .one(&state.db)
-        .await
-        .ok()
-        .flatten()
-        .is_some();
+    let taken = match Publication::find().filter(publication::Column::Slug.eq(&slug)).one(&state.db).await {
+        Ok(existing) => existing.is_some(),
+        Err(error) => {
+            tracing::error!(%error, "checking a publication address failed");
+            return retry("Something went wrong, please try again");
+        }
+    };
 
     if taken {
         return retry("This address is already taken");
@@ -94,10 +115,10 @@ pub async fn create(
         id: Set(uuid::Uuid::new_v4().to_string()),
         owner_id: Set(user.id.clone()),
         slug: Set(slug.clone()),
-        name: Set(name.clone()),
+        name: Set(name.render(case)),
+        name_case: Set(case),
         description: Set(None),
         theme: Set(None),
-        greeting: Set(greeting::DEFAULT.to_string()),
         image: Set(publication::random_picture()),
         banner: Set(None),
         pictures: Set(Default::default()),
@@ -108,8 +129,8 @@ pub async fn create(
 
     match new_publication.insert(&state.db).await {
         Ok(_) => Redirect::to(&state.urls.dashboard(&slug)).into_response(),
-        Err(e) => {
-            eprintln!("[publications] create failed: {e}");
+        Err(error) => {
+            tracing::error!(%error, "creating a publication failed");
             retry("Something went wrong, please try again")
         }
     }
@@ -125,10 +146,9 @@ pub async fn get_settings(
 
 #[derive(Deserialize)]
 pub struct SettingsForm {
-    pub name: String,
+    #[serde(flatten)]
+    pub name: NameForm,
     pub description: Option<String>,
-    #[serde(default)]
-    pub greeting: String,
 }
 
 pub async fn update_settings(
@@ -136,27 +156,17 @@ pub async fn update_settings(
     owned: OwnedPublication,
     Form(form): Form<SettingsForm>,
 ) -> AppResult {
-    let name = form.name.trim().to_string();
     let description = form.description.map(|d| d.trim().to_string()).filter(|d| !d.is_empty());
-
-    if name.is_empty() {
-        return Ok(views::dashboard::publications::settings(&owned.into_context(state.urls.clone()), Some("A name is required")).into_response());
-    }
-
-    let greeting = match greeting::normalize(form.greeting.trim()) {
-        Ok(greeting) => greeting,
-        Err(message) => return Ok(views::dashboard::publications::settings(&owned.into_context(state.urls.clone()), Some(message)).into_response()),
-    };
-
-    if greeting.chars().count() > greeting::MAX_LEN {
-        return Ok(views::dashboard::publications::settings(&owned.into_context(state.urls.clone()), Some("The greeting is too long")).into_response());
+    let name = form.name.name();
+    if let Err(message) = name.validate() {
+        return Ok(views::dashboard::publications::settings(&owned.into_context(state.urls.clone()), Some(message)).into_response());
     }
 
     let slug = owned.publication.slug.clone();
     let mut active: publication::ActiveModel = owned.publication.into();
-    active.name = Set(name);
+    active.name = Set(name.render(form.name.name_case));
+    active.name_case = Set(form.name.name_case);
     active.description = Set(description);
-    active.greeting = Set(greeting);
     active.updated_at = Set(chrono::Utc::now().fixed_offset());
 
     active.update(&state.db).await?;

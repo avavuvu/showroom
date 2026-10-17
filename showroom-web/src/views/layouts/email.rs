@@ -6,7 +6,7 @@ use serde::Serialize;
 use crate::{
     components::email::{Align, Button, FullWidthImage, Section, stylesheet},
     models::publication::EMAIL_PICTURE_SIZE,
-    renderer::{email::EmailBlock, greeting},
+    renderer::{email::EmailBlock, personalize},
     theme::{EmailTheme, Layout},
 };
 
@@ -49,7 +49,7 @@ fn inline_css(document: String) -> Markup {
     match inliner.inline(&document) {
         Ok(inlined) => PreEscaped(inlined),
         Err(e) => {
-            eprintln!("[email] css inlining failed, sending with a style tag: {e}");
+            tracing::error!(error = %e, "css inlining failed, sending with a style tag");
             PreEscaped(document)
         }
     }
@@ -77,20 +77,24 @@ pub fn confirmation_html(name: Option<&str>, confirm_url: &str, publication_name
     )
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize)]
 pub struct NewsletterTemplateData {
-    pub greeting: String,
+    pub name: String,
     pub unsubscribe_url: String,
+    pub brace: &'static str,
 }
 
-pub fn generate_subscriber_data(greeting_template: &str, name: Option<&str>, unsubscribe_url: &str) -> NewsletterTemplateData {
-    let greeting = greeting::for_subscriber(greeting_template, name)
-        .map(|text| html! { (text) }.into_string())
-        .unwrap_or_default();
+impl Default for NewsletterTemplateData {
+    fn default() -> Self {
+        Self { name: String::new(), unsubscribe_url: String::new(), brace: personalize::BRACE_VALUE }
+    }
+}
 
+pub fn generate_subscriber_data(name: Option<&str>, unsubscribe_url: &str) -> NewsletterTemplateData {
     NewsletterTemplateData {
-        greeting,
+        name: name.map(str::trim).unwrap_or_default().to_string(),
         unsubscribe_url: unsubscribe_url.to_string(),
+        brace: personalize::BRACE_VALUE,
     }
 }
 
@@ -104,7 +108,6 @@ pub fn newsletter_body(
     publication_url: &str,
     picture: &str,
     layout: Layout,
-    greeting: Option<Markup>,
     content: &[EmailBlock],
 ) -> Markup {
     let letter = layout == Layout::Letter;
@@ -140,22 +143,19 @@ pub fn newsletter_body(
                 div.email-rule {}
             }
         }
-        @if let Some(greeting) = greeting {
-            Section { (greeting) }
-        }
         @for block in content {
             @match block {
                 EmailBlock::Content(s) => {
                     Section(bottom = "32px") { (PreEscaped(s)) }
                 }
-                EmailBlock::FullWidthImage { src, caption } => {
-                    FullWidthImage(src, caption = [caption.as_deref()]);
+                EmailBlock::FullWidthImage { src, alt, caption } => {
+                    FullWidthImage(src, alt = alt, caption = [caption.as_deref()]);
                 }
             }
         }
         Section(top = "24px", bottom = "24px", align = Align::Right) {
             div {
-                a href="{{unsubscribe_url}}" { "Unsubscribe from " (publication_name) "." }
+                a href="{{unsubscribe_url}}" { "Leave " (publication_name) "." }
             }
             div {
                 "This newsletter is powered by "

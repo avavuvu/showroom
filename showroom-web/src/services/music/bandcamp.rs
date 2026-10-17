@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use super::{Details, links::MusicUrl};
+use super::{Details, links::MusicUrl, read_limited};
 use crate::blocks::music::MusicKind;
 
 const MAX_PAGE_BYTES: usize = 1024 * 1024;
@@ -21,19 +21,7 @@ struct PageProperties {
 pub async fn lookup(client: &reqwest::Client, link: &MusicUrl) -> Result<Option<Page>, reqwest::Error> {
     let response = client.get(&link.url).send().await?.error_for_status()?;
     let html = read_limited(response, MAX_PAGE_BYTES).await?;
-    Ok(page(&html))
-}
-
-async fn read_limited(mut response: reqwest::Response, limit: usize) -> Result<String, reqwest::Error> {
-    let mut body = Vec::new();
-    while let Some(chunk) = response.chunk().await? {
-        let room = limit.saturating_sub(body.len());
-        body.extend_from_slice(&chunk[..chunk.len().min(room)]);
-        if body.len() >= limit {
-            break;
-        }
-    }
-    Ok(String::from_utf8_lossy(&body).into_owned())
+    Ok(page(&String::from_utf8_lossy(&html)))
 }
 
 fn page(html: &str) -> Option<Page> {
@@ -50,7 +38,7 @@ fn page(html: &str) -> Option<Page> {
     });
 
     Some(Page {
-        details: Details { title, artist, artwork: meta(html, "og:image").map(|artwork| larger_artwork(&artwork)) },
+        details: Details { title, artist, artwork: meta(html, "og:image").map(|artwork| larger_artwork(&artwork)), color: None },
         kind,
         id: properties.and_then(|properties| properties.item_id).map(|id| id.to_string()),
     })

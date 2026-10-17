@@ -155,7 +155,7 @@
                 flex-shrink: 0;
                 margin-block: -0.3em;
                 padding: 0.125em;
-                background-color: #ffffff;
+                background-color: var(--color-surface);
 
                 & img {
                     width: 1.5em;
@@ -199,7 +199,7 @@
                 flex-shrink: 0;
                 margin-block: -0.3em;
                 padding: 0.125em;
-                background-color: #ffffff;
+                background-color: var(--color-surface);
 
                 & img {
                     width: 1.5em;
@@ -294,16 +294,6 @@
             background-color: var(--color-surface-muted);
         }
 
-        & .address-input {
-            display: flex;
-            align-items: center;
-            gap: 0.5em;
-
-            & span {
-                color: var(--color-muted);
-                white-space: nowrap;
-            }
-        }
 
         & .hint {
             margin: 0;

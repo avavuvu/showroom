@@ -3,7 +3,11 @@
     align-items: center;
     gap: 1rem;
     padding: 0.75rem;
-    background-color: var(--color-surface-muted);
+    background-color: var(--music-surface, var(--color-surface-muted));
+
+    &.has-color {
+        color: #fff;
+    }
 
     & .music-artwork {
         flex: none;

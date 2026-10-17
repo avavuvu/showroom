@@ -21,7 +21,7 @@ use crate::{
         publication::Entity as Publication,
         user,
     },
-    services::publication::OwnedPublication,
+    services::publication::{OwnedPublication, find_newsletter},
     state::AppState,
     views,
 };
@@ -31,11 +31,7 @@ pub async fn get_edit(
     owned: OwnedPublication,
     Path((_, id)): Path<(String, String)>,
 ) -> AppResult<Markup> {
-    let newsletter = Newsletter::find_by_id(&id)
-        .filter(newsletter::Column::PublicationId.eq(&owned.publication.id))
-        .one(&state.db)
-        .await?
-        .ok_or(AppError::NotFound)?;
+    let newsletter = find_newsletter(&state.db, &owned.publication.id, &id).await?;
 
     Ok(views::dashboard::edit(&owned.into_context(state.urls.clone()), &newsletter))
 }

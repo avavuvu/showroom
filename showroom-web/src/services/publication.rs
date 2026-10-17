@@ -6,10 +6,11 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
-use boutique::{AppError, AuthenticatedUser};
+use boutique::{AppError, AppResult, AuthenticatedUser};
+use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 
 use crate::{
-    models::{publication, user},
+    models::{newsletter, publication, user},
     state::{AppState, Urls},
     views::PageContext,
 };
@@ -18,6 +19,14 @@ pub struct OwnedPublication {
     pub user: user::Model,
     pub publication: publication::Model,
     pub publications: Vec<publication::Model>,
+}
+
+pub async fn find_newsletter(db: &DatabaseConnection, publication_id: &str, id: &str) -> AppResult<newsletter::Model> {
+    newsletter::Entity::find_by_id(id)
+        .filter(newsletter::Column::PublicationId.eq(publication_id))
+        .one(db)
+        .await?
+        .ok_or(AppError::NotFound)
 }
 
 impl OwnedPublication {

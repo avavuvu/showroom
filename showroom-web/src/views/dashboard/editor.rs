@@ -1,8 +1,7 @@
 use boutique::html;
 use maud::{Markup, PreEscaped};
-use serde_json::json;
 
-use crate::components::EditorPage;
+use crate::components::{EditorPage, EditorProps};
 use crate::document::Document;
 use crate::models::newsletter;
 use crate::views::context::PageContext;
@@ -10,12 +9,11 @@ use crate::views::layouts::{base, installable, page};
 
 pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     let sent = newsletter.published_at.is_some();
-    let props = json!({
-        "id": newsletter.id,
-        "revision": newsletter.revision,
-        "content": Document::from_stored(&newsletter.content),
-    })
-    .to_string();
+    let props = EditorProps {
+        id: &newsletter.id,
+        revision: newsletter.revision,
+        content: Document::from_stored(&newsletter.content),
+    };
     let next = if sent {
         format!("{}/{}", ctx.publication_url(), newsletter.slug)
     } else {
@@ -23,7 +21,7 @@ pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     };
 
     base(
-        &installable(page("Edit").htmx()).viewport("width=device-width, initial-scale=1, interactive-widget=resizes-content"),
+        &installable(page("Edit").entry_css("editor").htmx()).viewport("width=device-width, initial-scale=1, interactive-widget=resizes-content"),
         html! {
             @if let Some(publication) = &ctx.publication {
                 style { (PreEscaped(publication.theme().css())) }

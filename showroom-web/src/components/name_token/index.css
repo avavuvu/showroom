@@ -1,0 +1,29 @@
+.name-token {
+    display: inline-block;
+    padding: 0 0.35em;
+    border: 1px dashed currentColor;
+    font-family: ui-monospace, monospace;
+    font-size: 0.85em;
+    line-height: 1.4;
+    white-space: nowrap;
+    opacity: 0.7;
+    cursor: default;
+    user-select: none;
+
+    & .name-token-fallback::before {
+        content: " or ";
+    }
+
+    &::selection {
+        background: transparent;
+    }
+
+    &.ProseMirror-selectednode {
+        outline: none;
+        border-style: solid;
+        border-color: var(--editor-accent);
+        background-color: var(--editor-accent);
+        color: var(--editor-on-accent);
+        opacity: 1;
+    }
+}

@@ -1,13 +1,14 @@
 use boutique::html;
-use maud::Markup;
+use maud::{Markup, PreEscaped};
 
 use crate::document::{
-    Block, Document, ImageAttrs, ImageWidth, Inline, InlinePiece, ListItem, Mark, MusicAttrs, MusicKind, code_text, figure_parts,
-    inline_tree, quote_parts,
+    Block, Document, ImageAttrs, ImageWidth, Inline, InlinePiece, ListItem, Mark, MusicAttrs, MusicKind, alt_text, code_text,
+    figure_parts, inline_tree, quote_parts, requires_name,
 };
-use crate::blocks::music::{Tone, icon_path, listen_label};
+use crate::blocks::music::{Tone, color::WHITE, icon_path, listen_label};
+use crate::renderer::personalize;
 use crate::state::Urls;
-use crate::theme::{EmailTheme, Layout};
+use crate::theme::{Color, EmailTheme, Layout};
 
 const MUSIC_ARTWORK_PX: u8 = 96;
 const MUSIC_ICON_PX: u8 = 22;
@@ -16,7 +17,18 @@ const MUSIC_GAP_PX: u8 = 16;
 
 pub enum EmailBlock {
     Content(String),
-    FullWidthImage { src: String, caption: Option<String> },
+    FullWidthImage { src: String, alt: String, caption: Option<String> },
+}
+
+impl EmailBlock {
+    pub fn map(self, f: impl Fn(&str) -> String) -> EmailBlock {
+        match self {
+            EmailBlock::Content(html) => EmailBlock::Content(f(&html)),
+            EmailBlock::FullWidthImage { src, alt, caption } => {
+                EmailBlock::FullWidthImage { src: f(&src), alt: f(&alt), caption: caption.map(|caption| f(&caption)) }
+            }
+        }
+    }
 }
 
 pub fn render_email(document: &Document, theme: EmailTheme, urls: &Urls) -> Vec<EmailBlock> {
@@ -33,7 +45,8 @@ pub fn render_email(document: &Document, theme: EmailTheme, urls: &Urls) -> Vec<
                 }
                 blocks.push(EmailBlock::FullWidthImage {
                     src: image.src.clone(),
-                    caption: (!caption.is_empty()).then(|| renderer.inlines(caption).into_string()),
+                    alt: alt_text(caption),
+                    caption: (!caption.is_empty()).then(|| only_with_name(caption, renderer.inlines(caption)).into_string()),
                 });
             }
             Block::Music { attrs } => buffer.push_str(&renderer.music(attrs, urls).into_string()),
@@ -46,6 +59,14 @@ pub fn render_email(document: &Document, theme: EmailTheme, urls: &Urls) -> Vec<
     }
 
     blocks
+}
+
+fn only_with_name(content: &[Inline], markup: Markup) -> Markup {
+    if requires_name(content) {
+        html! { (PreEscaped(personalize::IF_NAME)) (markup) (PreEscaped(personalize::END_IF_NAME)) }
+    } else {
+        markup
+    }
 }
 
 pub fn caption_style(theme: &EmailTheme) -> String {
@@ -140,14 +161,21 @@ impl Renderer {
         format!("color: {}; text-decoration: underline;", self.theme.link)
     }
 
-    fn music_card_style(&self) -> String {
-        format!("margin: 0 0 16px 0; background-color: {}; border-collapse: separate;", self.theme.surface_muted)
+    fn music_colors(&self, music: &MusicAttrs) -> (Color, Color) {
+        match music.surface() {
+            Some(surface) => (surface, WHITE),
+            None => (self.theme.surface_muted, self.theme.text),
+        }
     }
 
-    fn music_kind_style(&self) -> String {
+    fn music_card_style(&self, surface: Color) -> String {
+        format!("margin: 0 0 16px 0; background-color: {surface}; border-collapse: separate;")
+    }
+
+    fn music_kind_style(&self, ink: Color) -> String {
         format!(
-            "margin: 0 0 4px 0; font-family: {}; font-size: 11px; line-height: 1.4; letter-spacing: 0.14em; text-transform: uppercase; color: {};",
-            self.theme.font_title, self.theme.text,
+            "margin: 0 0 4px 0; font-family: {}; font-size: 11px; line-height: 1.4; letter-spacing: 0.14em; text-transform: uppercase; color: {ink};",
+            self.theme.font_title,
         )
     }
 
@@ -159,12 +187,12 @@ impl Renderer {
         )
     }
 
-    fn music_title_style(&self) -> String {
-        format!("color: {}; text-decoration: none;", self.theme.text)
+    fn music_title_style(&self, ink: Color) -> String {
+        format!("color: {ink}; text-decoration: none;")
     }
 
-    fn music_artist_style(&self) -> String {
-        format!("margin: 0 0 8px 0; color: {};", self.theme.text)
+    fn music_artist_style(&self, ink: Color) -> String {
+        format!("margin: 0 0 8px 0; color: {ink};")
     }
 
     fn code_mark_style(&self) -> String {
@@ -180,6 +208,15 @@ impl Renderer {
     }
 
     fn block(&self, block: &Block, context: Context) -> Markup {
+        let markup = self.block_markup(block, context);
+        if block.requires_name() {
+            html! { (PreEscaped(personalize::IF_NAME)) (markup) (PreEscaped(personalize::END_IF_NAME)) }
+        } else {
+            markup
+        }
+    }
+
+    fn block_markup(&self, block: &Block, context: Context) -> Markup {
         match block {
             Block::Paragraph { content } | Block::Caption { content } | Block::Attribution { content } => {
                 html! { p style=(self.paragraph_style(context)) { (self.inlines(content)) } }
@@ -201,7 +238,7 @@ impl Renderer {
                     div style=(self.pullquote_style()) {
                         blockquote style=(self.pullquote_body_style()) { (self.blocks(body, Context::Quote)) }
                         @if !attribution.is_empty() {
-                            p style=(self.attribution_style()) { "\u{2014}" br; (self.inlines(attribution)) }
+                            (only_with_name(attribution, html! { p style=(self.attribution_style()) { "\u{2014}" br; (self.inlines(attribution)) } }))
                         }
                     }
                 }
@@ -219,13 +256,13 @@ impl Renderer {
                 pre style=(self.code_block_style()) { code { (code_text(content)) } }
             },
             Block::HorizontalRule {} => html! { hr style=(self.hr_style()); },
-            Block::Image { attrs } => self.image(attrs),
+            Block::Image { attrs } => self.image(attrs, ""),
             Block::Figure { content, .. } => match figure_parts(content) {
                 Some((image, caption)) => html! {
                     div style="margin: 0 0 16px 0; padding: 0;" {
-                        (self.image(image))
+                        (self.image(image, &alt_text(caption)))
                         @if !caption.is_empty() {
-                            p style=(caption_style(&self.theme)) { (self.inlines(caption)) }
+                            (only_with_name(caption, html! { p style=(caption_style(&self.theme)) { (self.inlines(caption)) } }))
                         }
                     }
                 },
@@ -238,8 +275,9 @@ impl Renderer {
     fn music(&self, music: &MusicAttrs, urls: &Urls) -> Markup {
         let href = music.primary().map(|(_, link)| link.url.as_str());
         let gap = if music.artwork.is_some() { MUSIC_GAP_PX } else { 0 };
+        let (surface, ink) = self.music_colors(music);
         html! {
-            table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style=(self.music_card_style()) {
+            table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor=(surface) style=(self.music_card_style(surface)) {
                 tr {
                     td style={ "padding: " (MUSIC_PADDING_PX) "px;" } {
                         table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" {
@@ -253,7 +291,7 @@ impl Renderer {
                                     }
                                 }
                                 td style={ "padding: 0 0 0 " (gap) "px; vertical-align: top; " (self.body_font()) } {
-                                    (self.music_details(music, href, urls))
+                                    (self.music_details(music, href, ink, Tone::on(surface), urls))
                                 }
                             }
                         }
@@ -263,22 +301,21 @@ impl Renderer {
         }
     }
 
-    fn music_details(&self, music: &MusicAttrs, href: Option<&str>, urls: &Urls) -> Markup {
-        let tone = Tone::on(self.theme.surface_muted);
+    fn music_details(&self, music: &MusicAttrs, href: Option<&str>, ink: Color, tone: Tone, urls: &Urls) -> Markup {
         html! {
             @if music.kind == MusicKind::Album {
-                p style=(self.music_kind_style()) { "Album" }
+                p style=(self.music_kind_style(ink)) { "Album" }
             }
             @if !music.title.is_empty() {
                 p style=(self.music_title_paragraph_style()) {
-                    a href=[href] target="_blank" rel="noopener noreferrer" style=(self.music_title_style()) { (music.title) }
+                    a href=[href] target="_blank" rel="noopener noreferrer" style=(self.music_title_style(ink)) { (music.title) }
                 }
             }
             @if !music.artist.is_empty() {
-                p style=(self.music_artist_style()) { (music.artist) }
+                p style=(self.music_artist_style(ink)) { (music.artist) }
             }
             p style={ "margin: 0; font-size: 13px; line-height: " (MUSIC_ICON_PX) "px;" } {
-                span style={ "display: inline-block; vertical-align: middle; margin: 0 8px 0 0; color: " (self.theme.text) ";" } { "Listen on" }
+                span style={ "display: inline-block; vertical-align: middle; margin: 0 8px 0 0; color: " (ink) ";" } { "Listen on" }
                 @for (service, link) in music.links.iter() {
                     a href=(link.url) target="_blank" rel="noopener noreferrer" title=(listen_label(service))
                         style="display: inline-block; vertical-align: middle; margin: 0 6px 0 0; text-decoration: none;" {
@@ -290,9 +327,9 @@ impl Renderer {
         }
     }
 
-    fn image(&self, attrs: &ImageAttrs) -> Markup {
+    fn image(&self, attrs: &ImageAttrs, alt: &str) -> Markup {
         html! {
-            img src=(attrs.src) alt="" title=[attrs.title.as_deref()] style="max-width: 100%; height: auto; display: block; margin: 0;";
+            img src=(attrs.src) alt=(alt) title=[attrs.title.as_deref()] style="max-width: 100%; height: auto; display: block; margin: 0;";
         }
     }
 
@@ -321,6 +358,7 @@ impl Renderer {
                 @match piece {
                     InlinePiece::Text(text) => { (text) }
                     InlinePiece::Break => { br; }
+                    InlinePiece::Name(fallback) => { (PreEscaped(personalize::NAME_START)) (fallback) (PreEscaped(personalize::NAME_END)) }
                     InlinePiece::Marked(mark, children) => { (self.marked(mark, children)) }
                 }
             }

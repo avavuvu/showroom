@@ -1,5 +1,5 @@
 use axum::extract::State;
-use boutique::{AuthenticatedUser, reset};
+use boutique::{AppResult, AuthenticatedUser, reset};
 use maud::Markup;
 
 use crate::{
@@ -12,10 +12,10 @@ use crate::{
 pub async fn get_settings(
     State(state): State<AppState>,
     AuthenticatedUser(user): AuthenticatedUser<user::Model>,
-) -> Markup {
-    let publications = publication::for_owner(&user.id, &state.db).await.unwrap_or_default();
+) -> AppResult<Markup> {
+    let publications = publication::for_owner(&user.id, &state.db).await?;
     let ctx = PageContext::from_user(&user, state.urls.clone()).with_publications(publications);
-    views::dashboard::settings::index(&ctx)
+    Ok(views::dashboard::settings::index(&ctx))
 }
 
 pub async fn request_password_change(
@@ -28,9 +28,9 @@ pub async fn request_password_change(
 
     match mailer::send_password_reset(&state.ses, &user.email, &reset_url, &state.urls).await {
         Ok(_) => views::dashboard::settings::change_password_requested(),
-        Err(e) => {
-            eprintln!("[password reset] email failed for {}: {e}", user.email);
-            views::dashboard::settings::change_password_error(&format!("Failed to send email: {e}"))
+        Err(error) => {
+            tracing::error!(%error, user = %user.id, "sending a password reset email failed");
+            views::dashboard::settings::change_password_error("The email couldn't be sent. Please try again.")
         }
     }
 }

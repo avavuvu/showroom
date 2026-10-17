@@ -64,25 +64,21 @@ export const ASCII_CHARSETS = {
         name: "Emoji",
         chars: "  ❤️▒▓🌑🌒🌓🌔🌕",
     },
-} as const;
+} as const
 
 /** Type-safe key for selecting character sets */
-export type CharsetKey = keyof typeof ASCII_CHARSETS;
+export type CharsetKey = keyof typeof ASCII_CHARSETS
 
 /** Default character set used when none is specified */
-export const DEFAULT_CHARSET: CharsetKey = "standard";
+export const DEFAULT_CHARSET: CharsetKey = "standard"
 
 /**
  * Get the character array for a given charset key.
  * Uses spread operator to correctly handle multi-byte unicode characters.
  */
-export function getCharArray(charset: CharsetKey): string[] {
-    return [...ASCII_CHARSETS[charset].chars];
-}
+export const getCharArray = (charset: CharsetKey): Array<string> => [...ASCII_CHARSETS[charset].chars]
 
 /**
  * Get the display name for a charset
  */
-export function getCharsetName(charset: CharsetKey): string {
-    return ASCII_CHARSETS[charset].name;
-}
+export const getCharsetName = (charset: CharsetKey): string => ASCII_CHARSETS[charset].name

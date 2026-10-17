@@ -7,8 +7,11 @@ use super::{MusicAttrs, MusicKind, Tone, icon_path, listen_label};
 #[component]
 pub fn music_card(#[positional] music: &MusicAttrs, tone: Tone, attrs: Attrs) -> Markup {
     let href = music.primary().map(|(_, link)| link.url.as_str());
+    let surface = music.surface();
+    let style = surface.map(|surface| format!("--music-surface:{surface}"));
+    let tone = if surface.is_some() { Tone::White } else { tone };
     html! {
-        figure.music-card data-kind=(music.kind.as_str()) (..attrs) {
+        figure.music-card.has-color[surface.is_some()] data-kind=(music.kind.as_str()) style=[style] (..attrs) {
             @if let Some(artwork) = &music.artwork {
                 a.music-artwork href=[href] target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true" {
                     img src=(artwork) alt="" loading="lazy";

@@ -9,7 +9,6 @@ use nanoid::nanoid;
 use sea_orm::{ActiveValue::Set, Database, EntityTrait};
 use serde_json::json;
 use showroom_web::models::{newsletter, publication, user};
-use showroom_web::renderer::greeting;
 use std::env;
 
 
@@ -67,10 +66,10 @@ async fn main() {
             id: Set(publication_id.clone()),
             owner_id: Set(user_id.clone()),
             slug: Set(username.to_lowercase()),
-            name: Set(format!("{username}'s room")),
+            name: Set(format!("{username}\u{2019}s room")),
+            name_case: Set(Default::default()),
             description: Set(None),
             theme: Set(None),
-            greeting: Set(greeting::DEFAULT.to_string()),
             image: Set(publication::random_picture()),
             banner: Set(None),
             pictures: Set(Default::default()),
@@ -102,6 +101,9 @@ async fn main() {
                 revision: Set(0),
                 published_at: Set(None),
                 send_started_at: Set(None),
+                email_subject: Set(None),
+                email_html: Set(None),
+                email_text: Set(None),
                 created_at: Set(now),
                 updated_at: Set(now),
             })

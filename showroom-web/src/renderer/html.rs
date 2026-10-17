@@ -2,7 +2,9 @@ use boutique::html;
 use maud::Markup;
 
 use crate::blocks::music::{MusicCard, Tone};
-use crate::document::{Block, Document, ImageAttrs, Inline, InlinePiece, ListItem, Mark, code_text, figure_parts, inline_tree, quote_parts};
+use crate::document::{
+    Block, Document, ImageAttrs, Inline, InlinePiece, ListItem, Mark, alt_text, code_text, figure_parts, inline_tree, quote_parts, requires_name,
+};
 
 pub fn render(document: &Document, tone: Tone) -> Markup {
     html! {
@@ -24,6 +26,9 @@ fn blocks(blocks: &[Block]) -> Markup {
 }
 
 fn render_block(block: &Block) -> Markup {
+    if block.requires_name() {
+        return html! {};
+    }
     match block {
         Block::Paragraph { content } | Block::Caption { content } | Block::Attribution { content } => html! { p { (inlines(content)) } },
         Block::Heading { attrs, content } => match attrs.level {
@@ -37,7 +42,7 @@ fn render_block(block: &Block) -> Markup {
             html! {
                 figure.pullquote {
                     blockquote { (blocks(body)) }
-                    @if !attribution.is_empty() {
+                    @if !attribution.is_empty() && !requires_name(attribution) {
                         figcaption { (inlines(attribution)) }
                     }
                 }
@@ -53,12 +58,12 @@ fn render_block(block: &Block) -> Markup {
             html! { pre { code class=[class] { (code_text(content)) } } }
         }
         Block::HorizontalRule {} => html! { hr; },
-        Block::Image { attrs } => image(attrs),
+        Block::Image { attrs } => image(attrs, ""),
         Block::Figure { attrs, content } => match figure_parts(content) {
             Some((image_attrs, caption)) => html! {
                 figure data-width=(attrs.width.as_str()) {
-                    (image(image_attrs))
-                    @if !caption.is_empty() {
+                    (image(image_attrs, &alt_text(caption)))
+                    @if !caption.is_empty() && !requires_name(caption) {
                         figcaption { (inlines(caption)) }
                     }
                 }
@@ -69,8 +74,8 @@ fn render_block(block: &Block) -> Markup {
     }
 }
 
-fn image(attrs: &ImageAttrs) -> Markup {
-    html! { img src=(attrs.src) alt="" title=[attrs.title.as_deref()]; }
+fn image(attrs: &ImageAttrs, alt: &str) -> Markup {
+    html! { img src=(attrs.src) alt=(alt) title=[attrs.title.as_deref()]; }
 }
 
 fn list_items(items: &[ListItem]) -> Markup {
@@ -91,6 +96,7 @@ fn pieces(pieces: &[InlinePiece]) -> Markup {
             @match piece {
                 InlinePiece::Text(text) => { (text) }
                 InlinePiece::Break => { br; }
+                InlinePiece::Name(fallback) => { (fallback) }
                 InlinePiece::Marked(mark, children) => { (marked(mark, children)) }
             }
         }

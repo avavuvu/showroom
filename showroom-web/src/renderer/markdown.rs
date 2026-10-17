@@ -1,5 +1,5 @@
 use crate::document::{
-    Block, Document, ImageAttrs, Inline, InlinePiece, ListItem, Mark, MusicAttrs, MusicKind, code_text, figure_parts, inline_text, inline_tree, quote_parts,
+    Block, Document, ImageAttrs, Inline, InlinePiece, ListItem, Mark, MusicAttrs, MusicKind, code_text, figure_parts, inline_text, inline_tree, quote_parts, NAME_TOKEN,
 };
 
 pub fn render(document: &Document) -> String {
@@ -114,6 +114,7 @@ fn pieces(pieces: &[InlinePiece]) -> String {
         .map(|piece| match piece {
             InlinePiece::Text(text) => escape_text(text),
             InlinePiece::Break => "\\\n".to_string(),
+            InlinePiece::Name(_) => NAME_TOKEN.to_string(),
             InlinePiece::Marked(mark, children) => marked(mark, children),
         })
         .collect()
@@ -146,6 +147,7 @@ fn raw_text(pieces: &[InlinePiece]) -> String {
         .map(|piece| match piece {
             InlinePiece::Text(text) => text.to_string(),
             InlinePiece::Break => " ".to_string(),
+            InlinePiece::Name(_) => NAME_TOKEN.to_string(),
             InlinePiece::Marked(_, children) => raw_text(children),
         })
         .collect()

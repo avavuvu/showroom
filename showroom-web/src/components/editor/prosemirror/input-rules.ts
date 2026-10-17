@@ -1,18 +1,31 @@
-import { InputRule, inputRules, textblockTypeInputRule, wrappingInputRule } from "prosemirror-inputrules";
-import { TextSelection } from "prosemirror-state";
-import { schema } from "./schema";
+import { InputRule, inputRules, textblockTypeInputRule, wrappingInputRule } from "prosemirror-inputrules"
+import { TextSelection } from "prosemirror-state"
+import { convertNamesToText } from "./name"
+import { schema } from "./schema"
 
-export function buildInputRules() {
-    const { heading, blockquote, bulletList, orderedList, codeBlock, horizontalRule, paragraph } = schema.nodes;
+export const buildInputRules = () => {
+    const { heading, blockquote, bulletList, orderedList, codeBlock, horizontalRule, paragraph } = schema.nodes
 
     const divider = new InputRule(/^(?:---|___|\*\*\*)$/, (state, _match, start, end) => {
-        const $start = state.doc.resolve(start);
-        if ($start.depth < 1 || $start.parent.type !== paragraph || $start.parent.content.size !== end - start) return null;
+        const $start = state.doc.resolve(start)
+        if ($start.depth < 1 || $start.parent.type !== paragraph || $start.parent.content.size !== end - start) {
+            return null
+        }
 
-        const before = $start.before();
-        const tr = state.tr.replaceWith(before, $start.after(), [horizontalRule.create(), paragraph.create()]);
-        return tr.setSelection(TextSelection.create(tr.doc, before + 2));
-    });
+        const before = $start.before()
+        const transaction = state.tr.replaceWith(before, $start.after(), [horizontalRule.create(), paragraph.create()])
+        return transaction.setSelection(TextSelection.create(transaction.doc, before + 2))
+    })
+
+    const codeFence = new InputRule(/^```$/, (state, _match, start, end) => {
+        const $start = state.doc.resolve(start)
+        if (!$start.node(-1).canReplaceWith($start.index(-1), $start.indexAfter(-1), codeBlock)) {
+            return null
+        }
+        const transaction = state.tr.delete(start, end)
+        convertNamesToText(transaction, start, start)
+        return transaction.setBlockType(start, start, codeBlock)
+    })
 
     return inputRules({
         rules: [
@@ -25,8 +38,8 @@ export function buildInputRules() {
                 (match) => ({ start: Number(match[1]) }),
                 (match, node) => node.childCount + node.attrs.start === Number(match[1]),
             ),
-            textblockTypeInputRule(/^```$/, codeBlock),
+            codeFence,
             divider,
         ],
-    });
+    })
 }

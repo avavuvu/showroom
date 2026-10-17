@@ -1,7 +1,7 @@
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 use aws_sdk_sesv2::{Client, types::{Body, Destination, EmailContent, Message}};
 
-use crate::{mailer::util::{convert_ses_content, ses_error}, models::publication::Model as Publication, state::Urls, views::layouts::{confirmation_html, confirmation_text}};
+use crate::{mailer::util::{convert_ses_content, from_address, ses_error}, models::publication::Model as Publication, state::Urls, views::layouts::{confirmation_html, confirmation_text}};
 
 pub async fn send_confirmation(
     client: &Client,
@@ -25,7 +25,7 @@ pub async fn send_confirmation(
 
     client
         .send_email()
-        .from_email_address(format!("{} <{}>", publication.name, urls.email(&publication.slug)))
+        .from_email_address(from_address(&publication.name, &urls.email(&publication.slug)))
         .destination(destination)
         .content(email_content)
         .send()

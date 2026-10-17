@@ -48,18 +48,18 @@ impl FromRequestParts<AppState> for CurrentPublication {
 
 #[derive(Clone)]
 pub struct SubdomainRouter {
-    base: axum::Router, //      main_domain (show.room.lc)
-    app: axum::Router,  //      app.domain
-    publication: axum::Router, // {slug}.domain
-    domain: String,      // room.lc
-    main_domain: String, // show.room.lc
+    base: axum::Router,
+    app: axum::Router,
+    publication: axum::Router,
+    domain: String,
+    main_domain: String,
 }
 
 enum SubdomainKind {
     Base,
     App,
     Publication(String),
-    Redirect, // bare domain → main_domain
+    Redirect,
 }
 
 impl SubdomainRouter {

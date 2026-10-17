@@ -1,0 +1,5 @@
+@import "prosemirror-view/style/prosemirror.css";
+@import "prosemirror-gapcursor/style/gapcursor.css";
+@import "../../src/components/editor/index.css";
+@import "../../src/blocks/image/editor/index.css";
+@import "../../src/blocks/music/editor/index.css";

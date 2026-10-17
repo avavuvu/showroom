@@ -90,6 +90,10 @@ pub fn panel(ctx: &PageContext, newsletter: &newsletter::Model, progress: &Progr
                         }
                     }
                 }
+                @let hidden = (progress.failed + progress.unknown).saturating_sub(progress.problems.len() as u64);
+                @if hidden > 0 {
+                    p { "And " (hidden) " more." }
+                }
             }
 
             @if !active {

@@ -1,14 +1,14 @@
-const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
+import { isMac } from "../../../bindings/boutique/setups"
 
-export function formatShortcut(shortcut: string): string {
-    const parts = shortcut.split("-");
-    const key = parts.pop()?.toUpperCase() ?? "";
-    const has = (name: string) => parts.includes(name);
+export const formatShortcut = (shortcut: string): string => {
+    const parts = shortcut.split("-")
+    const key = parts.pop()?.toUpperCase() ?? ""
+    const hasModifier = (name: string) => parts.includes(name)
 
-    if (isMac) {
-        return [has("Ctrl") ? "⌃" : "", has("Alt") ? "⌥" : "", has("Shift") ? "⇧" : "", has("Mod") ? "⌘" : "", key].join("");
+    if (isMac()) {
+        return [hasModifier("Ctrl") ? "⌃" : "", hasModifier("Alt") ? "⌥" : "", hasModifier("Shift") ? "⇧" : "", hasModifier("Mod") ? "⌘" : "", key].join("")
     }
-    return [has("Mod") || has("Ctrl") ? "Ctrl" : "", has("Alt") ? "Alt" : "", has("Shift") ? "Shift" : "", key]
+    return [hasModifier("Mod") || hasModifier("Ctrl") ? "Ctrl" : "", hasModifier("Alt") ? "Alt" : "", hasModifier("Shift") ? "Shift" : "", key]
         .filter(Boolean)
-        .join("+");
+        .join("+")
 }

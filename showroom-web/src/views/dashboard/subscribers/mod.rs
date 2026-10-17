@@ -70,12 +70,21 @@ fn subscriber_tbody(subscribers: &[Subscriber]) -> Markup {
     }
 }
 
-pub fn import_result(subscribers: &[Subscriber], skipped: usize) -> Markup {
+#[derive(Default)]
+pub struct ImportSummary {
+    pub imported: usize,
+    pub existing: usize,
+    pub invalid: usize,
+}
+
+pub fn import_result(subscribers: &[Subscriber], summary: ImportSummary) -> Markup {
     html! {
         (subscriber_tbody(subscribers))
         p id="subscriber-count" hx-swap-oob="true" { (subscribers.len()) " total" }
         div id="import-status" hx-swap-oob="true" {
-            @if skipped > 0 { p { "Skipped " strong { (skipped) } " invalid rows." } }
+            p { "Imported " strong { (summary.imported) } " new subscribers." }
+            @if summary.existing > 0 { p { "Skipped " strong { (summary.existing) } " already on the list." } }
+            @if summary.invalid > 0 { p { "Skipped " strong { (summary.invalid) } " rows without a valid email address." } }
         }
     }
 }

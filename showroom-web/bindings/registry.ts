@@ -37,6 +37,11 @@ export const registry: Registry = {
         many: ["blockLabel", "blockOption", "command"],
         load: () => import("../src/components/editor/toolbar/index").then((module) => module.editorToolbar satisfies setups.EditorToolbar),
     },
+    "image-editor": {
+        tags: ["div"],
+        many: [],
+        load: () => import("../src/blocks/image/editor/index").then((module) => module.imageEditor satisfies setups.ImageEditor),
+    },
     "menu": {
         tags: ["div"],
         many: [],
@@ -44,8 +49,8 @@ export const registry: Registry = {
     },
     "music-editor": {
         tags: ["figure"],
-        many: [],
-        load: () => import("../src/blocks/music/index").then((module) => module.musicEditor satisfies setups.MusicEditor),
+        many: ["link"],
+        load: () => import("../src/blocks/music/editor/index").then((module) => module.musicEditor satisfies setups.MusicEditor),
     },
     "newsletter-editor": {
         tags: ["div"],

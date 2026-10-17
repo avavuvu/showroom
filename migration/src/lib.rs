@@ -14,6 +14,8 @@ mod m20261008_000010_publication_greeting;
 mod m20261009_000011_newsletter_deliveries;
 mod m20261009_000012_publication_images;
 mod m20261009_000013_publication_picture_history;
+mod m20261017_000014_email_snapshots;
+mod m20261017_000015_publication_names;
 
 pub struct Migrator;
 
@@ -35,6 +37,8 @@ impl MigratorTrait for Migrator {
             Box::new(m20261009_000011_newsletter_deliveries::Migration),
             Box::new(m20261009_000012_publication_images::Migration),
             Box::new(m20261009_000013_publication_picture_history::Migration),
+            Box::new(m20261017_000014_email_snapshots::Migration),
+            Box::new(m20261017_000015_publication_names::Migration),
         ]
     }
 }

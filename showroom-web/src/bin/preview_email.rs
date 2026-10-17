@@ -2,7 +2,7 @@ use chrono::Utc;
 use serde_json::json;
 use showroom_web::{
     document::Document,
-    renderer::{email::render_email, greeting},
+    renderer::{email::render_email, personalize},
     state::Urls,
     theme::Theme,
     views::layouts::{NewsletterBody, base_email_layout},
@@ -39,6 +39,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     "artist": "Radiohead",
                     "artwork": "https://f4.bcbits.com/img/a0552435637_10.jpg",
                     "source": "bandcamp",
+                    "color": "#703f04",
                     "links": {
                         "bandcamp": { "url": "https://radiohead.bandcamp.com/album/in-rainbows", "id": "2162872411" },
                         "spotify": { "url": "https://open.spotify.com/album/5vkqYmiPBYLaalcmjujWxK" }
@@ -50,10 +51,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let urls = Urls::new("room.lc", "3000", "show.room.lc").with_asset_url("https://show.room.lc");
     let theme = Theme::default().email();
-    let rendered_content = render_email(&Document::from_value(&content)?, theme, &urls);
+    let rendered_content: Vec<_> = render_email(&Document::from_value(&content)?, theme, &urls)
+        .into_iter()
+        .map(|block| block.map(|html| personalize::preview(html, Some("Ava"))))
+        .collect();
     let date = Utc::now().format("%B %-d, %Y").to_string();
 
-    let greeting = greeting::for_subscriber(greeting::DEFAULT, Some("Ava")).map(|text| html! { p { (text) } });
 
     let html = base_email_layout(
         "My Test Newsletter",
@@ -69,7 +72,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 publication_url = "http://test.showroom.you:3000",
                 picture = "https://show.room.lc/avatars/0.png",
                 layout = theme.layout,
-                maybe_greeting = greeting,
                 content = &rendered_content,
             );
         },

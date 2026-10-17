@@ -1,9 +1,17 @@
-use axum::{Form, extract::{Query, State}, response::{IntoResponse, Response}};
+use axum::{Form, extract::{Query, State}, http::HeaderMap, response::{IntoResponse, Response}};
 use boutique::{AppError, AppResult, htmx, reset};
 use serde::Deserialize;
 use validator::Validate;
 
-use crate::{mailer, state::AppState, views::{self, PageContext, Viewer}};
+use crate::{
+    mailer,
+    services::rate_limit::{Limit, client_ip},
+    state::AppState,
+    views::{self, PageContext, Viewer},
+};
+
+const PER_ADDRESS: Limit = Limit::per_hour(3);
+const PER_CLIENT: Limit = Limit::per_hour(10);
 
 #[derive(Deserialize, Validate)]
 pub struct ForgotPasswordForm {
@@ -20,9 +28,20 @@ pub async fn forgot_password_page(
 
 pub async fn forgot_password(
     State(state): State<AppState>,
-    Form(form): Form<ForgotPasswordForm>,
+    headers: HeaderMap,
+    Form(mut form): Form<ForgotPasswordForm>,
 ) -> AppResult {
+    form.email = form.email.trim().to_string();
     form.validate()?;
+
+    if let Some(ip) = client_ip(&headers)
+        && !state.limits.allow(format!("forgot:{ip}"), PER_CLIENT)
+    {
+        return Err(AppError::message("Too many attempts. Please try again later."));
+    }
+    if !state.limits.allow(format!("forgot:{}", form.email.to_lowercase()), PER_ADDRESS) {
+        return Ok(views::auth::forgot_password_sent().into_response());
+    }
 
     if let Some((user, token)) = reset::request(&state.auth, &form.email).await? {
         let reset_url = format!("{}/reset-password?token={}", state.urls.base(), token);

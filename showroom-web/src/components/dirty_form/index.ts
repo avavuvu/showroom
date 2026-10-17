@@ -1,27 +1,28 @@
-import type { DirtyForm } from "@setups";
+import type { DirtyForm } from "@setups"
+import { holdUnload } from "./unload"
 
 const isChanged = (element: Element) => {
     if (element instanceof HTMLInputElement) {
         return element.type === "checkbox" || element.type === "radio"
             ? element.checked !== element.defaultChecked
-            : element.value !== element.defaultValue;
+            : element.value !== element.defaultValue
     }
     if (element instanceof HTMLTextAreaElement) {
-        return element.value !== element.defaultValue;
+        return element.value !== element.defaultValue
     }
     if (element instanceof HTMLSelectElement) {
-        return [...element.options].some((option) => option.selected !== option.defaultSelected);
+        return [...element.options].some((option) => option.selected !== option.defaultSelected)
     }
-    return false;
-};
+    return false
+}
 
 export const dirtyForm: DirtyForm = (form) => {
-    let submitting = false;
+    let isSubmitting = false
 
-    const isDirty = () => [...form.elements].some(isChanged);
-    const update = () => form.toggleAttribute("data-dirty", isDirty());
+    const isDirty = () => [...form.elements].some(isChanged)
+    const update = () => form.toggleAttribute("data-dirty", isDirty())
 
-    update();
+    update()
 
     return {
         update,
@@ -29,18 +30,14 @@ export const dirtyForm: DirtyForm = (form) => {
         reset: () => setTimeout(update),
 
         submit: () => {
-            submitting = true;
+            isSubmitting = true
         },
 
-        leave(event) {
-            if (submitting || !isDirty()) return;
-            event.preventDefault();
-            event.returnValue = "";
-        },
+        leave: (event) => holdUnload(event, !isSubmitting && isDirty()),
 
-        restore() {
-            submitting = false;
-            update();
+        restore: () => {
+            isSubmitting = false
+            update()
         },
-    };
-};
+    }
+}

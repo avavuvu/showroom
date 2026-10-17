@@ -7,17 +7,17 @@ use tokio::time::Instant;
 
 use chrono::{DateTime, FixedOffset, Utc};
 use sea_orm::{
-    ActiveValue::Set, ColumnTrait, Condition, ConnectionTrait, DatabaseConnection, DbErr, EntityTrait, ModelTrait, Order,
-    QueryFilter, QueryOrder, QuerySelect, TransactionTrait,
-    sea_query::{Expr, LockBehavior, LockType, OnConflict, Query},
+    ColumnTrait, Condition, ConnectionTrait, DatabaseConnection, DbBackend, DbErr, EntityTrait, Order, QueryFilter, QueryOrder,
+    QuerySelect, Statement, TransactionTrait,
+    sea_query::{Expr, LockBehavior, LockType, Query},
 };
 
 use crate::{
-    mailer::{BATCH_SIZE, MailError, NewsletterMailing, Outcome},
+    mailer::{BATCH_SIZE, MailError, NewsletterMailing, Outcome, send_newsletter::{self, RenderedEmail}},
     models::{
         delivery::{self, Status},
         newsletter::{self, Entity as Newsletter},
-        publication::{self, Entity as Publication},
+        publication::Entity as Publication,
         subscriber::{self, Entity as Subscriber},
     },
     state::AppState,
@@ -28,17 +28,14 @@ const SWEEP_EVERY: Duration = Duration::from_secs(5 * 60);
 const ERROR_PAUSE: Duration = Duration::from_secs(10);
 const PREPARE_RETRY: chrono::Duration = chrono::Duration::seconds(60);
 const STALE_CLAIM: chrono::Duration = chrono::Duration::minutes(10);
-const INSERT_CHUNK: usize = 500;
 const RECENT: u64 = 8;
+const PROBLEMS_SHOWN: u64 = 100;
+const RESTART_PAUSE: Duration = Duration::from_secs(5);
 
 type Timestamp = DateTime<FixedOffset>;
 
 fn now() -> Timestamp {
     Utc::now().fixed_offset()
-}
-
-pub fn address(email: &str) -> String {
-    email.trim().to_lowercase()
 }
 
 fn due(at: Timestamp) -> Condition {
@@ -51,64 +48,46 @@ fn backoff(attempts: i32) -> chrono::Duration {
     chrono::Duration::seconds(30 << (attempts - 1).clamp(0, 10))
 }
 
-pub async fn enqueue(db: &DatabaseConnection, newsletter: &newsletter::Model, publication: &publication::Model) -> Result<bool, DbErr> {
-    let txn = db.begin().await?;
-    let started_at = now();
+pub async fn enqueue(
+    db: &DatabaseConnection,
+    newsletter: &newsletter::Model,
+    email: RenderedEmail,
+    started_at: Timestamp,
+) -> Result<bool, DbErr> {
+    let transaction = db.begin().await?;
 
     let started = Newsletter::update_many()
         .col_expr(newsletter::Column::PublishedAt, Expr::value(started_at))
         .col_expr(newsletter::Column::SendStartedAt, Expr::value(started_at))
+        .col_expr(newsletter::Column::EmailSubject, Expr::value(email.subject))
+        .col_expr(newsletter::Column::EmailHtml, Expr::value(email.html))
+        .col_expr(newsletter::Column::EmailText, Expr::value(email.text))
         .filter(newsletter::Column::Id.eq(&newsletter.id))
         .filter(newsletter::Column::PublishedAt.is_null())
         .filter(newsletter::Column::SendStartedAt.is_null())
-        .exec(&txn)
+        .exec(&transaction)
         .await?
         .rows_affected
         == 1;
 
     if !started {
-        txn.rollback().await?;
+        transaction.rollback().await?;
         return Ok(false);
     }
 
-    let subscribers = publication
-        .find_related(Subscriber)
-        .filter(subscriber::Column::IsConfirmed.eq(true))
-        .all(&txn)
+    transaction
+        .execute(Statement::from_sql_and_values(
+            DbBackend::Postgres,
+            "INSERT INTO newsletter_deliveries (newsletter_id, email, subscriber_token, status, attempts, created_at) \
+             SELECT DISTINCT ON (lower(trim(email))) $1, lower(trim(email)), token, $2, 0, $3 \
+             FROM subscribers WHERE publication_id = $4 AND is_confirmed \
+             ORDER BY lower(trim(email)), created_at \
+             ON CONFLICT (newsletter_id, email) DO NOTHING",
+            [newsletter.id.clone().into(), "queued".into(), started_at.into(), newsletter.publication_id.clone().into()],
+        ))
         .await?;
 
-    let mut seen = HashSet::new();
-    let rows: Vec<delivery::ActiveModel> = subscribers
-        .iter()
-        .filter(|subscriber| seen.insert(address(&subscriber.email)))
-        .map(|subscriber| delivery::ActiveModel {
-            newsletter_id: Set(newsletter.id.clone()),
-            email: Set(address(&subscriber.email)),
-            subscriber_token: Set(subscriber.token.clone()),
-            status: Set(Status::Queued),
-            attempts: Set(0),
-            next_attempt_at: Set(None),
-            claimed_at: Set(None),
-            message_id: Set(None),
-            error: Set(None),
-            sent_at: Set(None),
-            created_at: Set(started_at),
-        })
-        .collect();
-
-    for chunk in rows.chunks(INSERT_CHUNK) {
-        delivery::Entity::insert_many(chunk.to_vec())
-            .on_conflict(
-                OnConflict::columns([delivery::Column::NewsletterId, delivery::Column::Email])
-                    .do_nothing()
-                    .to_owned(),
-            )
-            .do_nothing()
-            .exec(&txn)
-            .await?;
-    }
-
-    txn.commit().await?;
+    transaction.commit().await?;
     Ok(true)
 }
 
@@ -175,6 +154,7 @@ pub async fn progress(db: &DatabaseConnection, newsletter_id: &str) -> Result<Pr
         .filter(delivery::Column::NewsletterId.eq(newsletter_id))
         .filter(delivery::Column::Status.is_in([Status::Failed, Status::Unknown]))
         .order_by_asc(delivery::Column::Email)
+        .limit(PROBLEMS_SHOWN)
         .all(db)
         .await?;
 
@@ -190,7 +170,19 @@ pub async fn progress(db: &DatabaseConnection, newsletter_id: &str) -> Result<Pr
     })
 }
 
-pub async fn run_worker(state: AppState) {
+pub async fn supervise_worker(state: AppState) {
+    loop {
+        match tokio::spawn(run_worker(state.clone())).await {
+            Err(error) if error.is_panic() => {
+                tracing::error!("send worker: crashed, restarting: {error}");
+                tokio::time::sleep(RESTART_PAUSE).await;
+            }
+            _ => return,
+        }
+    }
+}
+
+async fn run_worker(state: AppState) {
     let rate = send_rate(&state).await;
     let mut swept_at: Option<Instant> = None;
 
@@ -277,7 +269,18 @@ async fn process(state: &AppState, newsletter_id: &str, rate: f64) -> Result<(),
         return Ok(());
     };
 
-    let mailing = match NewsletterMailing::prepare(&state.ses, &newsletter, &publication, &state.urls).await {
+    let email = match snapshot(&newsletter) {
+        Some(email) => email,
+        None => {
+            let date = newsletter.send_started_at.unwrap_or(newsletter.created_at);
+            match send_newsletter::render(&newsletter, &publication, date, &state.urls) {
+                Ok(email) => email,
+                Err(error) => return defer_newsletter(&state.db, newsletter_id, &error).await,
+            }
+        }
+    };
+
+    let mailing = match NewsletterMailing::prepare(&state.ses, newsletter_id, &email, &publication, &state.urls).await {
         Ok(mailing) => mailing,
         Err(error) => return defer_newsletter(&state.db, newsletter_id, &error).await,
     };
@@ -289,6 +292,14 @@ async fn process(state: &AppState, newsletter_id: &str, rate: f64) -> Result<(),
     }
 
     result
+}
+
+fn snapshot(newsletter: &newsletter::Model) -> Option<RenderedEmail> {
+    Some(RenderedEmail {
+        subject: newsletter.email_subject.clone()?,
+        html: newsletter.email_html.clone()?,
+        text: newsletter.email_text.clone()?,
+    })
 }
 
 async fn send_batches(state: &AppState, newsletter_id: &str, mailing: &NewsletterMailing<'_>, rate: f64) -> Result<(), DbErr> {
@@ -313,14 +324,16 @@ async fn send_batches(state: &AppState, newsletter_id: &str, mailing: &Newslette
 
         match mailing.send(&subscribers).await {
             Ok(deliveries) => {
+                let transaction = state.db.begin().await?;
                 for delivery in deliveries {
                     let row = by_token[delivery.subscriber.token.as_str()];
                     match delivery.outcome {
-                        Outcome::Sent(message_id) => mark_sent(&state.db, row, message_id).await?,
-                        Outcome::Retry(message) => retry_later(&state.db, &[row], &message).await?,
-                        Outcome::Failed(message) => set_status(&state.db, &[row], Status::Failed, Some(&message)).await?,
+                        Outcome::Sent(message_id) => mark_sent(&transaction, row, message_id).await?,
+                        Outcome::Retry(message) => retry_later(&transaction, &[row], &message).await?,
+                        Outcome::Failed(message) => set_status(&transaction, &[row], Status::Failed, Some(&message)).await?,
                     }
                 }
+                transaction.commit().await?;
             }
             Err(error) => {
                 let rows: Vec<&delivery::Model> = subscribers.iter().map(|subscriber| by_token[subscriber.token.as_str()]).collect();
@@ -367,18 +380,29 @@ async fn claim(db: &DatabaseConnection, newsletter_id: &str) -> Result<Vec<deliv
 }
 
 async fn defer_newsletter(db: &DatabaseConnection, newsletter_id: &str, error: &MailError) -> Result<(), DbErr> {
-    let update = delivery::Entity::update_many()
-        .col_expr(delivery::Column::Error, Expr::value(error.message.clone()))
-        .filter(delivery::Column::NewsletterId.eq(newsletter_id))
-        .filter(delivery::Column::Status.eq(Status::Queued));
-
-    let update = match error.retryable {
-        true => update.col_expr(delivery::Column::NextAttemptAt, Expr::value(now() + PREPARE_RETRY)),
-        false => update.col_expr(delivery::Column::Status, Expr::value(Status::Failed)),
+    let queued = || {
+        delivery::Entity::update_many()
+            .col_expr(delivery::Column::Error, Expr::value(error.message.clone()))
+            .filter(delivery::Column::NewsletterId.eq(newsletter_id))
+            .filter(delivery::Column::Status.eq(Status::Queued))
     };
 
-    update.exec(db).await?;
-    Ok(())
+    let transaction = db.begin().await?;
+    if error.retryable {
+        queued()
+            .col_expr(delivery::Column::Status, Expr::value(Status::Failed))
+            .filter(delivery::Column::Attempts.gte(MAX_ATTEMPTS))
+            .exec(&transaction)
+            .await?;
+        queued()
+            .col_expr(delivery::Column::Attempts, Expr::col(delivery::Column::Attempts).add(1))
+            .col_expr(delivery::Column::NextAttemptAt, Expr::value(now() + PREPARE_RETRY))
+            .exec(&transaction)
+            .await?;
+    } else {
+        queued().col_expr(delivery::Column::Status, Expr::value(Status::Failed)).exec(&transaction).await?;
+    }
+    transaction.commit().await
 }
 
 async fn retry_later(db: &impl ConnectionTrait, rows: &[&delivery::Model], message: &str) -> Result<(), DbErr> {

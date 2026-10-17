@@ -1,8 +1,11 @@
 mod card;
+pub mod color;
 mod editor;
+mod lookup;
 
 pub use card::MusicCard;
 pub use editor::MusicEditor;
+pub use lookup::MusicLookup;
 
 use serde::{Deserialize, Deserializer, Serialize};
 
@@ -27,6 +30,8 @@ pub struct MusicAttrs {
     pub source: Option<MusicService>,
     #[serde(default, deserialize_with = "lenient_links")]
     pub links: MusicLinks,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub color: Option<String>,
 }
 
 #[boutique::ts]
@@ -86,6 +91,15 @@ impl MusicKind {
 impl MusicService {
     pub const ALL: [MusicService; 4] = [MusicService::AppleMusic, MusicService::Spotify, MusicService::Bandcamp, MusicService::YoutubeMusic];
 
+    pub fn as_str(self) -> &'static str {
+        match self {
+            MusicService::AppleMusic => "appleMusic",
+            MusicService::Spotify => "spotify",
+            MusicService::Bandcamp => "bandcamp",
+            MusicService::YoutubeMusic => "youtubeMusic",
+        }
+    }
+
     pub fn label(self) -> &'static str {
         match self {
             MusicService::AppleMusic => "Apple Music",
@@ -114,13 +128,7 @@ impl MusicService {
     }
 
     fn parse(name: &str) -> Option<MusicService> {
-        match name {
-            "appleMusic" => Some(MusicService::AppleMusic),
-            "spotify" => Some(MusicService::Spotify),
-            "bandcamp" => Some(MusicService::Bandcamp),
-            "youtubeMusic" => Some(MusicService::YoutubeMusic),
-            _ => None,
-        }
+        MusicService::ALL.into_iter().find(|service| service.as_str() == name)
     }
 }
 
@@ -149,6 +157,10 @@ impl MusicAttrs {
             .and_then(|service| self.links.get(service).map(|link| (service, link)))
             .or_else(|| self.links.iter().next())
     }
+
+    pub fn surface(&self) -> Option<Color> {
+        self.color.as_deref().and_then(Color::parse)
+    }
 }
 
 impl Tone {
@@ -173,7 +185,7 @@ pub fn listen_label(service: MusicService) -> String {
 }
 
 pub fn normalize(attrs: MusicAttrs) -> Option<MusicAttrs> {
-    let MusicAttrs { kind, title, artist, artwork, source, links } = attrs;
+    let MusicAttrs { kind, title, artist, artwork, source, links, color } = attrs;
     let links = MusicLinks {
         apple_music: normalize_link(MusicService::AppleMusic, links.apple_music),
         spotify: normalize_link(MusicService::Spotify, links.spotify),
@@ -191,6 +203,7 @@ pub fn normalize(attrs: MusicAttrs) -> Option<MusicAttrs> {
         artwork: artwork.map(|artwork| artwork.trim().to_string()).filter(|artwork| is_allowed_artwork(artwork)),
         source: source.filter(|service| links.get(*service).is_some()),
         links,
+        color: color.as_deref().and_then(Color::parse).filter(|color| color::is_card_color(*color)).map(|color| color.to_string()),
     })
 }
 

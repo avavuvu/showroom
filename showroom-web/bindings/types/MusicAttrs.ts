@@ -3,4 +3,4 @@ import type { MusicKind } from "./MusicKind";
 import type { MusicLinks } from "./MusicLinks";
 import type { MusicService } from "./MusicService";
 
-export type MusicAttrs = { kind: MusicKind, title: string, artist: string, artwork?: string | null, source?: MusicService | null, links: MusicLinks, };
+export type MusicAttrs = { kind: MusicKind, title: string, artist: string, artwork?: string | null, source?: MusicService | null, links: MusicLinks, color?: string | null, };

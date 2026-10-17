@@ -1,6 +1,6 @@
 use axum::{extract::{Path, State}, http::StatusCode};
 use maud::Markup;
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, QueryOrder};
 use boutique::AppResult;
 use crate::{
     models::newsletter::{self, Entity as Newsletter},
@@ -11,18 +11,16 @@ pub async fn profile(
     State(state): State<AppState>,
     CurrentPublication(publication): CurrentPublication,
     viewer: Viewer,
-) -> Markup {
-    let mut newsletters = Newsletter::find()
+) -> AppResult<Markup> {
+    let newsletters = Newsletter::find_summaries()
         .filter(newsletter::Column::PublicationId.eq(&publication.id))
         .filter(newsletter::Column::PublishedAt.is_not_null())
+        .order_by_desc(newsletter::Column::PublishedAt)
         .all(&state.db)
-        .await
-        .unwrap_or_default();
-
-    newsletters.sort_unstable_by_key(|n| std::cmp::Reverse(n.published_at));
+        .await?;
 
     let page_ctx = PageContext::public(viewer, state.urls.clone()).with_publication(publication);
-    views::user::profile(&page_ctx, &newsletters)
+    Ok(views::user::profile(&page_ctx, &newsletters))
 }
 
 pub async fn newsletter(

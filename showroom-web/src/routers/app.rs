@@ -1,4 +1,11 @@
-use axum::{Router, extract::DefaultBodyLimit, routing::{delete, get, post, put}};
+use axum::{
+    Router,
+    extract::{DefaultBodyLimit, Request, State},
+    http::{StatusCode, header},
+    middleware::{self, Next},
+    response::{IntoResponse, Response},
+    routing::{delete, get, post, put},
+};
 use crate::{handlers::{dashboard::*, error404::app_404}, state::AppState};
 
 pub fn create_router(state: AppState) -> Router {
@@ -25,11 +32,35 @@ pub fn create_router(state: AppState) -> Router {
         .fallback(app_404)
         .route("/", get(publications::index))
         .route("/new", get(publications::new_form).post(publications::create))
+        .route("/name/preview", post(publications::preview_name))
         .route("/settings", get(settings::get_settings))
         .route("/settings/change-password/request", post(settings::request_password_change))
         .route("/json/{id}", put(put_edit_json))
         .route("/images/sign", get(images::sign_upload))
         .route("/music/resolve", post(music::resolve))
+        .route("/music/color", post(music::color))
         .nest("/{slug}", publication)
+        .layer(middleware::from_fn_with_state(state.clone(), require_same_origin))
         .with_state(state)
+}
+
+async fn require_same_origin(State(state): State<AppState>, request: Request, next: Next) -> Response {
+    if request.method().is_safe() {
+        return next.run(request).await;
+    }
+
+    if is_same_origin(request.headers(), &state.urls.app()) {
+        next.run(request).await
+    } else {
+        tracing::warn!(method = %request.method(), path = %request.uri().path(), "blocked a cross-origin request");
+        StatusCode::FORBIDDEN.into_response()
+    }
+}
+
+fn is_same_origin(headers: &header::HeaderMap, app: &str) -> bool {
+    let value = |name| headers.get(name).and_then(|value: &header::HeaderValue| value.to_str().ok());
+    match value(header::ORIGIN) {
+        Some(origin) => origin == app,
+        None => value(header::REFERER).is_some_and(|referer| referer == app || referer.starts_with(&format!("{app}/"))),
+    }
 }

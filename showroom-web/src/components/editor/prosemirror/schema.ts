@@ -1,16 +1,15 @@
-import { Schema } from "prosemirror-model";
-import { musicSpec } from "../../../blocks/music/schema";
-import { isAllowedHref, isAllowedImageSrc } from "./url";
+import { Schema } from "prosemirror-model"
+import { captionSpec, figureSpec, imageSpec, isQuoteFigure } from "../../../blocks/image/schema"
+import { musicSpec } from "../../../blocks/music/schema"
+import { isAllowedHref } from "./url"
 
-const languageOf = (element: HTMLElement): string | null => {
-    const className = element.querySelector("code")?.className ?? element.className;
-    const language = /language-([\w+#.-]{1,32})/.exec(className)?.[1];
-    return language ?? null;
-};
+const getLanguage = (element: HTMLElement): string | null => {
+    const className = element.querySelector("code")?.className ?? element.className
+    const language = /language-([\w+#.-]{1,32})/.exec(className)?.[1]
+    return language ?? null
+}
 
-
-const isQuoteFigure = (element: HTMLElement) =>
-    element.classList.contains("pullquote") || element.classList.contains("quote") || !!element.querySelector("blockquote");
+export const NAME_TEXT = "{{name}}"
 
 export const schema = new Schema({
     nodes: {
@@ -91,7 +90,7 @@ export const schema = new Schema({
             group: "block quotable",
             code: true,
             defining: true,
-            parseDOM: [{ tag: "pre", preserveWhitespace: "full", getAttrs: (element) => ({ language: languageOf(element) }) }],
+            parseDOM: [{ tag: "pre", preserveWhitespace: "full", getAttrs: (element) => ({ language: getLanguage(element) }) }],
             toDOM: (node) => ["pre", ["code", node.attrs.language ? { class: `language-${node.attrs.language}` } : {}, 0]],
         },
         horizontalRule: {
@@ -99,50 +98,29 @@ export const schema = new Schema({
             parseDOM: [{ tag: "hr" }],
             toDOM: () => ["hr"],
         },
-        figure: {
-            attrs: { width: { default: "normal", validate: "string" } },
-            content: "image caption",
-            group: "block quotable",
-            defining: true,
-            isolating: true,
-            draggable: true,
-            parseDOM: [
-                {
-                    tag: "figure",
-                    getAttrs: (element) => {
-                        if (isQuoteFigure(element) || !element.querySelector("img")) return false;
-                        return { width: element.getAttribute("data-width") === "full" ? "full" : "normal" };
-                    },
-                },
-            ],
-            toDOM: (node) => ["figure", { class: "image-block", "data-width": node.attrs.width }, 0],
-        },
-        image: {
-            attrs: {
-                src: { default: "", validate: "string" },
-                title: { default: null },
-                publicId: { default: null },
-            },
-            selectable: false,
-            parseDOM: [
-                {
-                    tag: "img[src]",
-                    getAttrs: (element) => {
-                        const src = element.getAttribute("src") ?? "";
-                        return isAllowedImageSrc(src) ? { src, title: element.getAttribute("title") || null } : false;
-                    },
-                },
-            ],
-            toDOM: (node) => ["img", { src: node.attrs.src, alt: "", title: node.attrs.title }],
-        },
-        caption: {
-            content: "inline*",
-            defining: true,
-            parseDOM: [{ tag: "figcaption", context: "figure/" }],
-            toDOM: () => ["figcaption", 0],
-        },
+        figure: figureSpec,
+        image: imageSpec,
+        caption: captionSpec,
         music: musicSpec,
         text: { group: "inline" },
+        name: {
+            inline: true,
+            group: "inline",
+            atom: true,
+            selectable: true,
+            draggable: false,
+            attrs: { fallback: { default: "" } },
+            leafText: () => NAME_TEXT,
+            parseDOM: [{ tag: "span[data-name]", getAttrs: (element) => ({ fallback: element.dataset.fallback ?? "" }) }],
+            toDOM: (node) => {
+                const fallback = node.attrs.fallback as string
+                const attrs = { class: "name-token", "data-name": "", contenteditable: "false", title: "The subscriber's name" }
+                if (!fallback) {
+                    return ["span", attrs, "name"]
+                }
+                return ["span", { ...attrs, "data-fallback": fallback }, "name", ["span", { class: "name-token-fallback" }, fallback]]
+            },
+        },
         hardBreak: {
             inline: true,
             group: "inline",
@@ -159,8 +137,8 @@ export const schema = new Schema({
                 {
                     tag: "a[href]",
                     getAttrs: (element) => {
-                        const href = element.getAttribute("href")?.trim() ?? "";
-                        return isAllowedHref(href) ? { href } : false;
+                        const href = element.getAttribute("href")?.trim() ?? ""
+                        return isAllowedHref(href) ? { href } : false
                     },
                 },
             ],
@@ -197,4 +175,4 @@ export const schema = new Schema({
             toDOM: () => ["code", 0],
         },
     },
-});
+})

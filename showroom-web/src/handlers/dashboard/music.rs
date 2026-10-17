@@ -21,6 +21,18 @@ struct ResolveProblem {
     error: &'static str,
 }
 
+#[derive(Deserialize)]
+pub struct ColorRequest {
+    artwork: String,
+}
+
+#[boutique::ts]
+#[derive(Serialize)]
+pub struct ArtworkColor {
+    #[ts(optional = false)]
+    color: Option<String>,
+}
+
 pub async fn resolve(
     State(state): State<AppState>,
     AuthenticatedUser(_user): AuthenticatedUser<user::Model>,
@@ -33,6 +45,15 @@ pub async fn resolve(
         Ok(resolved) => Json(resolved).into_response(),
         Err(error) => problem(error),
     }
+}
+
+pub async fn color(
+    State(state): State<AppState>,
+    AuthenticatedUser(_user): AuthenticatedUser<user::Model>,
+    Json(body): Json<ColorRequest>,
+) -> Json<ArtworkColor> {
+    let color = if body.artwork.len() > MAX_URL_LENGTH { None } else { state.music.color(&body.artwork).await };
+    Json(ArtworkColor { color })
 }
 
 fn problem(error: &'static str) -> Response {

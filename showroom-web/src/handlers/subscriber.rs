@@ -1,17 +1,22 @@
 use axum::{
-    Form, extract::{Query, State}, response::{Redirect, Response, IntoResponse},
+    Form, extract::{Query, State}, http::HeaderMap, response::{Redirect, Response, IntoResponse},
 };
 use boutique::{AppError, AppResult};
 use validator::Validate;
 use maud::Markup;
 use nanoid::nanoid;
-use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, DbErr, EntityTrait, QueryFilter};
+use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter, SqlErr};
 use serde::Deserialize;
 
 use crate::{
     mailer, models::{publication, subscriber::{self, Entity as Subscriber}},
-    services::subdomain::CurrentPublication, state::AppState, views,
+    services::{rate_limit::{Limit, client_ip}, subdomain::CurrentPublication}, state::AppState, views,
 };
+
+const PER_ADDRESS: Limit = Limit::per_hour(3);
+const PER_CLIENT: Limit = Limit::per_hour(20);
+const TOO_MANY: &str = "Too many attempts. Please try again later.";
+const SOMETHING_WENT_WRONG: &str = "Something went wrong. Please try again.";
 
 #[derive(Deserialize, Validate)]
 pub struct SubscribeForm {
@@ -28,9 +33,20 @@ pub struct TokenQuery {
 pub async fn subscribe(
     State(state): State<AppState>,
     CurrentPublication(publication): CurrentPublication,
-    Form(form): Form<SubscribeForm>,
+    headers: HeaderMap,
+    Form(mut form): Form<SubscribeForm>,
 ) -> AppResult {
+    form.email = form.email.trim().to_lowercase();
+    form.name = form.name.map(|name| name.trim().to_string()).filter(|name| !name.is_empty());
     form.validate()?;
+
+    let mut checks = vec![(format!("subscribe:{}:{}", publication.id, form.email), PER_ADDRESS)];
+    if let Some(ip) = client_ip(&headers) {
+        checks.push((format!("subscribe:{ip}"), PER_CLIENT));
+    }
+    if !state.limits.allow_all(&checks) {
+        return Ok(views::subscriber::subscribe_error(TOO_MANY).into_response());
+    }
 
     Ok(insert_or_resend(&state, &publication, &form).await)
 }
@@ -94,12 +110,13 @@ async fn insert_or_resend(state: &AppState, publication: &publication::Model, fo
 
     match subscriber_response {
         Ok(_) => send_confirmation(state, &form.email, form.name.as_deref(), &token, publication).await,
-
-        Err(DbErr::RecordNotInserted) |
-        Err(DbErr::Exec(_)) |
-        Err(DbErr::Query(_)) => resend_if_unconfirmed(state, &form.email, publication).await,
-
-        Err(e) => views::subscriber::subscribe_error(&format!("Something went wrong, please try again: {e}")).into_response(),
+        Err(error) if matches!(error.sql_err(), Some(SqlErr::UniqueConstraintViolation(_))) => {
+            resend_if_unconfirmed(state, &form.email, publication).await
+        }
+        Err(error) => {
+            tracing::error!(%error, publication = %publication.id, "subscribing failed");
+            views::subscriber::subscribe_error(SOMETHING_WENT_WRONG).into_response()
+        }
     }
 }
 
@@ -114,7 +131,11 @@ async fn resend_if_unconfirmed(state: &AppState, email: &str, publication: &publ
         Ok(Some(sub)) if !sub.is_confirmed => {
             send_confirmation(state, &sub.email, sub.name.as_deref(), &sub.token, publication).await
         }
-        _ => views::subscriber::subscribe_exists().into_response(),
+        Ok(_) => views::subscriber::subscribe_exists().into_response(),
+        Err(error) => {
+            tracing::error!(%error, publication = %publication.id, "looking up an existing subscriber failed");
+            views::subscriber::subscribe_error(SOMETHING_WENT_WRONG).into_response()
+        }
     }
 }
 
@@ -122,8 +143,9 @@ async fn send_confirmation(state: &AppState, email: &str, name: Option<&str>, to
     let confirmation_response = mailer::send_confirmation(&state.ses, email, name, token, publication, &state.urls)
         .await;
 
-    if let Err(e) = confirmation_response {
-        return views::subscriber::subscribe_error(&format!("Failed to send confirmation email, please try again, {e}")).into_response();
+    if let Err(error) = confirmation_response {
+        tracing::error!(%error, publication = %publication.id, "sending a confirmation email failed");
+        return views::subscriber::subscribe_error("The confirmation email couldn't be sent. Please try again.").into_response();
     }
 
     views::subscriber::subscribe_success().into_response()

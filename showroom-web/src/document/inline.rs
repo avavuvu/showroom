@@ -4,6 +4,7 @@ use super::{Inline, Mark};
 pub enum InlinePiece<'a> {
     Text(&'a str),
     Break,
+    Name(&'a str),
     Marked(&'a Mark, Vec<InlinePiece<'a>>),
 }
 
@@ -13,6 +14,7 @@ pub fn inline_tree(content: &[Inline]) -> Vec<InlinePiece<'_>> {
         .map(|inline| {
             let mut marks: Vec<&Mark> = match inline {
                 Inline::Text { marks, .. } => marks.iter().collect(),
+                Inline::Name { marks, .. } => marks.iter().collect(),
                 Inline::HardBreak {} => Vec::new(),
             };
             marks.sort_by_key(|mark| mark.rank());
@@ -33,6 +35,7 @@ fn group<'a>(items: &[(Vec<&'a Mark>, &'a Inline)], depth: usize) -> Vec<InlineP
                 pieces.push(match inline {
                     Inline::Text { text, .. } => InlinePiece::Text(text),
                     Inline::HardBreak {} => InlinePiece::Break,
+                    Inline::Name { attrs, .. } => InlinePiece::Name(&attrs.fallback),
                 });
                 index += 1;
             }

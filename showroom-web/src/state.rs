@@ -6,12 +6,12 @@ use sea_orm::DatabaseConnection;
 use boutique::cloudinary::Cloudinary;
 use tokio::sync::Notify;
 
-use crate::{models::user, services::music::MusicClient};
+use crate::{models::user, services::{music::MusicClient, rate_limit::RateLimiter}};
 
 #[derive(Clone)]
 pub struct Urls {
-    domain: String,      // room.lc — used for subdomain routing
-    main_domain: String, // show.room.lc — primary URL
+    domain: String,
+    main_domain: String,
     email_domain: String,
     asset_url: Option<String>,
     cloudinary_cloud: String,
@@ -119,12 +119,13 @@ pub struct AppState {
     pub cloudinary: Cloudinary,
     pub sends: Arc<Notify>,
     pub music: MusicClient,
+    pub limits: RateLimiter,
 }
 
 impl AppState {
     pub fn new(db: DatabaseConnection, ses: SesClient, cloudinary: Cloudinary, urls: Urls, secret: String) -> Self {
         let auth = AuthState::new(SeaOrmStore::new(db.clone()), secret).with_config(urls.auth_config());
-        Self { db, urls, auth, ses, cloudinary, sends: Arc::new(Notify::new()), music: MusicClient::new() }
+        Self { db, urls, auth, ses, cloudinary, sends: Arc::new(Notify::new()), music: MusicClient::new(), limits: RateLimiter::default() }
     }
 }
 

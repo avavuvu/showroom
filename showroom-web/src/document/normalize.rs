@@ -1,5 +1,6 @@
 use super::{
-    Block, CodeBlockAttrs, Document, FigureAttrs, HeadingAttrs, ImageAttrs, Inline, ListItem, Mark, QuoteVariant, code_text, is_allowed_href,
+    Block, CodeBlockAttrs, Document, FigureAttrs, HeadingAttrs, ImageAttrs, Inline, ListItem, MAX_FALLBACK, Mark, NameAttrs, QuoteVariant, code_text,
+    is_allowed_href,
     is_allowed_image_src,
 };
 use crate::blocks::music;
@@ -160,23 +161,58 @@ fn inlines(content: Vec<Inline>) -> Vec<Inline> {
     for inline in content {
         match inline {
             Inline::Text { text, marks } => {
-                if text.is_empty() {
-                    continue;
-                }
                 let marks = clean_marks(marks);
-                if let Some(Inline::Text { text: previous, marks: previous_marks }) = result.last_mut()
-                    && *previous_marks == marks
-                {
-                    previous.push_str(&text);
+                if marks.contains(&Mark::Code {}) {
+                    push_text(&mut result, &text, &marks);
                     continue;
                 }
-                result.push(Inline::Text { text, marks });
+                let mut rest = text.as_str();
+                while let Some((before, after)) = split_name(rest) {
+                    push_text(&mut result, before, &marks);
+                    result.push(Inline::Name { attrs: NameAttrs::default(), marks: marks.clone() });
+                    rest = after;
+                }
+                push_text(&mut result, rest, &marks);
             }
             Inline::HardBreak {} => result.push(Inline::HardBreak {}),
+            Inline::Name { attrs, marks } => result.push(Inline::Name {
+                attrs: NameAttrs { fallback: clean_fallback(&attrs.fallback) },
+                marks: clean_marks(marks).into_iter().filter(|mark| *mark != Mark::Code {}).collect(),
+            }),
         }
     }
 
     result
+}
+
+fn clean_fallback(fallback: &str) -> String {
+    fallback.split_whitespace().collect::<Vec<_>>().join(" ").chars().take(MAX_FALLBACK).collect()
+}
+
+fn push_text(result: &mut Vec<Inline>, text: &str, marks: &[Mark]) {
+    if text.is_empty() {
+        return;
+    }
+    if let Some(Inline::Text { text: previous, marks: previous_marks }) = result.last_mut()
+        && previous_marks == marks
+    {
+        previous.push_str(text);
+        return;
+    }
+    result.push(Inline::Text { text: text.to_string(), marks: marks.to_vec() });
+}
+
+fn split_name(text: &str) -> Option<(&str, &str)> {
+    let mut from = 0;
+    while let Some(start) = text[from..].find("{{").map(|offset| from + offset) {
+        let inner = &text[start + 2..];
+        let end = inner.find("}}")?;
+        if inner[..end].trim().eq_ignore_ascii_case("name") {
+            return Some((&text[..start], &inner[end + 2..]));
+        }
+        from = start + 1;
+    }
+    None
 }
 
 fn clean_marks(marks: Vec<Mark>) -> Vec<Mark> {

@@ -4,7 +4,8 @@
     "scripts": {
         "dev": "cd showroom-web && bun run dev",
         "dev:js": "cd showroom-web && bun run dev:js",
-        "build": "cd showroom-web && bun install && bun run build"
+        "build": "cd showroom-web && bun install && bun run build",
+        "lint": "cd showroom-web && bun run lint"
 
     }
 }

@@ -84,7 +84,7 @@ async fn read_form(mut multipart: Multipart) -> Result<ImageForm, &'static str> 
 async fn upload(state: &AppState, publication: &publication::Model, kind: &str, (bytes, content_type): (Vec<u8>, String)) -> Result<String, String> {
     let public_id = format!("showroom/publications/{}/{kind}-{}", publication.id, nanoid::nanoid!(10));
     state.cloudinary.upload(bytes, &public_id, &content_type).await.map_err(|e| {
-        eprintln!("[images] {kind} upload failed for {}: {e}", publication.id);
+        tracing::error!(error = %e, publication = %publication.id, "{kind} upload failed");
         "The image could not be uploaded. Try again.".to_string()
     })
 }

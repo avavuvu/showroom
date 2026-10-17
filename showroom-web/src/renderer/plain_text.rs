@@ -1,4 +1,5 @@
 use crate::document::{Block, Document, Inline, InlinePiece, ListItem, Mark, MusicAttrs, MusicKind, code_text, figure_parts, inline_tree, quote_parts};
+use crate::renderer::personalize::escape;
 
 pub fn render(document: &Document) -> String {
     blocks(document.blocks())
@@ -9,6 +10,11 @@ fn blocks(blocks: &[Block]) -> String {
 }
 
 fn block(block: &Block) -> String {
+    let text = block_text(block);
+    if block.requires_name() && !text.is_empty() { format!("{{{{#if name}}}}{text}{{{{/if}}}}") } else { text }
+}
+
+fn block_text(block: &Block) -> String {
     match block {
         Block::Paragraph { content }
         | Block::Heading { content, .. }
@@ -31,12 +37,12 @@ fn block(block: &Block) -> String {
             .map(|(index, item)| list_item(&format!("{}.", attrs.start as usize + index), item))
             .collect::<Vec<_>>()
             .join("\n"),
-        Block::CodeBlock { content, .. } => code_text(content),
+        Block::CodeBlock { content, .. } => escape(&code_text(content)).into_owned(),
         Block::HorizontalRule {} => "---".to_string(),
-        Block::Image { attrs } => attrs.src.clone(),
+        Block::Image { attrs } => escape(&attrs.src).into_owned(),
         Block::Figure { content, .. } => match figure_parts(content) {
-            Some((image, caption)) if !caption.is_empty() => format!("{} ({})", inlines(caption), image.src),
-            Some((image, _)) => image.src.clone(),
+            Some((image, caption)) if !caption.is_empty() => format!("{} ({})", inlines(caption), escape(&image.src)),
+            Some((image, _)) => escape(&image.src).into_owned(),
             None => String::new(),
         },
         Block::Music { attrs } => music(attrs),
@@ -47,6 +53,7 @@ fn music(attrs: &MusicAttrs) -> String {
     let mut heading = [attrs.title.as_str(), attrs.artist.as_str()]
         .into_iter()
         .filter(|text| !text.is_empty())
+        .map(|text| escape(text).into_owned())
         .collect::<Vec<_>>()
         .join(" \u{2014} ");
     if attrs.kind == MusicKind::Album && !heading.is_empty() {
@@ -54,7 +61,7 @@ fn music(attrs: &MusicAttrs) -> String {
     }
     std::iter::once(heading)
         .filter(|text| !text.is_empty())
-        .chain(attrs.links.iter().map(|(service, link)| format!("{}: {}", service.label(), link.url)))
+        .chain(attrs.links.iter().map(|(service, link)| format!("{}: {}", service.label(), escape(&link.url))))
         .collect::<Vec<_>>()
         .join("\n")
 }
@@ -89,12 +96,14 @@ fn pieces(pieces: &[InlinePiece]) -> String {
     pieces
         .iter()
         .map(|piece| match piece {
-            InlinePiece::Text(text) => text.to_string(),
+            InlinePiece::Text(text) => escape(text).into_owned(),
             InlinePiece::Break => "\n".to_string(),
+            InlinePiece::Name(fallback) => format!("{{{{#if name}}}}{{{{{{name}}}}}}{{{{else}}}}{}{{{{/if}}}}", escape(fallback)),
             InlinePiece::Marked(Mark::Link { attrs }, children) => {
                 let text = self::pieces(children);
-                let shown = attrs.href.strip_prefix("mailto:").or_else(|| attrs.href.strip_prefix("tel:")).unwrap_or(&attrs.href);
-                if text.trim() == shown || text.trim() == attrs.href {
+                let href = escape(&attrs.href);
+                let shown = href.strip_prefix("mailto:").or_else(|| href.strip_prefix("tel:")).unwrap_or(&href);
+                if text.trim() == shown || text.trim() == href {
                     text
                 } else {
                     format!("{text} ({shown})")

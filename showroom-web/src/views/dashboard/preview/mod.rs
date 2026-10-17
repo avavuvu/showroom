@@ -2,7 +2,7 @@ use boutique::html;
 use maud::{Markup, PreEscaped};
 use crate::document::Document;
 use crate::models::newsletter;
-use crate::renderer::{email::render_email, greeting};
+use crate::renderer::{email::render_email, personalize};
 use crate::components::Button;
 use crate::views::context::PageContext;
 use crate::views::layouts::{page, base, base_email_layout, NewsletterBody};
@@ -13,13 +13,15 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     let back_url = format!("{}/edit/{}", ctx.dashboard_url(), newsletter.id);
     let publication_url = ctx.publication_url();
 
-    let date = newsletter.created_at.format("%B %-d, %Y").to_string();
+    let date = chrono::Utc::now().format("%B %-d, %Y").to_string();
 
     let theme = publication.theme().email();
-    let content = render_email(&Document::from_stored(&newsletter.content), theme, &ctx.urls);
+    let content: Vec<_> = render_email(&Document::from_stored(&newsletter.content), theme, &ctx.urls)
+        .into_iter()
+        .map(|block| block.map(|html| personalize::preview(html, None)))
+        .collect();
     let has_title = !newsletter.title.trim().is_empty();
     let recipient = ctx.user.as_ref().map(|user| user.email.as_str()).unwrap_or("");
-    let greeting = greeting::preview(&publication.greeting).map(|text| html! { p { (text) } });
 
     let template = base_email_layout(
         newsletter.display_title(),
@@ -35,7 +37,6 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
                 publication_url = &publication_url,
                 picture = &publication.email_picture_url(&ctx.urls),
                 layout = theme.layout,
-                maybe_greeting = greeting,
                 content = &content,
             );
         },

@@ -5,16 +5,30 @@ mod toolbar;
 use boutique::html;
 use bq_components::component;
 use maud::Markup;
+use serde::Serialize;
 
-use crate::blocks::music::MusicEditor;
+use crate::blocks::{
+    image::{ImageEditor, ImageUploading},
+    music::{MusicEditor, MusicLookup},
+};
 use crate::components::Button;
+use crate::document::Document;
 use link_bar::LinkBar;
 use save_status::SaveStatus;
 use toolbar::Toolbar;
 
+#[boutique::ts]
+#[derive(Serialize)]
+pub struct EditorProps<'a> {
+    pub id: &'a str,
+    pub revision: i32,
+    #[ts(type = "unknown")]
+    pub content: Document,
+}
+
 #[component(setup = "newsletter-editor")]
 pub fn editor_page(
-    props: &str,
+    props: &EditorProps<'_>,
     title: &str,
     subtitle: Option<&str>,
     back: &str,
@@ -26,7 +40,7 @@ pub fn editor_page(
             bq-setup
             bq-on:keydown|mod|s|prevent|window="save"
             bq-on:beforeunload|window="guard"
-            data-props=(props) {
+            data-props=(serde_json::to_string(props).unwrap_or_default()) {
             @if sent {
                 div.marquee {
                     "This newsletter has been sent. Changes made now will update online, but not in your subscribers' inboxes."
@@ -94,29 +108,19 @@ fn editor(title: &str, subtitle: Option<&str>) -> Markup {
             input type="file" accept="image/png,image/jpeg,image/gif,image/webp" multiple hidden bq-ref="file-input" bq-on:change="files-picked";
 
             template bq-ref="image-frame" {
-                div.image-frame {
-                    div.image-actions {
-                        button type="button" data-action="replace" { "Replace" }
-                        button type="button" data-action="width" {
-                            span.when-normal { "Full width" }
-                            span.when-full { "Normal width" }
-                        }
-                        button type="button" data-action="remove" { "Remove" }
-                    }
-                    span.upload-label role="status" { "Uploading…" }
-                }
+                ImageEditor;
+            }
+
+            template bq-ref="upload-placeholder" {
+                ImageUploading;
             }
 
             template bq-ref="music-frame" {
                 MusicEditor;
             }
 
-            template bq-ref="upload-placeholder" {
-                figure.image-block.is-uploading contenteditable="false" {
-                    div.image-frame {
-                        span.upload-label role="status" { "Uploading…" }
-                    }
-                }
+            template bq-ref="music-lookup" {
+                MusicLookup;
             }
         }
     }

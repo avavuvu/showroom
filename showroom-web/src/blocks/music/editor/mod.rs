@@ -2,6 +2,8 @@ use boutique::html;
 use bq_components::component;
 use maud::Markup;
 
+use super::MusicService;
+
 #[component(setup = "music-editor")]
 pub fn music_editor() -> Markup {
     html! {
@@ -31,7 +33,21 @@ pub fn music_editor() -> Markup {
                     spellcheck="false"
                     bq-ref="artist"
                     bq-on:input="edit-artist";
-                ul.music-links bq-ref="links" bq-on:click="links-click" {}
+                ul.music-links {
+                    @for service in MusicService::ALL {
+                        li hidden data-service=(service.as_str()) bq-ref="link" {
+                            a target="_blank" rel="noopener noreferrer" { (service.label()) }
+                            button
+                                type="button"
+                                aria-label={ "Remove the " (service.label()) " link" }
+                                title={ "Remove the " (service.label()) " link" }
+                                bq-on:click="unlink"
+                            {
+                                "\u{00d7}"
+                            }
+                        }
+                    }
+                }
                 input.music-add
                     type="text"
                     inputmode="url"

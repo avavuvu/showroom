@@ -37,6 +37,24 @@ pub fn link_bar() -> Markup {
                 bq-on:keydown|escape|prevent="cancel"
                 bq-on:keydown|enter|prevent="apply"
                 bq-on:input="clear-problem";
+            input.link-input.link-fallback
+                type="text"
+                name="fallback"
+                placeholder="Friend"
+                aria-label="Fallback for subscribers without a name"
+                aria-describedby="name-fallback-hint"
+                autocomplete="off"
+                enterkeyhint="done"
+                maxlength="40"
+                bq-ref="fallback"
+                bq-on:focus="start-name"
+                bq-on:blur="leave"
+                bq-on:input="change-fallback"
+                bq-on:keydown|escape|prevent="cancel-name"
+                bq-on:keydown|enter|prevent="finish-name";
+            span.link-hint id="name-fallback-hint" {
+                "Shown when a subscriber didn't give a name"
+            }
             a.icon-button
                 target="_blank"
                 rel="noopener noreferrer"

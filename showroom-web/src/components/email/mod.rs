@@ -47,7 +47,7 @@ pub fn stylesheet(theme: &EmailTheme) -> String {
         .fold(STYLESHEET.to_string(), |css, (name, value)| css.replace(&format!("var(--{name})"), value));
 
     if css.contains("var(") {
-        eprintln!("[email] email.email.css uses a variable that stylesheet() does not set");
+        tracing::error!("email.email.css uses a variable that stylesheet() does not set");
         debug_assert!(false, "email.email.css uses a variable that stylesheet() does not set");
     }
 
@@ -89,11 +89,11 @@ pub fn button(#[positional] href: &str, children: Markup) -> Markup {
 }
 
 #[component]
-pub fn full_width_image(#[positional] src: &str, caption: Option<&str>) -> Markup {
+pub fn full_width_image(#[positional] src: &str, alt: &str, caption: Option<&str>) -> Markup {
     html! {
         tr {
             td.email-full-width colspan="3" width="600" {
-                img.email-full-width-image src=(src) alt="" width="600";
+                img.email-full-width-image src=(src) alt=(alt) width="600";
             }
         }
         @if let Some(caption) = caption {

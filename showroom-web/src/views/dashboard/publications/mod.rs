@@ -1,16 +1,16 @@
 use boutique::html;
 use maud::Markup;
-use crate::components::{ArticleHeader, Button, DirtyForm, Input, Textarea, ThemeForm};
+use crate::components::{ArticleHeader, Button, DirtyForm, Input, NameField, Textarea, ThemeForm};
 use crate::views::context::PageContext;
-use crate::renderer::greeting;
 use crate::models::publication::{self, BANNER_HEIGHT, BANNER_WIDTH, DEFAULT_PICTURES, Picture};
+use crate::models::publication_name::{NameCase, PublicationName};
 use crate::views::layouts::{page, dashboard_shell};
 
-pub fn new_form(ctx: &PageContext, slug: &str, name: &str, error: Option<&str>) -> Markup {
+pub fn new_form(ctx: &PageContext, slug: &str, name: &PublicationName, case: NameCase, error: Option<&str>) -> Markup {
     let domain = format!(".{}", ctx.urls.domain());
 
     dashboard_shell(
-        page("New publication").class("settings"),
+        page("New publication").htmx().class("settings"),
         ctx,
         html! {
             section.settings-section {
@@ -18,7 +18,7 @@ pub fn new_form(ctx: &PageContext, slug: &str, name: &str, error: Option<&str>) 
                     @if let Some(error) = error {
                         p.error { (error) }
                     }
-                    Input("name", label = "Name") value=(name) placeholder="My newsletter" required;
+                    NameField(name, case = case, preview_url = &format!("{}/name/preview", ctx.urls.app()));
                     Input(
                         "slug",
                         label = "Address",
@@ -112,7 +112,7 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
     let today = chrono::Utc::now().format("%B %-d, %Y").to_string();
 
     dashboard_shell(
-        page("Settings").class("settings"),
+        page("Settings").htmx().class("settings"),
         ctx,
         html! {
             section.settings-section {
@@ -121,16 +121,12 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
                     @if let Some(error) = error {
                         p.error { (error) }
                     }
-                    Input("name", label = "Name") value=(publication.name) required;
+                    NameField(
+                        &PublicationName::parse(&publication.name),
+                        case = publication.name_case,
+                        preview_url = &format!("{}/name/preview", ctx.urls.app()),
+                    );
                     Textarea("description", label = "Description", value = publication.description.as_deref().unwrap_or("")) rows="3";
-                    Input(
-                        "greeting",
-                        label = "Greeting",
-                        hint = "Shown at the top of each newsletter. Write {{name}} where the subscriber's name goes. Subscribers without a name skip a greeting that uses {{name}}. Leave empty to turn the greeting off.",
-                    )
-                        value=(publication.greeting)
-                        placeholder=(greeting::DEFAULT)
-                        maxlength=(greeting::MAX_LEN);
                     Input("address", label = "Address") value=(address) disabled;
                     Button(submit = true) .primary { "Save" }
                 }

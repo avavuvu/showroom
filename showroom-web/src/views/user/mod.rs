@@ -42,7 +42,7 @@ pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
     let publication = ctx.publication();
     let publication_url = ctx.publication_url();
     let content = render(&Document::from_stored(&newsletter.content), Tone::on(publication.theme().paper));
-    let date = newsletter.created_at.format("%B %-d, %Y").to_string();
+    let date = newsletter.published_at.unwrap_or(newsletter.created_at).format("%B %-d, %Y").to_string();
 
     let metadata = with_share_image(
         Metadata::article(newsletter.display_title(), &publication.name, &publication_url),

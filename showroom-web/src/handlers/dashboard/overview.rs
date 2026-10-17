@@ -1,11 +1,11 @@
 use axum::{extract::{Path, State}, http::StatusCode, response::Redirect};
-use boutique::{AppError, AppResult};
+use boutique::AppResult;
 use nanoid::nanoid;
 use maud::Markup;
-use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, ModelTrait, QueryFilter};
+use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, ModelTrait, QueryFilter, QueryOrder};
 use crate::{
     document::Document,
-    services::publication::OwnedPublication,
+    services::publication::{OwnedPublication, find_newsletter},
     models::newsletter::{self, Entity as Newsletter},
     state::AppState,
     views,
@@ -14,16 +14,14 @@ use crate::{
 pub async fn index(
     State(state): State<AppState>,
     owned: OwnedPublication,
-) -> Markup {
-    let mut newsletters = Newsletter::find()
+) -> AppResult<Markup> {
+    let newsletters = Newsletter::find_summaries()
         .filter(newsletter::Column::PublicationId.eq(&owned.publication.id))
+        .order_by_desc(newsletter::Column::UpdatedAt)
         .all(&state.db)
-        .await
-        .unwrap_or_default();
+        .await?;
 
-    newsletters.sort_unstable_by_key(|n| std::cmp::Reverse(n.updated_at));
-
-    views::dashboard::index(&owned.into_context(state.urls.clone()), newsletters)
+    Ok(views::dashboard::index(&owned.into_context(state.urls.clone()), newsletters))
 }
 
 pub async fn post_newsletters(
@@ -39,10 +37,13 @@ pub async fn post_newsletters(
         title: Set(String::new()),
         slug: Set(id.clone()),
         subtitle: Set(None),
-        content: Set(Document::default().to_value()),
+        content: Set(Document::greeting().to_value()),
         revision: Set(0),
         published_at: Set(None),
         send_started_at: Set(None),
+        email_subject: Set(None),
+        email_html: Set(None),
+        email_text: Set(None),
         created_at: Set(now),
         updated_at: Set(now),
     };
@@ -57,11 +58,7 @@ pub async fn delete_newsletter(
     OwnedPublication { publication, .. }: OwnedPublication,
     Path((_, id)): Path<(String, String)>,
 ) -> AppResult<StatusCode> {
-    let newsletter = Newsletter::find_by_id(&id)
-        .filter(newsletter::Column::PublicationId.eq(&publication.id))
-        .one(&state.db)
-        .await?
-        .ok_or(AppError::NotFound)?;
+    let newsletter = find_newsletter(&state.db, &publication.id, &id).await?;
 
     newsletter.delete(&state.db).await?;
 

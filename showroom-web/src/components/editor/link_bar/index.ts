@@ -1,81 +1,123 @@
-import { inject } from "../../../../bindings/boutique/setups";
-import type { EditorLinkBar } from "@setups";
-import { editorContext } from "../context";
-import { applyLink, closeLink, linkEditing, linkText, openLink, removeLink, selectedLink } from "./link";
+import { inject } from "../../../../bindings/boutique/setups"
+import type { EditorLinkBar } from "@setups"
+import { editorContext } from "../context"
+import { getSelectedName, isEditingName, setNameFallback, stopEditingName } from "../prosemirror/name"
+import { applyLink, closeLink, getLinkEditing, getLinkText, getSelectedLink, openLink, removeLink } from "./link"
 
-export const editorLinkBar: EditorLinkBar = async (root, { text, url, open, remove }, { signal }) => {
+export const editorLinkBar: EditorLinkBar = async (root, { text, url, fallback, open, remove }, { signal }) => {
     const { view, onUpdate } = await inject(root, editorContext).catch((error: unknown) => {
-        text.disabled = true;
-        url.disabled = true;
-        throw error;
-    });
+        text.disabled = true
+        url.disabled = true
+        fallback.disabled = true
+        throw error
+    })
 
-    let wasEditing = false;
+    let wasEditing = false
+    let wasEditingName = false
+    let originalFallback = ""
 
     const sync = () => {
-        const { state } = view;
-        const editing = linkEditing(state);
-        const range = selectedLink(state);
-        const target = editing ?? range;
-        const href = editing?.href || (range?.mark.attrs.href as string | undefined) || "";
-        const focused = root.contains(document.activeElement);
+        const { state } = view
+        const editing = getLinkEditing(state)
+        const range = getSelectedLink(state)
+        const target = editing ?? range
+        const href = editing?.href || (range?.mark.attrs.href as string | undefined) || ""
+        const isFocused = root.contains(document.activeElement)
+        const selectedName = getSelectedName(state)
+        const isNameEditing = isEditingName(state)
 
-        root.classList.toggle("is-idle", !target);
-        if (href) open.href = href;
-        else open.removeAttribute("href");
-        remove.disabled = !href;
-
-        if (!focused) {
-            text.value = target ? linkText(state, target) : "";
-            url.value = href;
-            url.setCustomValidity("");
+        root.classList.toggle("is-idle", !target && !selectedName)
+        root.classList.toggle("is-name", !!selectedName)
+        if (selectedName && document.activeElement !== fallback) {
+            fallback.value = selectedName.fallback
         }
-
-        if (editing && !wasEditing && !focused) {
-            const first = editing.from === editing.to ? text : url;
+        if (isNameEditing && !wasEditingName && document.activeElement !== fallback) {
             requestAnimationFrame(() => {
-                first.focus();
-                first.select();
-            });
+                fallback.focus()
+                fallback.select()
+            })
         }
-        wasEditing = !!editing;
-    };
+        wasEditingName = isNameEditing
+        if (href) {
+            open.href = href
+        } else {
+            open.removeAttribute("href")
+        }
+        remove.disabled = !href
 
-    onUpdate(sync, signal);
+        if (!isFocused) {
+            text.value = target ? getLinkText(state, target) : ""
+            url.value = href
+            url.setCustomValidity("")
+        }
+
+        if (editing && !wasEditing && !isFocused) {
+            const firstField = editing.from === editing.to ? text : url
+            requestAnimationFrame(() => {
+                firstField.focus()
+                firstField.select()
+            })
+        }
+        wasEditing = !!editing
+    }
+
+    onUpdate(sync, signal)
 
     return {
-        start() {
-            if (!linkEditing(view.state)) openLink(view.state, view.dispatch, view);
-        },
-
-        leave() {
-            requestAnimationFrame(() => {
-                if (view.isDestroyed || root.contains(document.activeElement)) return;
-                closeLink(view);
-                sync();
-            });
-        },
-
-        cancel() {
-            closeLink(view);
-            view.focus();
-        },
-
-        apply() {
-            const problem = applyLink(view, url.value, text.value);
-            if (!problem) {
-                view.focus();
-                return;
+        start: () => {
+            if (!getLinkEditing(view.state)) {
+                openLink(view.state, view.dispatch, view)
             }
-            url.setCustomValidity(problem);
-            url.reportValidity();
+        },
+
+        leave: () => {
+            requestAnimationFrame(() => {
+                if (view.isDestroyed || root.contains(document.activeElement)) {
+                    return
+                }
+                closeLink(view)
+                stopEditingName(view)
+                sync()
+            })
+        },
+
+        cancel: () => {
+            closeLink(view)
+            view.focus()
+        },
+
+        apply: () => {
+            const problem = applyLink(view, url.value, text.value)
+            if (!problem) {
+                view.focus()
+                return
+            }
+            url.setCustomValidity(problem)
+            url.reportValidity()
         },
 
         clearProblem: () => url.setCustomValidity(""),
 
-        unlink() {
-            removeLink(view);
-            view.focus();
+        startName: () => {
+            originalFallback = getSelectedName(view.state)?.fallback ?? ""
         },
-    };
-};
+
+        changeFallback: () => setNameFallback(view, fallback.value.trim()),
+
+        finishName: () => {
+            stopEditingName(view)
+            view.focus()
+        },
+
+        cancelName: () => {
+            setNameFallback(view, originalFallback)
+            stopEditingName(view)
+            view.focus()
+        },
+
+        unlink: () => {
+            removeLink(view)
+            view.focus()
+        },
+    }
+}
