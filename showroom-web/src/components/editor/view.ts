@@ -16,6 +16,8 @@ import type { PickFiles } from "./images/file-picker";
 import { ImageView } from "./images/image-view";
 import { imageFiles, uploadPlugin, type Uploads } from "./images/upload";
 import { linkPlugin } from "./link_bar/link";
+import { musicPlugin } from "../../blocks/music/paste";
+import { MusicView } from "../../blocks/music/view";
 
 type Refs = Parameters<NewsletterEditor>[1];
 
@@ -40,6 +42,7 @@ export function createView(refs: Refs, { doc, uploads, pickFiles, onChange, onUp
                 gapCursor(),
                 placeholders({ body: "Write your newsletter…", caption: "Add a caption", attribution: "Author or source" }),
                 trailingParagraph(),
+                musicPlugin(),
                 linkPlugin(),
                 uploadPlugin(refs.uploadPlaceholder),
             ],
@@ -56,6 +59,7 @@ export function createView(refs: Refs, { doc, uploads, pickFiles, onChange, onUp
         },
         nodeViews: {
             image: (node, nodeView, getPos) => new ImageView(node, nodeView, getPos, { template: refs.imageFrame, pickFiles, uploads }),
+            music: (node, nodeView, getPos) => new MusicView(node, nodeView, getPos, { template: refs.musicFrame, pickFiles, uploads }),
         },
         handleClickOn(editor, _pos, node, nodePos, _event, direct) {
             if (!direct || node.type !== schema.nodes.image) return false;

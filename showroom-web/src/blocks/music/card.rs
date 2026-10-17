@@ -1,0 +1,44 @@
+use boutique::html;
+use bq_components::{Attrs, component};
+use maud::Markup;
+
+use super::{MusicAttrs, MusicKind, Tone, icon_path, listen_label};
+
+#[component]
+pub fn music_card(#[positional] music: &MusicAttrs, tone: Tone, attrs: Attrs) -> Markup {
+    let href = music.primary().map(|(_, link)| link.url.as_str());
+    html! {
+        figure.music-card data-kind=(music.kind.as_str()) (..attrs) {
+            @if let Some(artwork) = &music.artwork {
+                a.music-artwork href=[href] target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true" {
+                    img src=(artwork) alt="" loading="lazy";
+                }
+            }
+            div.music-details {
+                @if music.kind == MusicKind::Album {
+                    p.music-kind { "Album" }
+                }
+                @if !music.title.is_empty() {
+                    p.music-title {
+                        a href=[href] target="_blank" rel="noopener noreferrer" { (music.title) }
+                    }
+                }
+                @if !music.artist.is_empty() {
+                    p.music-artist { (music.artist) }
+                }
+                div.music-listen {
+                    span.music-listen-label aria-hidden="true" { "Listen on" }
+                    ul.music-links {
+                        @for (service, link) in music.links.iter() {
+                            li {
+                                a href=(link.url) target="_blank" rel="noopener noreferrer" aria-label=(listen_label(service)) title=(listen_label(service)) {
+                                    img src=(icon_path(service, tone)) alt="" width="22" height="22";
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -6,6 +6,7 @@ use boutique::html;
 use bq_components::component;
 use maud::Markup;
 
+use crate::blocks::music::MusicEditor;
 use crate::components::Button;
 use link_bar::LinkBar;
 use save_status::SaveStatus;
@@ -104,6 +105,10 @@ fn editor(title: &str, subtitle: Option<&str>) -> Markup {
                     }
                     span.upload-label role="status" { "Uploading…" }
                 }
+            }
+
+            template bq-ref="music-frame" {
+                MusicEditor;
             }
 
             template bq-ref="upload-placeholder" {

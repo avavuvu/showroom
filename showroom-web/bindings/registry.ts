@@ -42,6 +42,11 @@ export const registry: Registry = {
         many: [],
         load: () => import("../src/components/menu/index").then((module) => module.menu satisfies setups.Menu),
     },
+    "music-editor": {
+        tags: ["figure"],
+        many: [],
+        load: () => import("../src/blocks/music/index").then((module) => module.musicEditor satisfies setups.MusicEditor),
+    },
     "newsletter-editor": {
         tags: ["div"],
         many: [],

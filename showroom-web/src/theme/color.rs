@@ -40,6 +40,10 @@ impl Color {
         0.2126 * linear(self.red) + 0.7152 * linear(self.green) + 0.0722 * linear(self.blue)
     }
 
+    pub fn is_dark(self) -> bool {
+        self.luminance() < super::DARK_PAPER
+    }
+
     pub fn apca(self, background: Color) -> f32 {
         let (text, background) = (self.apca_luminance(), background.apca_luminance());
         let contrast = if background > text {

@@ -3,6 +3,7 @@ mod overview;
 mod send;
 
 pub mod images;
+pub mod music;
 pub mod publications;
 pub mod settings;
 pub mod subscribers;

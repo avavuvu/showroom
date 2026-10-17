@@ -3,6 +3,7 @@ use serde_json::json;
 use showroom_web::{
     document::Document,
     renderer::{email::render_email, greeting},
+    state::Urls,
     theme::Theme,
     views::layouts::{NewsletterBody, base_email_layout},
 };
@@ -29,12 +30,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     { "type": "text", "text": "italic text", "marks": [{ "type": "italic" }] },
                     { "type": "text", "text": "." }
                 ]
+            },
+            {
+                "type": "music",
+                "attrs": {
+                    "kind": "album",
+                    "title": "In Rainbows",
+                    "artist": "Radiohead",
+                    "artwork": "https://f4.bcbits.com/img/a0552435637_10.jpg",
+                    "source": "bandcamp",
+                    "links": {
+                        "bandcamp": { "url": "https://radiohead.bandcamp.com/album/in-rainbows", "id": "2162872411" },
+                        "spotify": { "url": "https://open.spotify.com/album/5vkqYmiPBYLaalcmjujWxK" }
+                    }
+                }
             }
         ]
     });
 
+    let urls = Urls::new("room.lc", "3000", "show.room.lc").with_asset_url("https://show.room.lc");
     let theme = Theme::default().email();
-    let rendered_content = render_email(&Document::from_value(&content)?, theme);
+    let rendered_content = render_email(&Document::from_value(&content)?, theme, &urls);
     let date = Utc::now().format("%B %-d, %Y").to_string();
 
     let greeting = greeting::for_subscriber(greeting::DEFAULT, Some("Ava")).map(|text| html! { p { (text) } });

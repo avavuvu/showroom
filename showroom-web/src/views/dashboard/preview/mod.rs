@@ -16,7 +16,7 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
     let date = newsletter.created_at.format("%B %-d, %Y").to_string();
 
     let theme = publication.theme().email();
-    let content = render_email(&Document::from_stored(&newsletter.content), theme);
+    let content = render_email(&Document::from_stored(&newsletter.content), theme, &ctx.urls);
     let has_title = !newsletter.title.trim().is_empty();
     let recipient = ctx.user.as_ref().map(|user| user.email.as_str()).unwrap_or("");
     let greeting = greeting::preview(&publication.greeting).map(|text| html! { p { (text) } });

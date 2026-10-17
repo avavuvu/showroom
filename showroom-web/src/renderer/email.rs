@@ -2,16 +2,24 @@ use boutique::html;
 use maud::Markup;
 
 use crate::document::{
-    Block, Document, ImageAttrs, ImageWidth, Inline, InlinePiece, ListItem, Mark, code_text, figure_parts, inline_tree, quote_parts,
+    Block, Document, ImageAttrs, ImageWidth, Inline, InlinePiece, ListItem, Mark, MusicAttrs, MusicKind, code_text, figure_parts,
+    inline_tree, quote_parts,
 };
+use crate::blocks::music::{Tone, icon_path, listen_label};
+use crate::state::Urls;
 use crate::theme::{EmailTheme, Layout};
+
+const MUSIC_ARTWORK_PX: u8 = 96;
+const MUSIC_ICON_PX: u8 = 22;
+const MUSIC_PADDING_PX: u8 = 12;
+const MUSIC_GAP_PX: u8 = 16;
 
 pub enum EmailBlock {
     Content(String),
     FullWidthImage { src: String, caption: Option<String> },
 }
 
-pub fn render_email(document: &Document, theme: EmailTheme) -> Vec<EmailBlock> {
+pub fn render_email(document: &Document, theme: EmailTheme, urls: &Urls) -> Vec<EmailBlock> {
     let renderer = Renderer { theme };
     let mut blocks = Vec::new();
     let mut buffer = String::new();
@@ -28,6 +36,7 @@ pub fn render_email(document: &Document, theme: EmailTheme) -> Vec<EmailBlock> {
                     caption: (!caption.is_empty()).then(|| renderer.inlines(caption).into_string()),
                 });
             }
+            Block::Music { attrs } => buffer.push_str(&renderer.music(attrs, urls).into_string()),
             _ => buffer.push_str(&renderer.block(block, Context::Body).into_string()),
         }
     }
@@ -131,6 +140,33 @@ impl Renderer {
         format!("color: {}; text-decoration: underline;", self.theme.link)
     }
 
+    fn music_card_style(&self) -> String {
+        format!("margin: 0 0 16px 0; background-color: {}; border-collapse: separate;", self.theme.surface_muted)
+    }
+
+    fn music_kind_style(&self) -> String {
+        format!(
+            "margin: 0 0 4px 0; font-family: {}; font-size: 11px; line-height: 1.4; letter-spacing: 0.14em; text-transform: uppercase; color: {};",
+            self.theme.font_title, self.theme.text,
+        )
+    }
+
+    fn music_title_paragraph_style(&self) -> String {
+        format!(
+            "margin: 0 0 4px 0; font-family: {}; font-size: {}px; line-height: 1.25; font-weight: bold;",
+            self.theme.font_title,
+            u16::from(self.theme.text_px) + 2,
+        )
+    }
+
+    fn music_title_style(&self) -> String {
+        format!("color: {}; text-decoration: none;", self.theme.text)
+    }
+
+    fn music_artist_style(&self) -> String {
+        format!("margin: 0 0 8px 0; color: {};", self.theme.text)
+    }
+
     fn code_mark_style(&self) -> String {
         format!("font-family: monospace, monospace; font-size: 14px; background-color: {}; padding: 2px 4px;", self.theme.surface_muted)
     }
@@ -195,6 +231,62 @@ impl Renderer {
                 },
                 None => html! {},
             },
+            Block::Music { .. } => html! {},
+        }
+    }
+
+    fn music(&self, music: &MusicAttrs, urls: &Urls) -> Markup {
+        let href = music.primary().map(|(_, link)| link.url.as_str());
+        let gap = if music.artwork.is_some() { MUSIC_GAP_PX } else { 0 };
+        html! {
+            table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style=(self.music_card_style()) {
+                tr {
+                    td style={ "padding: " (MUSIC_PADDING_PX) "px;" } {
+                        table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" {
+                            tr {
+                                @if let Some(artwork) = &music.artwork {
+                                    td width=(MUSIC_ARTWORK_PX) style={ "width: " (MUSIC_ARTWORK_PX) "px; padding: 0; vertical-align: top;" } {
+                                        a href=[href] target="_blank" rel="noopener noreferrer" style="text-decoration: none;" {
+                                            img src=(artwork) alt="" width=(MUSIC_ARTWORK_PX) height=(MUSIC_ARTWORK_PX)
+                                                style={ "display: block; width: " (MUSIC_ARTWORK_PX) "px; height: " (MUSIC_ARTWORK_PX) "px; max-width: none; border: 0;" };
+                                        }
+                                    }
+                                }
+                                td style={ "padding: 0 0 0 " (gap) "px; vertical-align: top; " (self.body_font()) } {
+                                    (self.music_details(music, href, urls))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fn music_details(&self, music: &MusicAttrs, href: Option<&str>, urls: &Urls) -> Markup {
+        let tone = Tone::on(self.theme.surface_muted);
+        html! {
+            @if music.kind == MusicKind::Album {
+                p style=(self.music_kind_style()) { "Album" }
+            }
+            @if !music.title.is_empty() {
+                p style=(self.music_title_paragraph_style()) {
+                    a href=[href] target="_blank" rel="noopener noreferrer" style=(self.music_title_style()) { (music.title) }
+                }
+            }
+            @if !music.artist.is_empty() {
+                p style=(self.music_artist_style()) { (music.artist) }
+            }
+            p style={ "margin: 0; font-size: 13px; line-height: " (MUSIC_ICON_PX) "px;" } {
+                span style={ "display: inline-block; vertical-align: middle; margin: 0 8px 0 0; color: " (self.theme.text) ";" } { "Listen on" }
+                @for (service, link) in music.links.iter() {
+                    a href=(link.url) target="_blank" rel="noopener noreferrer" title=(listen_label(service))
+                        style="display: inline-block; vertical-align: middle; margin: 0 6px 0 0; text-decoration: none;" {
+                        img src=(urls.asset(&icon_path(service, tone))) alt=(service.label()) width=(MUSIC_ICON_PX) height=(MUSIC_ICON_PX)
+                            style={ "display: block; width: " (MUSIC_ICON_PX) "px; height: " (MUSIC_ICON_PX) "px; border: 0;" };
+                    }
+                }
+            }
         }
     }
 

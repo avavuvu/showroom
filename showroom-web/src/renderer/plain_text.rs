@@ -1,4 +1,4 @@
-use crate::document::{Block, Document, Inline, InlinePiece, ListItem, Mark, code_text, figure_parts, inline_tree, quote_parts};
+use crate::document::{Block, Document, Inline, InlinePiece, ListItem, Mark, MusicAttrs, MusicKind, code_text, figure_parts, inline_tree, quote_parts};
 
 pub fn render(document: &Document) -> String {
     blocks(document.blocks())
@@ -39,7 +39,24 @@ fn block(block: &Block) -> String {
             Some((image, _)) => image.src.clone(),
             None => String::new(),
         },
+        Block::Music { attrs } => music(attrs),
     }
+}
+
+fn music(attrs: &MusicAttrs) -> String {
+    let mut heading = [attrs.title.as_str(), attrs.artist.as_str()]
+        .into_iter()
+        .filter(|text| !text.is_empty())
+        .collect::<Vec<_>>()
+        .join(" \u{2014} ");
+    if attrs.kind == MusicKind::Album && !heading.is_empty() {
+        heading.push_str(" (album)");
+    }
+    std::iter::once(heading)
+        .filter(|text| !text.is_empty())
+        .chain(attrs.links.iter().map(|(service, link)| format!("{}: {}", service.label(), link.url)))
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 fn content_lines(text: &str, prefix: &str, empty: &str) -> String {

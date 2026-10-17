@@ -1,10 +1,9 @@
+import type { SaveRequest } from "../../../bindings/types/SaveRequest";
+import type { SaveResponse } from "../../../bindings/types/SaveResponse";
+
 export type SaveState = "saved" | "dirty" | "saving" | "error" | "conflict" | "expired" | "invalid";
 
-export interface SavePayload {
-    title: string;
-    subtitle: string | null;
-    content: unknown;
-}
+export type SavePayload = Omit<SaveRequest, "revision">;
 
 interface SaveOptions {
     url: string;
@@ -151,18 +150,18 @@ export class SaveController {
                 redirect: "manual",
                 signal: this.options.signal,
                 headers: { "Content-Type": "application/json", Accept: "application/json" },
-                body: JSON.stringify({ ...payload, revision: this.revision }),
+                body: JSON.stringify({ ...payload, revision: this.revision } satisfies SaveRequest),
             });
 
             if (response.type === "opaqueredirect" || response.status === 401 || response.status === 403) return { kind: "expired" };
             if (response.status === 409) {
-                const body = (await response.json()) as { revision: number };
+                const body = (await response.json()) as SaveResponse;
                 return { kind: "conflict", revision: Number(body.revision) };
             }
             if ([400, 413, 415, 422].includes(response.status)) return { kind: "invalid" };
             if (!response.ok) return { kind: "failed" };
 
-            const body = (await response.json()) as { revision: number };
+            const body = (await response.json()) as SaveResponse;
             return { kind: "ok", revision: Number(body.revision) };
         } catch {
             return { kind: "failed" };

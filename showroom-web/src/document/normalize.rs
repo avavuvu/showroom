@@ -1,14 +1,22 @@
 use super::{
-    Block, CodeBlockAttrs, Document, FigureAttrs, HeadingAttrs, ImageAttrs, Inline, ListItem, Mark, QuoteVariant, code_text,
-    is_allowed_href, is_allowed_image_src,
+    Block, CodeBlockAttrs, Document, FigureAttrs, HeadingAttrs, ImageAttrs, Inline, ListItem, Mark, QuoteVariant, code_text, is_allowed_href,
+    is_allowed_image_src,
 };
+use crate::blocks::music;
 
 pub fn document(document: Document) -> Document {
-    let content = blocks(document.content);
+    let content: Vec<Block> = document.content.into_iter().filter_map(top_level_block).collect();
     if content.is_empty() {
         return Document::default();
     }
     Document { content }
+}
+
+fn top_level_block(block: Block) -> Option<Block> {
+    match block {
+        Block::Music { attrs } => music::normalize(attrs).map(|attrs| Block::Music { attrs }),
+        other => self::block(other),
+    }
 }
 
 fn blocks(blocks: Vec<Block>) -> Vec<Block> {
@@ -17,6 +25,7 @@ fn blocks(blocks: Vec<Block>) -> Vec<Block> {
 
 fn block(block: Block) -> Option<Block> {
     Some(match block {
+        Block::Music { .. } => return None,
         Block::Paragraph { content } | Block::Caption { content } | Block::Attribution { content } => {
             Block::Paragraph { content: inlines(content) }
         }
@@ -111,6 +120,7 @@ fn figure(attrs: FigureAttrs, image: ImageAttrs, caption: Vec<Inline>) -> Option
         content: vec![Block::Image { attrs: image }, Block::Caption { content: trim_inlines(inlines(caption)) }],
     })
 }
+
 
 fn list_items(items: Vec<ListItem>) -> Option<Vec<ListItem>> {
     let items: Vec<ListItem> = items

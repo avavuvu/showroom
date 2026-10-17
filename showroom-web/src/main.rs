@@ -1,6 +1,7 @@
 use std::{env, time::Duration};
 use aws_config::{BehaviorVersion, Region};
 use sea_orm::{Database, DatabaseConnection};
+mod blocks;
 mod document;
 mod mailer;
 mod handlers;

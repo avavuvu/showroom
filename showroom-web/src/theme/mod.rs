@@ -61,7 +61,7 @@ impl Default for Theme {
 
 impl Theme {
     pub fn scheme(self) -> &'static str {
-        if self.paper.luminance() < DARK_PAPER { "dark" } else { "light" }
+        if self.paper.is_dark() { "dark" } else { "light" }
     }
 
     pub fn on_brand(self) -> Color {

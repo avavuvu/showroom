@@ -1,4 +1,5 @@
 import { Schema } from "prosemirror-model";
+import { musicSpec } from "../../../blocks/music/schema";
 import { isAllowedHref, isAllowedImageSrc } from "./url";
 
 const languageOf = (element: HTMLElement): string | null => {
@@ -7,12 +8,13 @@ const languageOf = (element: HTMLElement): string | null => {
     return language ?? null;
 };
 
+
 const isQuoteFigure = (element: HTMLElement) =>
     element.classList.contains("pullquote") || element.classList.contains("quote") || !!element.querySelector("blockquote");
 
 export const schema = new Schema({
     nodes: {
-        doc: { content: "block+" },
+        doc: { content: "(block | music)+" },
         paragraph: {
             content: "inline*",
             group: "block quotable",
@@ -139,6 +141,7 @@ export const schema = new Schema({
             parseDOM: [{ tag: "figcaption", context: "figure/" }],
             toDOM: () => ["figcaption", 0],
         },
+        music: musicSpec,
         text: { group: "inline" },
         hardBreak: {
             inline: true,

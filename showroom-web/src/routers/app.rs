@@ -29,6 +29,7 @@ pub fn create_router(state: AppState) -> Router {
         .route("/settings/change-password/request", post(settings::request_password_change))
         .route("/json/{id}", put(put_edit_json))
         .route("/images/sign", get(images::sign_upload))
+        .route("/music/resolve", post(music::resolve))
         .nest("/{slug}", publication)
         .with_state(state)
 }

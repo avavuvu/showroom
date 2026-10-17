@@ -53,14 +53,17 @@ async fn find_owned_newsletter(id: &str, user_id: &str, db: &DatabaseConnection)
     }
 }
 
+#[boutique::ts]
 #[derive(Deserialize)]
 pub struct SaveRequest {
     title: String,
     subtitle: Option<String>,
+    #[ts(type = "unknown")]
     content: Value,
     revision: i32,
 }
 
+#[boutique::ts]
 #[derive(Serialize)]
 pub struct SaveResponse {
     revision: i32,

@@ -1,4 +1,6 @@
-use crate::document::{Block, Document, ImageAttrs, Inline, InlinePiece, ListItem, Mark, code_text, figure_parts, inline_text, inline_tree, quote_parts};
+use crate::document::{
+    Block, Document, ImageAttrs, Inline, InlinePiece, ListItem, Mark, MusicAttrs, MusicKind, code_text, figure_parts, inline_text, inline_tree, quote_parts,
+};
 
 pub fn render(document: &Document) -> String {
     blocks(document.blocks())
@@ -53,7 +55,27 @@ fn block(block: &Block) -> String {
             }
             None => String::new(),
         },
+        Block::Music { attrs } => music(attrs),
     }
+}
+
+fn music(attrs: &MusicAttrs) -> String {
+    let mut heading = match (attrs.title.is_empty(), attrs.artist.is_empty()) {
+        (false, false) => format!("**{}** \u{2014} {}", escape_text(&attrs.title), escape_text(&attrs.artist)),
+        (false, true) => format!("**{}**", escape_text(&attrs.title)),
+        (true, false) => escape_line_starts(&escape_text(&attrs.artist)),
+        (true, true) => String::new(),
+    };
+    if attrs.kind == MusicKind::Album && !heading.is_empty() {
+        heading.push_str(" (album)");
+    }
+    let links = attrs
+        .links
+        .iter()
+        .map(|(service, link)| format!("[{}]({})", service.label(), destination(&link.url)))
+        .collect::<Vec<_>>()
+        .join(" \u{00b7} ");
+    [heading, links].into_iter().filter(|text| !text.is_empty()).collect::<Vec<_>>().join("\n\n")
 }
 
 fn image(attrs: &ImageAttrs, caption: &[Inline]) -> String {

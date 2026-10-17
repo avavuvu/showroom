@@ -1,5 +1,5 @@
 use boutique::prelude::*;
-use crate::{document::Document, models::{newsletter::Model as Newsletter, publication::{self, Picture}}, renderer::html::render, components::{ArticleHeader, subscribe_form}, state::Urls, views::{context::PageContext, layouts::{Metadata, page, shell}}};
+use crate::{document::Document, models::{newsletter::Model as Newsletter, publication::{self, Picture}}, blocks::music::Tone, renderer::html::render, components::{ArticleHeader, subscribe_form}, state::Urls, views::{context::PageContext, layouts::{Metadata, page, shell}}};
 
 fn with_share_image(metadata: Metadata, publication: &publication::Model, urls: &Urls) -> Metadata {
     match (publication.banner_url(urls), publication.picture()) {
@@ -41,7 +41,7 @@ pub fn profile(ctx: &PageContext, newsletters: &[Newsletter]) -> Markup {
 pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
     let publication = ctx.publication();
     let publication_url = ctx.publication_url();
-    let content = render(&Document::from_stored(&newsletter.content));
+    let content = render(&Document::from_stored(&newsletter.content), Tone::on(publication.theme().paper));
     let date = newsletter.created_at.format("%B %-d, %Y").to_string();
 
     let metadata = with_share_image(

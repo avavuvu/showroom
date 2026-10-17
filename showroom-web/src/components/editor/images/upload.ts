@@ -3,6 +3,7 @@ import { insertPoint } from "prosemirror-transform";
 import { Decoration, DecorationSet, type EditorView } from "prosemirror-view";
 import { canInsert } from "../prosemirror/commands";
 import { schema } from "../prosemirror/schema";
+import type { UploadSignature } from "../../../../bindings/types/UploadSignature";
 import type { PickFiles } from "./file-picker";
 
 interface UploadMeta {
@@ -19,14 +20,6 @@ export interface UploadedImage {
     publicId: string;
 }
 
-interface Signature {
-    signature: string;
-    timestamp: number;
-    api_key: string;
-    cloud_name: string;
-    folder: string;
-    allowed_formats: string;
-}
 
 const uploadKey = new PluginKey<DecorationSet>("upload");
 const TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
@@ -112,17 +105,17 @@ async function uploadImage(file: File): Promise<UploadedImage> {
     const signResponse = await fetch("/images/sign", { redirect: "manual", headers: { Accept: "application/json" } });
     if (signResponse.type === "opaqueredirect") throw new Error("Your session ended. Log in again to upload images.");
     if (!signResponse.ok) throw new Error("The upload could not start.");
-    const signature = (await signResponse.json()) as Signature;
+    const signature = (await signResponse.json()) as UploadSignature;
 
     const form = new FormData();
     form.append("file", file);
-    form.append("api_key", signature.api_key);
+    form.append("api_key", signature.apiKey);
     form.append("timestamp", String(signature.timestamp));
     form.append("signature", signature.signature);
     form.append("folder", signature.folder);
-    form.append("allowed_formats", signature.allowed_formats);
+    form.append("allowed_formats", signature.allowedFormats);
 
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(signature.cloud_name)}/image/upload`, {
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(signature.cloudName)}/image/upload`, {
         method: "POST",
         body: form,
     });
@@ -196,6 +189,15 @@ export class Uploads {
             if (node?.type !== schema.nodes.image) return;
             view.dispatch(view.state.tr.setNodeMarkup(pos, null, { ...node.attrs, src: image.src, publicId: image.publicId }));
         });
+    }
+
+    upload(file: File): Promise<UploadedImage | null> {
+        const problem = problemWith(file);
+        if (problem) {
+            this.report(problem);
+            return Promise.resolve(null);
+        }
+        return new Promise((resolve) => void this.run(file, resolve));
     }
 
     private async run(file: File, done: (image: UploadedImage | null) => void) {

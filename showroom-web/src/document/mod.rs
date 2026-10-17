@@ -1,6 +1,7 @@
 mod inline;
 mod normalize;
 
+pub use crate::blocks::music::{MusicAttrs, MusicKind};
 pub use inline::{InlinePiece, inline_tree};
 
 use serde::{Deserialize, Deserializer, Serialize};
@@ -70,6 +71,10 @@ pub enum Block {
     Caption {
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         content: Vec<Inline>,
+    },
+    Music {
+        #[serde(default)]
+        attrs: MusicAttrs,
     },
 }
 

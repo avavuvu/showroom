@@ -6,7 +6,7 @@ use sea_orm::DatabaseConnection;
 use boutique::cloudinary::Cloudinary;
 use tokio::sync::Notify;
 
-use crate::models::user;
+use crate::{models::user, services::music::MusicClient};
 
 #[derive(Clone)]
 pub struct Urls {
@@ -118,12 +118,13 @@ pub struct AppState {
     pub ses: SesClient,
     pub cloudinary: Cloudinary,
     pub sends: Arc<Notify>,
+    pub music: MusicClient,
 }
 
 impl AppState {
     pub fn new(db: DatabaseConnection, ses: SesClient, cloudinary: Cloudinary, urls: Urls, secret: String) -> Self {
         let auth = AuthState::new(SeaOrmStore::new(db.clone()), secret).with_config(urls.auth_config());
-        Self { db, urls, auth, ses, cloudinary, sends: Arc::new(Notify::new()) }
+        Self { db, urls, auth, ses, cloudinary, sends: Arc::new(Notify::new()), music: MusicClient::new() }
     }
 }
 

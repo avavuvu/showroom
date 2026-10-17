@@ -18,9 +18,11 @@ const ALLOWED_FORMATS: &str = "jpg,jpeg,png,gif,webp";
 const IMAGE_TYPES: &[&str] = &["image/png", "image/jpeg", "image/gif", "image/webp"];
 pub const MAX_IMAGE_BYTES: usize = 10 * 1024 * 1024;
 
+#[boutique::ts]
 #[derive(Serialize)]
 pub struct UploadSignature {
     signature: String,
+    #[ts(type = "number")]
     timestamp: i64,
     api_key: String,
     cloud_name: String,

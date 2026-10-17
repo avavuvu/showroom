@@ -8,6 +8,8 @@
         "typecheck": "tsc --noEmit",
         "setups": "cargo check -q -p showroom-web",
         "setups:check": "bun run setups && git diff --exit-code -- bindings && test -z \"$(git ls-files --others --exclude-standard -- bindings)\"",
+        "types": "rm -rf bindings/types && cargo test -q -p showroom-web --bin showroom-web export_bindings",
+        "types:check": "bun run types && git diff --exit-code -- bindings/types && test -z \"$(git ls-files --others --exclude-standard -- bindings/types)\"",
         "dev": "~/.cargo/bin/dx serve --hot-patch --features local --package showroom-web"
     },
     "devDependencies": {

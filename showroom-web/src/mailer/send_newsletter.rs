@@ -80,7 +80,7 @@ impl<'a> NewsletterMailing<'a> {
         let theme = publication.theme().email();
         let document = Document::from_value(&newsletter.content)
             .map_err(|e| MailError::permanent(format!("Newsletter content is not valid: {e}")))?;
-        let rendered_content = render_email(&document, theme);
+        let rendered_content = render_email(&document, theme, urls);
         let date = newsletter.created_at.format("%B %-d, %Y").to_string();
         let read_online_url = format!("{}/{}", publication_url, newsletter.slug);
         let greeting = html! {
