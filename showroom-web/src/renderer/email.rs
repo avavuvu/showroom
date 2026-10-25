@@ -5,7 +5,7 @@ use crate::document::{
     Block, Document, ImageAttrs, ImageWidth, Inline, InlinePiece, ListItem, Mark, MusicAttrs, MusicKind, alt_text, code_text,
     figure_parts, inline_tree, quote_parts, requires_name,
 };
-use crate::blocks::music::{Tone, color::WHITE, icon_path, listen_label};
+use crate::blocks::music::{listen_label, color::WHITE};
 use crate::renderer::personalize;
 use crate::state::Urls;
 use crate::theme::{Color, EmailTheme, Layout};
@@ -291,7 +291,7 @@ impl Renderer {
                                     }
                                 }
                                 td style={ "padding: 0 0 0 " (gap) "px; vertical-align: top; " (self.body_font()) } {
-                                    (self.music_details(music, href, ink, Tone::on(surface), urls))
+                                    (self.music_details(music, href, ink, urls))
                                 }
                             }
                         }
@@ -301,7 +301,7 @@ impl Renderer {
         }
     }
 
-    fn music_details(&self, music: &MusicAttrs, href: Option<&str>, ink: Color, tone: Tone, urls: &Urls) -> Markup {
+    fn music_details(&self, music: &MusicAttrs, href: Option<&str>, ink: Color, urls: &Urls) -> Markup {
         html! {
             @if music.kind == MusicKind::Album {
                 p style=(self.music_kind_style(ink)) { "Album" }
@@ -319,8 +319,7 @@ impl Renderer {
                 @for (service, link) in music.links.iter() {
                     a href=(link.url) target="_blank" rel="noopener noreferrer" title=(listen_label(service))
                         style="display: inline-block; vertical-align: middle; margin: 0 6px 0 0; text-decoration: none;" {
-                        img src=(urls.asset(&icon_path(service, tone))) alt=(service.label()) width=(MUSIC_ICON_PX) height=(MUSIC_ICON_PX)
-                            style={ "display: block; width: " (MUSIC_ICON_PX) "px; height: " (MUSIC_ICON_PX) "px; border: 0;" };
+                        (service.label())
                     }
                 }
             }

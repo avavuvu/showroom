@@ -1,4 +1,7 @@
+use boutique::cloudinary::Cloudinary;
 use sea_orm::{QuerySelect, entity::prelude::*};
+
+use crate::state::Urls;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
 #[sea_orm(table_name = "newsletters")]
@@ -18,6 +21,7 @@ pub struct Model {
     pub email_text: Option<String>,
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,
+    pub hero_image_id: Option<String>
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -53,6 +57,7 @@ impl Entity {
                 Column::SendStartedAt,
                 Column::CreatedAt,
                 Column::UpdatedAt,
+                Column::HeroImageId,
             ])
             .column_as(Expr::cust("'null'::jsonb"), Column::Content)
             .column_as(Expr::cust("NULL::text"), Column::EmailSubject)

@@ -1,6 +1,6 @@
 use boutique::html;
 use maud::Markup;
-use crate::{components::{header, AsciiBackground}, views::{context::PageContext, layouts::{page, Metadata}}};
+use crate::{components::{AsciiBackground, FruitsBackground, header}, views::{context::PageContext, layouts::{Metadata, page}}};
 use super::layouts::base;
 
 pub fn index(ctx: &PageContext) -> Markup {
@@ -10,12 +10,13 @@ pub fn index(ctx: &PageContext) -> Markup {
         html! {
         (header(ctx))
         div.lander {
-            AsciiBackground(
-                webm = "/assets/flower-loop.webm",
-                mp4 = "/assets/flower-loop.mp4",
-                still = "/assets/flower-loop-ascii-landscape.svg",
-                still_portrait = "/assets/flower-loop-ascii-portrait.svg",
-            );
+            // AsciiBackground(
+            //     webm = "/assets/flower-loop.webm",
+            //     mp4 = "/assets/flower-loop.mp4",
+            //     still = "/assets/flower-loop-ascii-landscape.svg",
+            //     still_portrait = "/assets/flower-loop-ascii-portrait.svg",
+            // );
+            FruitsBackground;
             div.container {
                 main {
                     p {

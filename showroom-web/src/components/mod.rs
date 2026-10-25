@@ -1,5 +1,6 @@
 pub mod article_header;
 pub mod ascii_background;
+pub mod fruits_background;
 pub mod button;
 pub mod editor;
 pub mod email;
@@ -18,6 +19,7 @@ pub mod wordmark;
 
 pub use article_header::ArticleHeader;
 pub use ascii_background::AsciiBackground;
+pub use fruits_background::FruitsBackground;
 pub use button::Button;
 pub use editor::{EditorPage, EditorProps};
 pub use footer::footer;
@@ -26,7 +28,7 @@ pub use input::{Input, Kind, Textarea};
 pub use menu::Menu;
 pub use name_field::{NameCases, NameField};
 pub use name_token::NameToken;
-pub use subscribe_form::subscribe_form;
+pub use subscribe_form::SubscribeForm;
 pub use dirty_form::DirtyForm;
 pub use theme_form::ThemeForm;
 pub use wordmark::Wordmark;

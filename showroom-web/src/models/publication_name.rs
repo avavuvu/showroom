@@ -36,15 +36,22 @@ pub enum Possessive {
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase", ascii_case_insensitive)]
 pub enum Noun {
-    Journal,
+    Week,
+    Month,
+    Archive,
     Blog,
+    Forum,
+    Home,
+    House,
+    Journal,
+    Page,
     #[default]
     Room,
-    Archive,
+    Site,
     Weblog,
-    Forum,
-    Talk,
-    Page,
+    Zone,
+    #[strum(message = "–")]
+    None,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Deserialize, EnumIter, DeriveActiveEnum, AsRefStr, EnumMessage)]
@@ -54,9 +61,9 @@ pub enum Noun {
 pub enum NameCase {
     #[strum(message = "Sentence case")]
     Sentence,
-    #[strum(message = "Title case")]
+    #[strum(message = "Title Case")]
     Title,
-    #[strum(message = "Upper case")]
+    #[strum(message = "UPPERCASE")]
     Upper,
     #[default]
     #[strum(message = "As typed")]
@@ -112,7 +119,10 @@ impl PublicationName {
             words.remove(0);
         }
 
-        let noun = words.last().and_then(|word| word.parse().ok()).filter(|_| words.len() > 1);
+        let noun = words
+            .last()
+            .and_then(|word| word.parse().ok())
+            .filter(|noun| *noun != Noun::None && words.len() > 1);
         if noun.is_some() {
             words.pop();
         }
@@ -126,13 +136,18 @@ impl PublicationName {
             },
         };
 
-        Self { article: article.unwrap_or_default(), label: label.to_string(), possessive, noun: noun.unwrap_or_default() }
+        Self {
+            article: article.unwrap_or_default(),
+            label: label.to_string(), possessive,
+            noun: noun.unwrap_or(Noun::None),
+        }
     }
 
     fn typed(&self) -> String {
         let label = format!("{}{}", self.label, self.possessive.suffix());
         let article = (self.article != Article::None).then_some(self.article.as_ref());
-        article.into_iter().chain([label.as_str(), self.noun.as_ref()]).collect::<Vec<_>>().join(" ")
+        let noun = (self.noun != Noun::None).then_some(self.noun.as_ref());
+        [article, Some(label.as_str()), noun].into_iter().flatten().collect::<Vec<_>>().join(" ")
     }
 }
 

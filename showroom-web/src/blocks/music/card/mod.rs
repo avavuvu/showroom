@@ -2,14 +2,13 @@ use boutique::html;
 use bq_components::{Attrs, component};
 use maud::Markup;
 
-use super::{MusicAttrs, MusicKind, Tone, icon_path, listen_label};
+use super::{MusicAttrs, MusicKind, listen_label};
 
 #[component]
-pub fn music_card(#[positional] music: &MusicAttrs, tone: Tone, attrs: Attrs) -> Markup {
+pub fn music_card(#[positional] music: &MusicAttrs, attrs: Attrs) -> Markup {
     let href = music.primary().map(|(_, link)| link.url.as_str());
     let surface = music.surface();
     let style = surface.map(|surface| format!("--music-surface:{surface}"));
-    let tone = if surface.is_some() { Tone::White } else { tone };
     html! {
         figure.music-card.has-color[surface.is_some()] data-kind=(music.kind.as_str()) style=[style] (..attrs) {
             @if let Some(artwork) = &music.artwork {
@@ -34,8 +33,8 @@ pub fn music_card(#[positional] music: &MusicAttrs, tone: Tone, attrs: Attrs) ->
                     ul.music-links {
                         @for (service, link) in music.links.iter() {
                             li {
-                                a href=(link.url) target="_blank" rel="noopener noreferrer" aria-label=(listen_label(service)) title=(listen_label(service)) {
-                                    img src=(icon_path(service, tone)) alt="" width="22" height="22";
+                                a href=(link.url) target="_blank" rel="noopener noreferrer" title=(listen_label(service)) {
+                                    (service.label())
                                 }
                             }
                         }

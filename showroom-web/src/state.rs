@@ -19,6 +19,19 @@ pub struct Urls {
     secure: bool,
 }
 
+#[derive(Clone, Copy)]
+pub enum ImageSize {
+    Hero,
+    Card,
+    Og,
+    Banner,
+    EmailPicture,
+    Picture,
+}
+
+// TODO: This needs to move out of here
+pub const EMAIL_PROFILE_PX: u32 = 48;
+
 impl Urls {
     pub fn new(domain: impl Into<String>, port: impl Into<String>, main_domain: impl Into<String>) -> Self {
             let secure = !cfg!(debug_assertions);
@@ -58,7 +71,19 @@ impl Urls {
         }
     }
 
-    pub fn cloudinary(&self, public_id: &str, transform: &str) -> String {
+    pub fn cloudinary(&self, public_id: &str, image_size: ImageSize) -> String {
+        let transform = match image_size {
+            ImageSize::Hero => "c_fill,g_auto,ar_16:9,w_1600",
+            ImageSize::Card => "c_fill,g_auto,ar_16:9,w_640",
+            ImageSize::Og => "c_fill,g_auto,w_1200,h_630",
+            ImageSize::Banner => "c_fill,g_auto,w_1200,h_300",
+            ImageSize::EmailPicture => {
+                let pixels = EMAIL_PROFILE_PX * 2;
+                &format!("c_fill,g_auto,w_{pixels},h_{pixels}")
+            },
+            ImageSize::Picture => "c_fill,g_auto,w_256,h_256,f_auto,q_auto"
+        };
+
         format!("https://res.cloudinary.com/{}/image/upload/{transform}/{public_id}", self.cloudinary_cloud)
     }
 

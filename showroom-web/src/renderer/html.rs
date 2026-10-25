@@ -1,16 +1,16 @@
 use boutique::html;
 use maud::Markup;
 
-use crate::blocks::music::{MusicCard, Tone};
+use crate::blocks::music::{MusicCard};
 use crate::document::{
     Block, Document, ImageAttrs, Inline, InlinePiece, ListItem, Mark, alt_text, code_text, figure_parts, inline_tree, quote_parts, requires_name,
 };
 
-pub fn render(document: &Document, tone: Tone) -> Markup {
+pub fn render(document: &Document) -> Markup {
     html! {
         @for block in document.blocks() {
             @match block {
-                Block::Music { attrs: music } => { MusicCard(music, tone = tone); }
+                Block::Music { attrs: music } => { MusicCard(music); }
                 _ => { (render_block(block)) }
             }
         }

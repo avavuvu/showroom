@@ -46,6 +46,7 @@ pub async fn post_newsletters(
         email_text: Set(None),
         created_at: Set(now),
         updated_at: Set(now),
+        hero_image_id: Set(None)
     };
 
     let newsletter = new_newsletter.insert(&state.db).await?;

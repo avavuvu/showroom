@@ -1,12 +1,7 @@
 use sea_orm::{FromJsonQueryResult, QueryOrder, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
-use crate::{models::publication_name::NameCase, state::Urls, theme::Theme};
-
-pub const DEFAULT_PICTURES: u8 = 10;
-pub const BANNER_WIDTH: u32 = 1200;
-pub const BANNER_HEIGHT: u32 = 300;
-pub const EMAIL_PICTURE_SIZE: u32 = 48;
+use crate::{models::publication_name::NameCase, state::{ImageSize, Urls}, theme::Theme};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
 #[sea_orm(table_name = "publications")]
@@ -79,14 +74,17 @@ impl Model {
             Picture::Default(index) => urls.asset(&format!("/avatars/{index}.png")),
             Picture::Upload(public_id) => urls.cloudinary(
                 public_id,
-                &format!("c_fill,g_auto,w_{size},h_{size},f_png", size = EMAIL_PICTURE_SIZE * 2),
+                crate::state::ImageSize::EmailPicture
             ),
         }
     }
 
     pub fn banner_url(&self, urls: &Urls) -> Option<String> {
         self.banner.as_deref().map(|public_id| {
-            urls.cloudinary(public_id, &format!("c_fill,g_auto,w_{BANNER_WIDTH},h_{BANNER_HEIGHT},f_auto,q_auto"))
+            urls.cloudinary(
+                public_id,
+                crate::state::ImageSize::Banner
+            )
         })
     }
 }
@@ -101,13 +99,13 @@ impl<'a> Picture<'a> {
     pub fn url(self, urls: &Urls) -> String {
         match self {
             Picture::Default(index) => default_picture_path(index),
-            Picture::Upload(public_id) => urls.cloudinary(public_id, "c_fill,g_auto,w_256,h_256,f_auto,q_auto"),
+            Picture::Upload(public_id) => urls.cloudinary(public_id, ImageSize::Picture),
         }
     }
 
     pub fn parse(image: &'a str) -> Self {
         match image.strip_prefix("default/").and_then(|index| index.parse::<u8>().ok()) {
-            Some(index) if index < DEFAULT_PICTURES => Picture::Default(index),
+            Some(index) if index < 10 => Picture::Default(index),
             Some(_) => Picture::Default(0),
             None => Picture::Upload(image),
         }
@@ -134,7 +132,7 @@ pub fn default_picture_path(index: u8) -> String {
 }
 
 pub fn default_picture(index: u8) -> String {
-    format!("default/{}", index % DEFAULT_PICTURES)
+    format!("default/{}", index % 10)
 }
 
 pub fn random_picture() -> String {

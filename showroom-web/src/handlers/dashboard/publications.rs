@@ -39,7 +39,8 @@ impl NameForm {
 }
 
 pub async fn preview_name(_: AuthenticatedUser<user::Model>, Form(form): Form<NameForm>) -> Markup {
-    boutique::html! { NameCases(&form.name(), case = form.name_case); }
+    let name = form.name().render(form.name_case);
+    boutique::html! { (name) }
 }
 
 async fn account_context(user: &user::Model, state: &AppState) -> Result<PageContext, sea_orm::DbErr> {

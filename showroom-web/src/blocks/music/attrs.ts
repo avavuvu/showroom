@@ -110,7 +110,7 @@ export const getLookupProblem = (resolved: Resolved, attrs: MusicAttrs | null): 
         return null
     }
     if (DETAIL_SOURCES.includes(resolved.service)) {
-        return resolved.details ? null : `The ${SERVICE_LABELS[resolved.service]} details could not be found. Type them in instead.`
+        return resolved.details ? null : `The ${SERVICE_LABELS[resolved.service]} details could not be found. You can still add them manually.`
     }
     return "Add an Apple Music or Bandcamp link to fill in the details, or type them in."
 }

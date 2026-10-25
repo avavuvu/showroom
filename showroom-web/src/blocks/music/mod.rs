@@ -73,11 +73,6 @@ pub struct MusicLink {
     pub id: Option<String>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Tone {
-    Black,
-    White,
-}
 
 impl MusicKind {
     pub fn as_str(self) -> &'static str {
@@ -161,23 +156,6 @@ impl MusicAttrs {
     pub fn surface(&self) -> Option<Color> {
         self.color.as_deref().and_then(Color::parse)
     }
-}
-
-impl Tone {
-    pub fn on(background: Color) -> Tone {
-        if background.is_dark() { Tone::White } else { Tone::Black }
-    }
-
-    fn as_str(self) -> &'static str {
-        match self {
-            Tone::Black => "black",
-            Tone::White => "white",
-        }
-    }
-}
-
-pub fn icon_path(service: MusicService, tone: Tone) -> String {
-    format!("/icons/music/{}-{}.png", service.slug(), tone.as_str())
 }
 
 pub fn listen_label(service: MusicService) -> String {

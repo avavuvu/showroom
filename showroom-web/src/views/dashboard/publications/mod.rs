@@ -2,7 +2,7 @@ use boutique::html;
 use maud::Markup;
 use crate::components::{ArticleHeader, Button, DirtyForm, Input, NameField, Textarea, ThemeForm};
 use crate::views::context::PageContext;
-use crate::models::publication::{self, BANNER_HEIGHT, BANNER_WIDTH, DEFAULT_PICTURES, Picture};
+use crate::models::publication::{self, Picture};
 use crate::models::publication_name::{NameCase, PublicationName};
 use crate::views::layouts::{page, dashboard_shell};
 
@@ -62,7 +62,7 @@ fn picture_section(ctx: &PageContext, publication: &publication::Model, dashboar
                             img src=(Picture::Upload(public_id).url(&ctx.urls)) alt="A picture you uploaded";
                         }
                     }
-                    @for index in 0..DEFAULT_PICTURES {
+                    @for index in 0..10 {
                         label.picture-choice {
                             input type="radio" name="picture" value=(publication::default_picture(index)) checked[current == Picture::Default(index)];
                             img src=(publication::default_picture_path(index)) alt={ "Picture " (index + 1) };
@@ -86,7 +86,7 @@ fn banner_section(ctx: &PageContext, publication: &publication::Model, dashboard
             h2 { "Banner" }
             p.hint {
                 "Shown in place of the Showroom logo at the top of your pages. Use a 4:1 image, for example "
-                (BANNER_WIDTH) " × " (BANNER_HEIGHT) " pixels. Other sizes are cropped to fit."
+                (1200) " × " (300) " pixels. Other sizes are cropped to fit."
             }
             @if let Some(banner) = publication.banner_url(&ctx.urls) {
                 img.banner-preview src=(banner) alt="Your banner";

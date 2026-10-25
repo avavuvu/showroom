@@ -2,7 +2,7 @@ use boutique::html;
 use bq_components::component;
 use maud::Markup;
 
-use crate::{models::publication::EMAIL_PICTURE_SIZE, theme::EmailTheme};
+use crate::{theme::EmailTheme, state::EMAIL_PROFILE_PX};
 
 const GUTTER: &str = "32";
 const STYLESHEET: &str = include_str!("email.email.css");
@@ -39,7 +39,7 @@ pub fn stylesheet(theme: &EmailTheme) -> String {
         ("caption-size", format!("{}px", theme.text_px.saturating_sub(2))),
         ("title-size", format!("{}px", theme.title_px)),
         ("gutter", format!("{GUTTER}px")),
-        ("picture-size", format!("{EMAIL_PICTURE_SIZE}px")),
+        ("picture-size", format!("{EMAIL_PROFILE_PX}px")),
     ];
 
     let css = variables

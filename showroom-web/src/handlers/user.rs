@@ -20,7 +20,7 @@ pub async fn profile(
         .await?;
 
     let page_ctx = PageContext::public(viewer, state.urls.clone()).with_publication(publication);
-    Ok(views::user::profile(&page_ctx, &newsletters))
+    Ok(views::user::profile::index(&page_ctx, &newsletters))
 }
 
 pub async fn newsletter(

@@ -1,31 +1,37 @@
 .header-space {
-    height: 2em;
+    height: 1em;
+    background-color: var(--color-primary);
 }
 
 header.header-full {
-    background-color: var(--color-surface);
-    border-bottom: 1px solid var(--color-text);
+    border-bottom: 1em solid transparent;
+    background:
+        linear-gradient(var(--color-primary) 0 0) padding-box,
+        url("/assets/wood.webp") border-box;
+
+    color: var(--color-surface);
     position: sticky;
     top: 0;
     height: 4em;
     display: flex;
     justify-content: space-between;
-    align-items: end;
-    padding: 1em 1em;
+    align-items: center;
+    padding: 2em 2em 2em;
+
+    img {
+        height: 100%;
+        width: auto;
+    }
+
+    .banner {
+        aspect-ratio: 4 / 1;
+        object-fit: cover;
+        height: 2.5em;
+    }
 
     & .logo-container {
         display: flex;
         height: 2em;
-
-        img {
-            height: 100%;
-            width: auto;
-        }
-
-        .banner {
-            aspect-ratio: 4 / 1;
-            object-fit: cover;
-        }
 
         .wordmark {
             @media (max-width: 25em) {
@@ -34,9 +40,18 @@ header.header-full {
         }
     }
 
+    & .logo-container {
+        flex-basis: 0px;
+        flex-grow: 1;
+    }
+
     & .auth {
         display: flex;
         gap: 1em;
+        justify-content: end;
+        flex-basis: 0px;
+        flex-grow: 1;
+
     }
 
     @media (max-width: 48rem) {

@@ -46,8 +46,13 @@
         flex-direction: column;
         gap: 0.5em;
         padding: 1em;
-        background-color: var(--color-primary);
+        /*background-color: var(--color-primary);*/
         color: var(--color-on-primary);
+
+        border-right: 1em solid transparent;
+        background:
+            linear-gradient(var(--color-primary) 0 0) padding-box,
+            url("/assets/wood.webp") border-box;
 
         & .side-bar-top {
             display: flex;

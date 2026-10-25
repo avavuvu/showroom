@@ -5,7 +5,7 @@ use serde::Serialize;
 
 use crate::{
     components::email::{Align, Button, FullWidthImage, Section, stylesheet},
-    models::publication::EMAIL_PICTURE_SIZE,
+    state::EMAIL_PROFILE_PX,
     renderer::{email::EmailBlock, personalize},
     theme::{EmailTheme, Layout},
 };
@@ -129,7 +129,7 @@ pub fn newsletter_body(
             }
         }
         Section(top = "8px", bottom = "16px", maybe_align = info_align) {
-            img.email-picture src=(picture) width=(EMAIL_PICTURE_SIZE) height=(EMAIL_PICTURE_SIZE) alt=(publication_name);
+            img.email-picture src=(picture) width=(EMAIL_PROFILE_PX) height=(EMAIL_PROFILE_PX) alt=(publication_name);
             h1.email-title { (title) }
             @if let Some(sub) = subtitle {
                 p.muted { (sub) }

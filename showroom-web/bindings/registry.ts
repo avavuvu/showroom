@@ -37,6 +37,11 @@ export const registry: Registry = {
         many: ["blockLabel", "blockOption", "command"],
         load: () => import("../src/components/editor/toolbar/index").then((module) => module.editorToolbar satisfies setups.EditorToolbar),
     },
+    "fruits-background": {
+        tags: ["div"],
+        many: [],
+        load: () => import("../src/components/fruits_background/index").then((module) => module.fruitsBackground satisfies setups.FruitsBackground),
+    },
     "image-editor": {
         tags: ["div"],
         many: [],

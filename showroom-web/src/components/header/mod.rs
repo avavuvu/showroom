@@ -16,30 +16,34 @@ pub fn header(ctx: &PageContext) -> Markup {
 
     html! {
         div.header-space {}
-        header.header-full {
+        header.header-full.banner[banner.is_some()] {
+            a.logo-container href=(ctx.urls.base()) {
+                img.logo src="/icons/logo-sm.webp" alt="";
+            }
+
+
             @match banner {
                 Some((banner, publication)) => {
-                    a.logo-container href=(ctx.urls.publication(&publication.slug)) {
+                    a.banner style="flex-grow: 0;" href=(ctx.urls.publication(&publication.slug)) {
                         img.banner src=(banner) alt=(publication.name);
                     }
                 }
                 None => {
-                    a.logo-container href=(ctx.urls.base()) {
-                        img.logo src="/icons/logo-sm.webp" alt="";
+                    a.banner href=(ctx.urls.base()) {
                         Wordmark;
                     }
                 }
             }
 
-            div.auth {
+            div.auth{
                 @if ctx.is_authenticated() {
-                    Button(post = &format!("{}/logout", ctx.urls.base())) .ghost { "Log out" }
-                    Button(href = &ctx.urls.app()) .ghost { "Dashboard" }
+                    // Button(post = &format!("{}/logout", ctx.urls.base())) { "Log out" }
+                    Button(href = &ctx.urls.app())  { "Dashboard" }
                 } @else {
-                    @if cfg!(debug_assertions) {
-                        Button(href = &format!("{}/signup", ctx.urls.base())) .ghost { "Get started" }
-                    }
-                    Button(href = &format!("{}/login", ctx.urls.base())) .ghost { (login_text) }
+                    // @if cfg!(debug_assertions) {
+                    //     Button(href = &format!("{}/signup", ctx.urls.base())) { "Get started" }
+                    // }
+                    Button(href = &format!("{}/login", ctx.urls.base())) { (login_text) }
                 }
             }
         }

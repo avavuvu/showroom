@@ -1,9 +1,10 @@
-use boutique::html;
+use boutique::{component, html};
 use maud::Markup;
 
 use crate::components::{Button, Input, Kind};
 
-pub fn subscribe_form(publication_url: &str, publication_name: &str) -> Markup {
+#[component]
+pub fn subscribe_form(#[positional] publication_url: &str, #[positional] publication_name: &str) -> Markup {
     let subscribe_to_url = &format!("{}/subscribe", publication_url);
 
     html! {

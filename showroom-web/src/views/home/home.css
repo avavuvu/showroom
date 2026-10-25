@@ -16,13 +16,22 @@ body:has(.lander) {
     }
 
     & main {
-        border: 1px solid var(--color-border);
-        background-color: var(--color-surface);
         width: min(60ch, 100%);
         padding: min(4em, 10%);
         margin: 0 1em;
-        margin-top: min(12em, 15vh);
+        margin-top: min(16em, 25vh);
         text-align: center;
         height: min-content;
+
+        color: var(--color-surface);
+
+        border: 1em solid transparent;
+        background:
+            linear-gradient(var(--color-primary) 0 0) padding-box,
+            url("/assets/wood.webp") border-box;
+
+        & a {
+            color: var(--color-surface);
+        }
     }
 }

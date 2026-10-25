@@ -1,0 +1,290 @@
+.profile-view {
+    padding-block-start: clamp(2em, 8vw, 4em);
+
+    & .empty {
+        text-align: center;
+        max-width: var(--sm);
+        margin: 0 auto;
+        padding-block-end: clamp(2em, 8vw, 4em);
+
+        & p {
+            margin-bottom: 0.75em;
+        }
+
+        & .publication-name {
+            font-weight: bold;
+        }
+    }
+
+    & .bio {
+        padding-block-end: clamp(2em, 8vw, 4em);
+        text-align: center;
+        max-width: var(--xs);
+        margin: 0 auto;
+        gap: 1em;
+
+        & h1 {
+            font-weight: bold;
+            font-family: var(--font-title);
+            font-size: clamp(1.3rem, 5vw, 1.75rem);
+        }
+
+        & .thumb {
+            display: flex;
+            justify-content: center;
+        }
+    }
+
+    & .subscribe {
+        --color-border: var(--color-on-primary);
+
+        margin: 1em 0;
+        padding: 1em;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 1em;
+        color: var(--color-on-primary);
+        background-color: var(--color-primary);
+        min-height: 18em;
+
+        & p {
+            text-align: center;
+        }
+
+        & a {
+            font-weight: bold;
+        }
+    }
+
+    & .front {
+        --rule: 1px solid var(--color-border);
+        --title-weight: bold;
+        --meta-size: 1rem;
+
+        display: grid;
+        margin: 0 auto;
+        padding-inline: 1em;
+
+        & a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        & :is(h2, h3) {
+            font-family: var(--font-title);
+            font-weight: var(--title-weight);
+            line-height: 1.1;
+            text-wrap: balance;
+
+            & a:hover {
+                text-decoration: underline;
+                text-underline-offset: 0.15em;
+            }
+        }
+
+        & .thumb {
+            display: block;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+
+            & img {
+                display: block;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+        }
+
+        & :is(.dateline, .section-label) {
+            font-family: inherit;
+            font-size: var(--meta-size);
+        }
+
+        & .dateline {
+            display: block;
+        }
+
+        & .lead {
+            display: grid;
+        }
+
+        & :is(.secondary, .archive ul) {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        & .secondary {
+            display: grid;
+        }
+
+        &[data-layout="magazine"] {
+            max-width: var(--xl);
+            gap: 2.5rem;
+
+            & .lead {
+                & h2 {
+                    margin: 0 0 1rem;
+                    font-size: clamp(2rem, 5vw, 3.5rem);
+                }
+
+                & hgroup {
+                    background-color: var(--color-primary);
+                    color: var(--color-on-primary);
+                }
+
+                @media (min-width: 48rem) {
+                    grid-template-columns: 3fr 1fr 2fr;
+                    align-items: end;
+                    gap: 2rem;
+
+                    &:has(> .thumb) {
+                        & .thumb {
+                            grid-area: 1 / 1 / 2 / 3;
+                        }
+
+                        & hgroup {
+                            grid-area: 1 / 2 / 2 / 4;
+                        }
+                    }
+
+                    &:not(:has(> .thumb)) {
+                        grid-template-columns: 1fr;
+                    }
+                }
+            }
+
+            & .secondary {
+                gap: 2rem;
+                padding-top: 2rem;
+                border-top: var(--rule);
+
+                & .thumb {
+                    margin-bottom: 0.75rem;
+                }
+
+                & h3 {
+                    margin: 0 0 0.5rem;
+                    font-size: 1.5rem;
+                }
+
+                & p {
+                    margin: 0 0 0.75rem;
+                }
+
+                @media (min-width: 40rem) {
+                    grid-template-columns: 1fr 1fr;
+                    gap: 0;
+
+                    & li {
+                        padding-inline: 1.5rem;
+                    }
+
+                    & li:first-child {
+                        padding-left: 0;
+                    }
+
+                    & li:last-child {
+                        padding-right: 0;
+                    }
+
+                    & li:only-child {
+                        grid-column: 1 / -1;
+                    }
+                }
+            }
+
+            & .archive {
+                & .section-label {
+                    margin: 0 0 1rem;
+                    padding-top: 0.5rem;
+                    border-top: 1px solid currentColor;
+                }
+
+                & li {
+                    display: grid;
+                    grid-template-columns: 1fr 7.5rem;
+                    gap: 1.25rem;
+                    align-items: start;
+                    padding-block: 1.25rem;
+                    border-bottom: var(--rule);
+
+                    &:first-child {
+                        padding-top: 0;
+                    }
+                }
+
+                & .text:only-child {
+                    grid-column: 1 / -1;
+                }
+
+                & h3 {
+                    margin: 0 0 0.35rem;
+                    font-size: 1.25rem;
+                }
+
+                & p {
+                    margin: 0 0 0.5rem;
+                }
+            }
+        }
+
+        &[data-layout="minimal"] {
+            --title-weight: normal;
+            --meta-size: 1rem;
+
+            max-width: 38rem;
+
+            & :is(.secondary, .archive) .thumb {
+                display: none;
+            }
+
+            & .lead {
+                gap: 1.5rem;
+                padding-bottom: 2rem;
+                border-bottom: var(--rule);
+
+                & h2 {
+                    margin: 0 0 0.5rem;
+                    font-size: clamp(1.75rem, 4.5vw, 2.5rem);
+                }
+            }
+
+            & :is(.secondary li, .archive li) {
+                padding-block: 1.25rem;
+                border-bottom: var(--rule);
+            }
+
+            & :is(.secondary article, .archive .text) {
+                display: grid;
+                grid-template-columns: 1fr auto;
+                column-gap: 1.5rem;
+                align-items: baseline;
+
+                & > * {
+                    grid-column: 1;
+                }
+
+                & .dateline {
+                    grid-column: 2;
+                    grid-row: 1;
+                    white-space: nowrap;
+                }
+            }
+
+            & :is(.secondary, .archive) h3 {
+                margin: 0 0 0.25rem;
+                font-size: 1.25rem;
+            }
+
+            & :is(.secondary, .archive) p {
+                margin: 0;
+            }
+
+            & .archive .section-label {
+                margin: 2.5rem 0 0.5rem;
+            }
+        }
+    }
+}

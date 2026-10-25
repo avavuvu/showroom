@@ -1,5 +1,6 @@
 use boutique::prelude::*;
-use crate::{document::Document, models::{newsletter::Model as Newsletter, publication::{self, Picture}}, blocks::music::Tone, renderer::html::render, components::{ArticleHeader, subscribe_form}, state::Urls, views::{context::PageContext, layouts::{Metadata, page, shell}}};
+use crate::{components::{ArticleHeader, SubscribeForm}, document::{Block, Document, ImageAttrs, is_allowed_image_src}, models::{newsletter::Model as Newsletter, publication::{self, Picture}}, renderer::html::render, state::{Urls}, views::{context::PageContext, layouts::{Metadata, page, shell}}};
+pub mod profile;
 
 fn with_share_image(metadata: Metadata, publication: &publication::Model, urls: &Urls) -> Metadata {
     match (publication.banner_url(urls), publication.picture()) {
@@ -9,39 +10,29 @@ fn with_share_image(metadata: Metadata, publication: &publication::Model, urls: 
     }
 }
 
-pub fn profile(ctx: &PageContext, newsletters: &[Newsletter]) -> Markup {
-    let publication = ctx.publication();
-    let publication_url = ctx.publication_url();
 
-    let metadata = with_share_image(
-        Metadata::article(publication.description.as_deref().unwrap_or(&publication.name), &publication.name, &publication_url),
-        publication,
-        &ctx.urls,
-    );
 
-    shell(
-        page(&publication.name)
-            .htmx()
-            .seo(metadata),
-        ctx,
-        html! {
-            div.user-view .article-layout .flow {
-                img.publication-picture src=(publication.picture_url(&ctx.urls)) alt="";
-                h1 { (publication.name) }
-                @if let Some(description) = &publication.description {
-                    p.description { (description) }
-                }
-                (newsletter_list(newsletters, &publication_url))
-            }
-            (subscribe_form(&publication_url, &publication.name))
+pub fn get_hero_image(nodes: &[Block]) -> Option<String> {
+    first_image(nodes).map(|image| image.src.clone())
+}
+
+pub fn first_image(blocks: &[Block]) -> Option<&ImageAttrs> {
+    blocks.iter().find_map(|block| match block {
+        Block::Image { attrs } if is_allowed_image_src(&attrs.src) => Some(attrs),
+        Block::Blockquote { content, .. }
+        | Block::Pullquote { content }
+        | Block::Figure { content, .. } => first_image(content),
+        Block::BulletList { content } | Block::OrderedList { content, .. } => {
+            content.iter().find_map(|item| first_image(&item.content))
         }
-    )
+        _ => None,
+    })
 }
 
 pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
     let publication = ctx.publication();
     let publication_url = ctx.publication_url();
-    let content = render(&Document::from_stored(&newsletter.content), Tone::on(publication.theme().paper));
+    let content = render(&Document::from_stored(&newsletter.content));
     let date = newsletter.published_at.unwrap_or(newsletter.created_at).format("%B %-d, %Y").to_string();
 
     let metadata = with_share_image(
@@ -74,20 +65,8 @@ pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
                     a href=(publication_url) { (publication.name) }
                     " posts, consider subscribing."
                 }
-                (subscribe_form(&publication_url, &publication.name))
+                SubscribeForm(&publication_url, &publication.name);
             }
         }
     })
-}
-
-fn newsletter_list(newsletters: &[Newsletter], publication_url: &str) -> Markup {
-    html! {
-        ul {
-            @for newsletter in newsletters {
-                li {
-                    a href=(format!("{}/{}", publication_url, newsletter.slug)) { (newsletter.display_title()) }
-                }
-            }
-        }
-    }
 }

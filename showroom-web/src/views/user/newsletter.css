@@ -1,6 +1,5 @@
 .newsletter {
     & .subscribe {
-
         --color-border: var(--color-on-primary);
 
         margin: 1em 0;
