@@ -291,7 +291,7 @@ impl Renderer {
                                     }
                                 }
                                 td style={ "padding: 0 0 0 " (gap) "px; vertical-align: top; " (self.body_font()) } {
-                                    (self.music_details(music, href, ink, urls))
+                                    (self.music_details(music, href, ink,))
                                 }
                             }
                         }
@@ -301,7 +301,7 @@ impl Renderer {
         }
     }
 
-    fn music_details(&self, music: &MusicAttrs, href: Option<&str>, ink: Color, urls: &Urls) -> Markup {
+    fn music_details(&self, music: &MusicAttrs, href: Option<&str>, ink: Color) -> Markup {
         html! {
             @if music.kind == MusicKind::Album {
                 p style=(self.music_kind_style(ink)) { "Album" }

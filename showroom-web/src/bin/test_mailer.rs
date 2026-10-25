@@ -58,6 +58,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         email_text: None,
         created_at: Utc::now().fixed_offset(),
         updated_at: Utc::now().fixed_offset(),
+        hero_image_id: None,
     };
 
     let subscribers = vec![Subscriber {
