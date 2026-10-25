@@ -13,7 +13,7 @@ pub fn index(ctx: &PageContext, newsletters: &[Newsletter]) -> Markup {
 
     let content = html! {
         @if let Some((lead, secondary, archive)) = front_page(newsletters) {
-            div.front data-layout="minimal" {
+            div.front data-layout="magazine" {
                 LeadStory(lead, &publication_url, &ctx.urls);
 
                 @if !secondary.is_empty() {
@@ -31,7 +31,7 @@ pub fn index(ctx: &PageContext, newsletters: &[Newsletter]) -> Markup {
             }
 
             @if !archive.is_empty() {
-                div.front data-layout="minimal" {
+                div.front data-layout="magazine" {
                     ArchiveList(archive, &publication_url, &ctx.urls);
                 }
             }
@@ -137,7 +137,7 @@ fn archive_list(#[positional] newsletters: &[Newsletter], #[positional] publicat
     html! {
         section.archive {
             ul {
-                @for newsletter in newsletters.iter().chain(newsletters).collect::<Vec<_>>() {
+                @for newsletter in newsletters {
                     @let href = story_href(publication_url, newsletter);
                     li {
                         div.text {
