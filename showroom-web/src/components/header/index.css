@@ -4,10 +4,8 @@
 }
 
 header.header-full {
-    border-bottom: 1em solid transparent;
-    background:
-        linear-gradient(var(--color-primary) 0 0) padding-box,
-        url("/assets/wood.webp") border-box;
+    border-bottom: var(--trim-size) solid transparent;
+    background: var(--trim-background);
 
     color: var(--color-surface);
     position: sticky;

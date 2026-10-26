@@ -1,7 +1,7 @@
 use boutique::html;
 use maud::Markup;
 
-use crate::blocks::music::{MusicCard};
+use crate::blocks::{music::MusicCard, youtube::YoutubeEmbed};
 use crate::document::{
     Block, Document, ImageAttrs, Inline, InlinePiece, ListItem, Mark, alt_text, code_text, figure_parts, inline_tree, quote_parts, requires_name,
 };
@@ -11,6 +11,7 @@ pub fn render(document: &Document) -> Markup {
         @for block in document.blocks() {
             @match block {
                 Block::Music { attrs: music } => { MusicCard(music); }
+                Block::Youtube { attrs: video } => { YoutubeEmbed(video); }
                 _ => { (render_block(block)) }
             }
         }
@@ -70,7 +71,10 @@ fn render_block(block: &Block) -> Markup {
             },
             None => html! {},
         },
-        Block::Music { .. } => html! {},
+        Block::Boxout { attrs, content } => html! {
+            aside.boxout data-style=(attrs.style.as_str()) data-width=(attrs.width.as_str()) { (blocks(content)) }
+        },
+        Block::Music { .. } | Block::Youtube { .. } => html! {},
     }
 }
 

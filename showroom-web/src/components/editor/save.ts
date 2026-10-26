@@ -32,7 +32,7 @@ export class SaveController {
     private edits = 0
     private savedEdits = 0
     private retries = 0
-    private isDiscarded = false
+    isDiscarded = false
     private queue: Promise<unknown> = Promise.resolve()
     private debounceTimer: ReturnType<typeof setTimeout> | undefined
     private maxWaitTimer: ReturnType<typeof setTimeout> | undefined

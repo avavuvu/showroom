@@ -25,10 +25,10 @@ body:has(.lander) {
 
         color: var(--color-surface);
 
-        border: 1em solid transparent;
+        border: var(--trim-size) solid transparent;
         background:
             linear-gradient(var(--color-primary) 0 0) padding-box,
-            url("/assets/wood.webp") border-box;
+            var(--trim-wood) border-box;
 
         & a {
             color: var(--color-surface);

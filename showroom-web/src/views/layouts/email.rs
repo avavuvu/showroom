@@ -4,7 +4,7 @@ use maud::{DOCTYPE, Markup, PreEscaped};
 use serde::Serialize;
 
 use crate::{
-    components::email::{Align, Button, FullWidthImage, Section, stylesheet},
+    components::email::{Align, Button, FullWidthImage, Section, WideSection, stylesheet},
     state::EMAIL_PROFILE_PX,
     renderer::{email::EmailBlock, personalize},
     theme::{EmailTheme, Layout},
@@ -143,10 +143,14 @@ pub fn newsletter_body(
                 div.email-rule {}
             }
         }
-        @for block in content {
+        @for (index, block) in content.iter().enumerate() {
             @match block {
                 EmailBlock::Content(s) => {
-                    Section(bottom = "32px") { (PreEscaped(s)) }
+                    @let bottom = if matches!(content.get(index + 1), Some(EmailBlock::Wide(_))) { "0" } else { "32px" };
+                    Section(bottom = bottom) { (PreEscaped(s)) }
+                }
+                EmailBlock::Wide(s) => {
+                    WideSection { (PreEscaped(s)) }
                 }
                 EmailBlock::FullWidthImage { src, alt, caption } => {
                     FullWidthImage(src, alt = alt, caption = [caption.as_deref()]);

@@ -2,7 +2,7 @@ import { inject } from "../../../../bindings/boutique/setups"
 import type { EditorLinkBar } from "@setups"
 import { editorContext } from "../context"
 import { getSelectedName, isEditingName, setNameFallback, stopEditingName } from "../prosemirror/name"
-import { applyLink, closeLink, getLinkEditing, getLinkText, getSelectedLink, openLink, removeLink } from "./link"
+import { applyLink, closeLink, getLinkEditing, getLinkText, getSelectedLink, hasLinkChanges, openLink, removeLink } from "./link"
 
 export const editorLinkBar: EditorLinkBar = async (root, { text, url, fallback, open, remove }, { signal }) => {
     const { view, onUpdate } = await inject(root, editorContext).catch((error: unknown) => {
@@ -22,6 +22,7 @@ export const editorLinkBar: EditorLinkBar = async (root, { text, url, fallback, 
         const range = getSelectedLink(state)
         const target = editing ?? range
         const href = editing?.href || (range?.mark.attrs.href as string | undefined) || ""
+        const appliedHref = editing ? editing.appliedHref : ((range?.mark.attrs.href as string | undefined) ?? "")
         const isFocused = root.contains(document.activeElement)
         const selectedName = getSelectedName(state)
         const isNameEditing = isEditingName(state)
@@ -38,12 +39,12 @@ export const editorLinkBar: EditorLinkBar = async (root, { text, url, fallback, 
             })
         }
         wasEditingName = isNameEditing
-        if (href) {
-            open.href = href
+        if (appliedHref) {
+            open.href = appliedHref
         } else {
             open.removeAttribute("href")
         }
-        remove.disabled = !href
+        remove.disabled = !appliedHref
 
         if (!isFocused) {
             text.value = target ? getLinkText(state, target) : ""
@@ -71,11 +72,15 @@ export const editorLinkBar: EditorLinkBar = async (root, { text, url, fallback, 
         },
 
         leave: () => {
+            const href = url.value
+            const label = text.value
             requestAnimationFrame(() => {
                 if (view.isDestroyed || root.contains(document.activeElement)) {
                     return
                 }
-                closeLink(view)
+                if (!hasLinkChanges(view.state, href, label) || applyLink(view, href, label, { shouldMoveCursor: false })) {
+                    closeLink(view)
+                }
                 stopEditingName(view)
                 sync()
             })

@@ -37,6 +37,15 @@ export const setFieldValue = (field: HTMLInputElement | HTMLTextAreaElement, val
     }
 }
 
+export const setCardSurface = (card: HTMLElement, color: string | null | undefined) => {
+    card.classList.toggle("has-color", !!color)
+    if (color) {
+        card.style.setProperty("--card-surface", color)
+    } else {
+        card.style.removeProperty("--card-surface")
+    }
+}
+
 export const setImageSource = (image: HTMLImageElement, src: string | null | undefined) => {
     if (src) {
         if (image.getAttribute("src") !== src) {
@@ -111,12 +120,13 @@ export class BlockView<Attrs extends object, Actions extends object> implements 
         return this.outerDecorations
     }
 
-    set(attrs: Attrs) {
+    set(attrs: Attrs, { isUndoable = true } = {}) {
         const pos = this.getNodePos()
         if (pos == null || this.view.isDestroyed) {
             return
         }
-        this.view.dispatch(this.view.state.tr.setNodeMarkup(pos, null, attrs))
+        const transaction = this.view.state.tr.setNodeMarkup(pos, null, attrs)
+        this.view.dispatch(isUndoable ? transaction : transaction.setMeta("addToHistory", false))
     }
 
     change(fields: Partial<Attrs>) {

@@ -11,6 +11,12 @@ heroku run -a show-room ./target/release/create_user a@example.com handle
 - [ ] Sitemap
 - [ ] Webhooks
 
+## To do, Monday 26 Oct
+- [x] investigate content being overridden
+- [ ] Style presets
+- [ ] Disabling wood trim
+- [ ] Better OG images and favicon
+
 ### Features
 - [ ] Subscribe embed
 - [x] Image CDN (cloudinary?)
@@ -22,8 +28,11 @@ heroku run -a show-room ./target/release/create_user a@example.com handle
 - [ ] Monthly (/ custom) reminders
 - [ ] Webrings
 - [ ] New icons
-- [ ] Woodgrain
+- [x] Woodgrain
 - [ ] User generated templates
+- [ ] Layouts from BQ components
+- [ ] Extensive styling of user index page
+- [ ] Index page preview
 
 ### Bug fixes
 - [x] Why does the profile page hang on load?
@@ -31,15 +40,16 @@ heroku run -a show-room ./target/release/create_user a@example.com handle
 - [ ] Fix broken email links
 - [ ] 404 pages don't link correctly
 - [x] Remove tower reload
+- [ ] Awkward interaction between heading and hr
 
 ### Profile pages
 - [ ] Names beyond usernames
 - [ ] Profile link trees
-- [ ] Hero images
+- [x] Hero images
 - [ ] Main loading 
 
 ### Preparing for launch
-- [ ] Banned account names
+- [x] Banned account names
 - [ ] Social media sign in
 - [ ] Payments
 - [ ] Patreon sign in
@@ -53,8 +63,8 @@ heroku run -a show-room ./target/release/create_user a@example.com handle
 - [x] Add Placeholder
 - [x] List margins (and other inconsistencies with email)
 - [?] Code displays really weird on email
-- [ ] Move greeting into editor
-- [ ] {{name}} input
+- [x] Move greeting into editor
+- [x] {{name}} input
  
 ## Migrations
 ```

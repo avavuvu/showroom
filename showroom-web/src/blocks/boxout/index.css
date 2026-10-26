@@ -1,0 +1,77 @@
+.prose .boxout {
+    margin-block: 1.5em;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--prose-color-rule);
+
+    &:is([data-style="brand"], [data-style="trim"]) {
+        --prose-color-link: currentColor;
+        --prose-color-muted: currentColor;
+        --prose-color-rule: color-mix(in srgb, currentColor 35%, transparent);
+        --prose-color-blockquote-border: currentColor;
+        --prose-color-pullquote-border: currentColor;
+        --prose-color-pullquote-surface: color-mix(in srgb, currentColor 12%, transparent);
+
+        border-color: transparent;
+        background-color: var(--color-primary);
+        color: var(--color-on-primary);
+
+        & code {
+            background-color: color-mix(in srgb, currentColor 15%, transparent);
+        }
+    }
+
+    &[data-style="trim"] {
+        border: var(--trim-size) solid transparent;
+        background: var(--trim-background);
+    }
+
+    & :is(figure, img)[data-width="full"] {
+        width: auto;
+        max-width: 100%;
+        margin-inline: 0;
+    }
+
+    & figure[data-width="full"] > figcaption {
+        padding-inline: 0;
+    }
+}
+
+.prose :is(.boxout, .boxout-content) > :first-child {
+    margin-top: 0;
+}
+
+.prose :is(.boxout, .boxout-content) > :last-child {
+    margin-bottom: 0;
+}
+
+.prose-body > .boxout[data-width="wide"] {
+    margin-inline: calc(-1 * var(--prose-wide-bleed));
+    padding-inline: max(var(--prose-wide-bleed), 1rem);
+}
+
+.prose-body > .boxout[data-width="left"] {
+    float: left;
+    clear: left;
+    width: calc(40% + var(--prose-wide-bleed));
+    margin: 0.25em 1.5rem 1em calc(-1 * var(--prose-wide-bleed));
+}
+
+.prose-body > .boxout[data-width="right"] {
+    float: right;
+    clear: right;
+    width: calc(40% + var(--prose-wide-bleed));
+    margin: 0.25em calc(-1 * var(--prose-wide-bleed)) 1em 1.5rem;
+}
+
+.prose-body > :is(h2, h3, h4, hr, figure, .media-card, .boxout:not([data-width="left"], [data-width="right"])) {
+    clear: both;
+}
+
+@media (max-width: 48rem) {
+    .prose-body > .boxout:is([data-width="left"], [data-width="right"]) {
+        float: none;
+        width: auto;
+        margin: 1.5em calc(-1 * var(--prose-wide-bleed));
+        padding-inline: max(var(--prose-wide-bleed), 1rem);
+    }
+}

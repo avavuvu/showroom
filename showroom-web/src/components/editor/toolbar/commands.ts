@@ -5,6 +5,7 @@ import type { Command, EditorState } from "prosemirror-state"
 import { findAncestor, insertHorizontalRule, isList, isMarkActive, toggleBlockquote, toggleList, togglePullquote } from "../prosemirror/commands"
 import { openLink } from "../link_bar/link"
 import { schema } from "../prosemirror/schema"
+import { isInBoxout, toggleBoxout } from "../../../blocks/boxout/commands"
 
 export interface ToolbarCommand {
     run: Command
@@ -31,6 +32,7 @@ export const createToolbarCommands = (insertImage: Command): Record<string, Tool
         "ordered-list": { run: toggleList(orderedList), isActive: (state) => getListType(state) === orderedList },
         blockquote: { run: toggleBlockquote, isActive: checkInside(blockquote) },
         pullquote: { run: togglePullquote, isActive: checkInside(pullquote) },
+        boxout: { run: toggleBoxout, isActive: isInBoxout },
         "horizontal-rule": { run: insertHorizontalRule },
         image: { run: insertImage },
     }

@@ -42,8 +42,9 @@ const GROUPS: &[&[Tool]] = &[
         tool("pullquote", "Pull quote", "", Glyph::TextQuote, true, true),
     ],
     &[
-        tool("horizontal-rule", "Divider", "", Glyph::Minus, false, true),
+        tool("horizontal-rule", "Divider", "Mod-Alt--", Glyph::Minus, false, true),
         tool("image", "Image", "", Glyph::Image, false, false),
+        tool("boxout", "Boxout", "Shift-Mod-0", Glyph::TextBox, true, false),
     ],
 ];
 

@@ -1,12 +1,11 @@
 use axum::{
     Json,
     extract::{Path, State},
-    http::StatusCode,
+    http::{StatusCode, header},
     response::{IntoResponse, Response},
 };
 use boutique::{AppError, AppResult, AuthenticatedUser};
 use chrono::Utc;
-use maud::Markup;
 use sea_orm::{
     ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter,
     sea_query::Expr,
@@ -30,10 +29,11 @@ pub async fn get_edit(
     State(state): State<AppState>,
     owned: OwnedPublication,
     Path((_, id)): Path<(String, String)>,
-) -> AppResult<Markup> {
+) -> AppResult<Response> {
     let newsletter = find_newsletter(&state.db, &owned.publication.id, &id).await?;
+    let page = views::dashboard::edit(&owned.into_context(state.urls.clone()), &newsletter);
 
-    Ok(views::dashboard::edit(&owned.into_context(state.urls.clone()), &newsletter))
+    Ok(([(header::CACHE_CONTROL, "no-store")], page).into_response())
 }
 
 async fn find_owned_newsletter(id: &str, user_id: &str, db: &DatabaseConnection) -> AppResult<newsletter::Model> {

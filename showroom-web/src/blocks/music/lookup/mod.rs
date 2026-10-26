@@ -5,7 +5,7 @@ use maud::Markup;
 #[component]
 pub fn music_lookup() -> Markup {
     html! {
-        figure.music-card.music-lookup contenteditable="false" {
+        figure.media-card.music-card.music-lookup contenteditable="false" {
             span.music-lookup-message role="status" {}
         }
     }

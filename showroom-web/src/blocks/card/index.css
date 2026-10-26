@@ -1,0 +1,42 @@
+.media-card {
+    padding: 0.75rem;
+    background-color: var(--card-surface, var(--color-surface-muted));
+
+    &.has-color {
+        color: #fff;
+    }
+
+    & .media-card-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        min-width: 0;
+
+        &[hidden] {
+            display: none;
+        }
+    }
+
+    & .media-card-title {
+        margin: 0;
+        font-family: var(--prose-font-title, var(--font-title));
+        font-size: 1.125em;
+        font-weight: bold;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+    }
+
+    & .media-card-byline {
+        margin: 0;
+        overflow-wrap: anywhere;
+    }
+
+    & :is(.media-card-title, .media-card-byline) a {
+        color: inherit;
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}

@@ -1,8 +1,9 @@
-import { type EditorState, TextSelection } from "prosemirror-state"
+import { TextSelection } from "prosemirror-state"
 import type { EditorView } from "prosemirror-view"
 import { schema } from "../../components/editor/prosemirror/schema"
 import { isAllowedHref } from "../../components/editor/prosemirror/url"
 import { TrackedDecorations, cloneTemplate, createWidget } from "../decorations"
+import { isEmptyTopLevelParagraph } from "../selection"
 import { BlockView } from "../view"
 import { type Resolved, createAttrs, getLookupProblem, hasDetails, looksLikeMusicLink, resolveMusic } from "./attrs"
 
@@ -20,12 +21,6 @@ const createNoticeRenderer = (template: HTMLTemplateElement, message: string, is
         }
     }
     return element
-}
-
-const isEmptyTopLevelParagraph = (state: EditorState): boolean => {
-    const { selection } = state
-    const { $from } = selection
-    return selection.empty && $from.depth === 1 && $from.parent.type === schema.nodes.paragraph && $from.parent.content.size === 0
 }
 
 const resolvePastedLink = async (view: EditorView, template: HTMLTemplateElement, text: string, id: object) => {

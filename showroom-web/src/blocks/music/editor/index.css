@@ -24,7 +24,7 @@
 
         &.has-color .music-details {
             --editor-accent: #fff;
-            --editor-on-accent: var(--music-surface);
+            --editor-on-accent: var(--card-surface);
             --color-placeholder: rgb(255 255 255 / 0.6);
         }
 

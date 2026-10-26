@@ -9,7 +9,7 @@ pub fn image_editor() -> Markup {
             img alt="" draggable="false" bq-ref="image";
             div.image-actions {
                 button type="button" bq-on:click="replace" { "Replace" }
-                button type="button" bq-on:click="toggle-width" {
+                button.image-width-toggle type="button" bq-on:click="toggle-width" {
                     span.when-normal { "Full width" }
                     span.when-full { "Normal width" }
                 }

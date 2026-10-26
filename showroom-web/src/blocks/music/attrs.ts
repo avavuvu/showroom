@@ -2,6 +2,7 @@ import type { MusicAttrs } from "../../../bindings/types/MusicAttrs"
 import type { MusicService } from "../../../bindings/types/MusicService"
 import type { ArtworkColor } from "../../../bindings/types/ArtworkColor"
 import type { Resolved } from "../../../bindings/types/Resolved"
+import { postJson } from "../lookup"
 
 export type { MusicAttrs, MusicService, Resolved }
 
@@ -70,34 +71,19 @@ export const looksLikeMusicLink = (text: string): boolean => {
 }
 
 export const resolveMusic = async (url: string): Promise<Resolved> => {
-    const response = await fetch("/music/resolve", {
-        method: "POST",
-        redirect: "manual",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ url }),
-    })
-    if (response.type === "opaqueredirect") {
+    const result = await postJson<Resolved>("/music/resolve", { url })
+    if (result.kind === "expired") {
         throw new Error("Your session ended. Log in again to add music.")
     }
-    const body = (await response.json().catch(() => ({}))) as Partial<Resolved> & { error?: string }
-    if (!response.ok) {
-        throw new Error(body.error ?? "That link could not be looked up.")
+    if (result.kind === "failed") {
+        throw new Error(result.error ?? "That link could not be looked up.")
     }
-    return body as Resolved
+    return result.body
 }
 
 export const fetchArtworkColor = async (artwork: string): Promise<string | null> => {
-    const response = await fetch("/music/color", {
-        method: "POST",
-        redirect: "manual",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ artwork }),
-    }).catch(() => null)
-    if (!response?.ok) {
-        return null
-    }
-    const body = (await response.json().catch(() => ({}))) as Partial<ArtworkColor>
-    return body.color ?? null
+    const result = await postJson<ArtworkColor>("/music/color", { artwork })
+    return result.kind === "ok" ? result.body.color : null
 }
 
 const describeKind = (kind: MusicAttrs["kind"]) => (kind === "album" ? "an album" : "a song")

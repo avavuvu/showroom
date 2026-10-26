@@ -21,6 +21,7 @@ pub fn first_image(blocks: &[Block]) -> Option<&ImageAttrs> {
         Block::Image { attrs } if is_allowed_image_src(&attrs.src) => Some(attrs),
         Block::Blockquote { content, .. }
         | Block::Pullquote { content }
+        | Block::Boxout { content, .. }
         | Block::Figure { content, .. } => first_image(content),
         Block::BulletList { content } | Block::OrderedList { content, .. } => {
             content.iter().find_map(|item| first_image(&item.content))
@@ -48,7 +49,7 @@ pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
         ctx,
         html! {
         main.article-layout .newsletter {
-            article.prose .flow {
+            article.prose .flow .prose-body {
                 ArticleHeader(
                     date = &date,
                     title = newsletter.display_title(),

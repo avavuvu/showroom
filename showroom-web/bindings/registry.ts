@@ -7,6 +7,11 @@ export const registry: Registry = {
         many: [],
         load: () => import("../src/components/ascii_background/index").then((module) => module.asciiBackground satisfies setups.AsciiBackground),
     },
+    "boxout-editor": {
+        tags: ["aside"],
+        many: ["handle", "style"],
+        load: () => import("../src/blocks/boxout/editor/index").then((module) => module.boxoutEditor satisfies setups.BoxoutEditor),
+    },
     "color-input": {
         tags: ["details"],
         many: ["preset"],
@@ -71,5 +76,20 @@ export const registry: Registry = {
         tags: ["form"],
         many: [],
         load: () => import("../src/components/theme_form/index").then((module) => module.themePreview satisfies setups.ThemePreview),
+    },
+    "trim-input": {
+        tags: ["details"],
+        many: ["preset"],
+        load: () => import("../src/components/theme_form/trim_input/index").then((module) => module.trimInput satisfies setups.TrimInput),
+    },
+    "youtube-editor": {
+        tags: ["figure"],
+        many: [],
+        load: () => import("../src/blocks/youtube/editor/index").then((module) => module.youtubeEditor satisfies setups.YoutubeEditor),
+    },
+    "youtube-embed": {
+        tags: ["figure"],
+        many: [],
+        load: () => import("../src/blocks/youtube/embed/index").then((module) => module.youtubeEmbed satisfies setups.YoutubeEmbed),
     },
 };

@@ -1,4 +1,4 @@
-use super::{Color, Layout, Theme};
+use super::{Color, Layout, Theme, Trim};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct EmailTheme {
@@ -13,6 +13,7 @@ pub struct EmailTheme {
     pub font_title: &'static str,
     pub font_body: &'static str,
     pub layout: Layout,
+    pub trim: Trim,
     pub text_px: u8,
     pub title_px: u8,
     pub heading_sizes: [u8; 3],

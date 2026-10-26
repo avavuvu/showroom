@@ -17,6 +17,10 @@ import { imageView } from "../../blocks/image/editor/view"
 import { filterImageFiles, type Uploads } from "../../blocks/image/upload"
 import { musicView } from "../../blocks/music/editor/view"
 import { musicPlugin } from "../../blocks/music/paste"
+import { youtubeView } from "../../blocks/youtube/editor/view"
+import { youtubePlugin } from "../../blocks/youtube/paste"
+import { boxoutPlugin } from "../../blocks/boxout/commands"
+import { boxoutView } from "../../blocks/boxout/editor/view"
 import type { PickFiles } from "./file-picker"
 import { linkPlugin } from "./link_bar/link"
 
@@ -45,12 +49,14 @@ export const createView = (refs: Refs, { doc, uploads, pickFiles, onChange, onUp
                 trailingParagraph(),
                 namePlugin(),
                 musicPlugin(refs.musicLookup),
+                youtubePlugin(),
+                boxoutPlugin(),
                 linkPlugin(),
                 uploads.plugin(),
             ],
         }),
         attributes: {
-            class: "flow",
+            class: "flow prose-body",
             role: "textbox",
             "aria-multiline": "true",
             "aria-label": "Newsletter body",
@@ -62,6 +68,8 @@ export const createView = (refs: Refs, { doc, uploads, pickFiles, onChange, onUp
         nodeViews: {
             image: imageView({ template: refs.imageFrame, pickFiles, uploads }),
             music: musicView({ template: refs.musicFrame, pickFiles, uploads }),
+            youtube: youtubeView(refs.youtubeFrame),
+            boxout: boxoutView(refs.boxoutFrame),
         },
         handleClickOn: (editor, _pos, node, nodePos, _event, isDirect) => {
             if (!isDirect || node.type !== schema.nodes.image) {

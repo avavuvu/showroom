@@ -1,6 +1,7 @@
 use crate::document::{
-    Block, Document, ImageAttrs, Inline, InlinePiece, ListItem, Mark, MusicAttrs, MusicKind, code_text, figure_parts, inline_text, inline_tree, quote_parts, NAME_TOKEN,
+    Block, Document, ImageAttrs, Inline, InlinePiece, ListItem, Mark, MusicAttrs, MusicKind, YoutubeAttrs, code_text, figure_parts, inline_text, inline_tree, quote_parts, NAME_TOKEN,
 };
+use crate::blocks::youtube::WATCH_LABEL;
 
 pub fn render(document: &Document) -> String {
     blocks(document.blocks())
@@ -56,7 +57,18 @@ fn block(block: &Block) -> String {
             None => String::new(),
         },
         Block::Music { attrs } => music(attrs),
+        Block::Youtube { attrs } => youtube(attrs),
+        Block::Boxout { attrs, content } => format!(
+            "<aside class=\"boxout\" data-style=\"{}\" data-width=\"{}\">\n\n{}\n\n</aside>",
+            attrs.style.as_str(),
+            attrs.width.as_str(),
+            blocks(content),
+        ),
     }
+}
+
+fn youtube(attrs: &YoutubeAttrs) -> String {
+    format!("[![{WATCH_LABEL}]({})]({})", destination(&attrs.thumbnail_url()), destination(&attrs.watch_url()))
 }
 
 fn music(attrs: &MusicAttrs) -> String {

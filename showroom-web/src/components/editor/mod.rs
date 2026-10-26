@@ -10,6 +10,8 @@ use serde::Serialize;
 use crate::blocks::{
     image::{ImageEditor, ImageUploading},
     music::{MusicEditor, MusicLookup},
+    youtube::YoutubeEditor,
+    boxout::BoxoutEditor,
 };
 use crate::components::Button;
 use crate::document::Document;
@@ -40,6 +42,7 @@ pub fn editor_page(
             bq-setup
             bq-on:keydown|mod|s|prevent|window="save"
             bq-on:beforeunload|window="guard"
+            bq-on:pageshow|window="restore"
             data-props=(serde_json::to_string(props).unwrap_or_default()) {
             @if sent {
                 div.marquee {
@@ -121,6 +124,14 @@ fn editor(title: &str, subtitle: Option<&str>) -> Markup {
 
             template bq-ref="music-lookup" {
                 MusicLookup;
+            }
+
+            template bq-ref="youtube-frame" {
+                YoutubeEditor;
+            }
+
+            template bq-ref="boxout-frame" {
+                BoxoutEditor;
             }
         }
     }

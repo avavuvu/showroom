@@ -2,6 +2,8 @@ mod inline;
 mod normalize;
 
 pub use crate::blocks::music::{MusicAttrs, MusicKind};
+pub use crate::blocks::youtube::YoutubeAttrs;
+pub use crate::blocks::boxout::{BoxoutAttrs, BoxoutStyle, BoxoutWidth};
 pub use inline::{InlinePiece, inline_tree};
 
 use serde::{Deserialize, Deserializer, Serialize};
@@ -75,6 +77,16 @@ pub enum Block {
     Music {
         #[serde(default)]
         attrs: MusicAttrs,
+    },
+    Youtube {
+        #[serde(default)]
+        attrs: YoutubeAttrs,
+    },
+    Boxout {
+        #[serde(default)]
+        attrs: BoxoutAttrs,
+        #[serde(default)]
+        content: Vec<Block>,
     },
 }
 

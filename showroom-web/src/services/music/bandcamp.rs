@@ -1,6 +1,7 @@
 use serde::Deserialize;
 
-use super::{Details, links::MusicUrl, read_limited};
+use super::{Details, links::MusicUrl};
+use crate::services::fetch::read_limited;
 use crate::blocks::music::MusicKind;
 
 const MAX_PAGE_BYTES: usize = 1024 * 1024;

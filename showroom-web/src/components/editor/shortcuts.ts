@@ -1,7 +1,7 @@
 import { isMac } from "../../../bindings/boutique/setups"
 
 export const formatShortcut = (shortcut: string): string => {
-    const parts = shortcut.split("-")
+    const parts = shortcut.split(/-(?!$)/)
     const key = parts.pop()?.toUpperCase() ?? ""
     const hasModifier = (name: string) => parts.includes(name)
 

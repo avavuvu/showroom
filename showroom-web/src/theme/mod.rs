@@ -2,6 +2,7 @@ mod color;
 mod email;
 mod font;
 mod layout;
+mod trim;
 
 use sea_orm::FromJsonQueryResult;
 use serde::{Deserialize, Serialize};
@@ -10,6 +11,7 @@ pub use color::Color;
 pub use email::EmailTheme;
 pub use font::{Font, Fonts};
 pub use layout::Layout;
+pub use trim::{Trim, WOOD_COLOR, WOOD_EMAIL_PATH};
 
 use email::EmailSizes;
 
@@ -28,6 +30,8 @@ pub struct Theme {
     pub fonts: Fonts,
     #[serde(default, skip_serializing_if = "Layout::is_default")]
     pub layout: Layout,
+    #[serde(default, skip_serializing_if = "Trim::is_default")]
+    pub trim: Trim,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -55,6 +59,7 @@ impl Default for Theme {
             overrides: Overrides::default(),
             fonts: Fonts::default(),
             layout: Layout::default(),
+            trim: Trim::default(),
         }
     }
 }
@@ -81,7 +86,7 @@ impl Theme {
     pub fn css(self) -> String {
         let or_var = |color: Option<Color>, fallback: &str| color.map_or_else(|| fallback.to_string(), |color| color.to_string());
         format!(
-            ":root{{--ink:{};--paper:{};--brand:{};--on-brand:{};--link:{};--muted:{};--font-title:{};--font-body:{};{}color-scheme:{}}}",
+            ":root{{--ink:{};--paper:{};--brand:{};--on-brand:{};--link:{};--muted:{};--font-title:{};--font-body:{};{}{}color-scheme:{}}}",
             self.ink,
             self.paper,
             self.brand,
@@ -91,6 +96,7 @@ impl Theme {
             self.fonts.title.stack(),
             self.fonts.body.stack(),
             self.layout.css(),
+            self.trim.css(),
             self.scheme()
         )
     }
@@ -109,6 +115,7 @@ impl Theme {
             font_title: self.fonts.title.stack(),
             font_body: self.fonts.body.stack(),
             layout: self.layout,
+            trim: self.trim,
             text_px: sizes.text,
             title_px: sizes.title,
             heading_sizes: sizes.headings,

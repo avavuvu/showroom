@@ -34,6 +34,11 @@ body {
     padding: 0;
 }
 
+.email-wide {
+    padding-left: var(--wide-gutter);
+    padding-right: var(--wide-gutter);
+}
+
 .email-section {
     font-family: var(--font-body);
     font-size: 14px;
@@ -133,5 +138,24 @@ a {
 
     .email-gutter {
         width: 20px !important;
+    }
+
+    .email-wide {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+
+    .email-boxout-side {
+        float: none !important;
+        width: 100% !important;
+    }
+
+    .email-boxout-gap {
+        padding: 0 0 16px 0 !important;
+    }
+
+    .email-wrap {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
     }
 }

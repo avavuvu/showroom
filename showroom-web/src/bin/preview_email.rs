@@ -45,6 +45,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         "spotify": { "url": "https://open.spotify.com/album/5vkqYmiPBYLaalcmjujWxK" }
                     }
                 }
+            },
+            {
+                "type": "youtube",
+                "attrs": { "id": "dQw4w9WgXcQ", "start": 42 }
             }
         ]
     });

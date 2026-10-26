@@ -99,6 +99,12 @@ export const newsletterEditor: NewsletterEditor = (root, refs, { signal }) => {
             }
         },
 
+        restore: (event) => {
+            if (event.persisted && saver.isDiscarded) {
+                window.location.reload()
+            }
+        },
+
         reload: () => {
             saver.discard()
             window.location.reload()

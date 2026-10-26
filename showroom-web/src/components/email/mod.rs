@@ -5,6 +5,7 @@ use maud::Markup;
 use crate::{theme::EmailTheme, state::EMAIL_PROFILE_PX};
 
 const GUTTER: &str = "32";
+const WIDE_GUTTER: &str = "8";
 const STYLESHEET: &str = include_str!("email.email.css");
 
 #[allow(dead_code)]
@@ -39,6 +40,7 @@ pub fn stylesheet(theme: &EmailTheme) -> String {
         ("caption-size", format!("{}px", theme.text_px.saturating_sub(2))),
         ("title-size", format!("{}px", theme.title_px)),
         ("gutter", format!("{GUTTER}px")),
+        ("wide-gutter", format!("{WIDE_GUTTER}px")),
         ("picture-size", format!("{EMAIL_PROFILE_PX}px")),
     ];
 
@@ -71,6 +73,15 @@ pub fn section(
             td.email-gutter width=(GUTTER) {}
             td.email-section style=(style) { (children) }
             td.email-gutter width=(GUTTER) {}
+        }
+    }
+}
+
+#[component]
+pub fn wide_section(children: Markup) -> Markup {
+    html! {
+        tr {
+            td.email-section.email-wide colspan="3" style=(format!("padding:0 {WIDE_GUTTER}px;")) { (children) }
         }
     }
 }

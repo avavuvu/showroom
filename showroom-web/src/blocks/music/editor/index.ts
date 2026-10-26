@@ -1,6 +1,6 @@
 import { inject } from "../../../../bindings/boutique/setups"
 import type { MusicEditor } from "@setups"
-import { setFieldValue, setImageSource } from "../../view"
+import { setCardSurface, setFieldValue, setImageSource } from "../../view"
 import { type MusicService, SERVICES, countLinks } from "../attrs"
 import { musicEditorKey } from "./handle"
 
@@ -16,12 +16,7 @@ export const musicEditor: MusicEditor = async (root, refs, { signal }) => {
 
         root.dataset.kind = attrs.kind
         root.classList.toggle("has-artwork", !!attrs.artwork)
-        root.classList.toggle("has-color", !!attrs.color)
-        if (attrs.color) {
-            root.style.setProperty("--music-surface", attrs.color)
-        } else {
-            root.style.removeProperty("--music-surface")
-        }
+        setCardSurface(root, attrs.color)
         root.classList.toggle("is-busy", isBusy)
         refs.kind.hidden = attrs.kind !== "album"
         setImageSource(refs.artwork, attrs.artwork)

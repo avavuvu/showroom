@@ -1,0 +1,18 @@
+.color-input.trim-input {
+    & .swatch {
+        background: var(--trim-swatch) center / cover;
+    }
+
+    & .options .trim-wood {
+        background: var(--trim-wood) center / cover;
+    }
+
+    & .options .trim-none {
+        background: linear-gradient(
+            to top right,
+            var(--color-primary) calc(50% - 1px),
+            var(--color-border) 50%,
+            var(--color-primary) calc(50% + 1px)
+        );
+    }
+}

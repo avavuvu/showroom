@@ -4,6 +4,7 @@ mod send;
 
 pub mod images;
 pub mod music;
+pub mod youtube;
 pub mod publications;
 pub mod settings;
 pub mod subscribers;

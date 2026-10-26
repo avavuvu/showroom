@@ -1,5 +1,4 @@
 mod card;
-pub mod color;
 mod editor;
 mod lookup;
 
@@ -9,11 +8,11 @@ pub use lookup::MusicLookup;
 
 use serde::{Deserialize, Deserializer, Serialize};
 
+use crate::blocks::card::{card_color, clean_text, null_string, surface};
 use crate::theme::Color;
 
 const ARTWORK_HOST_SUFFIXES: &[&str] = &[".mzstatic.com", ".bcbits.com"];
 const ARTWORK_HOSTS: &[&str] = &["res.cloudinary.com"];
-const MAX_TEXT: usize = 300;
 
 #[boutique::ts]
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -154,7 +153,7 @@ impl MusicAttrs {
     }
 
     pub fn surface(&self) -> Option<Color> {
-        self.color.as_deref().and_then(Color::parse)
+        surface(self.color.as_deref())
     }
 }
 
@@ -181,12 +180,8 @@ pub fn normalize(attrs: MusicAttrs) -> Option<MusicAttrs> {
         artwork: artwork.map(|artwork| artwork.trim().to_string()).filter(|artwork| is_allowed_artwork(artwork)),
         source: source.filter(|service| links.get(*service).is_some()),
         links,
-        color: color.as_deref().and_then(Color::parse).filter(|color| color::is_card_color(*color)).map(|color| color.to_string()),
+        color: card_color(color),
     })
-}
-
-pub fn clean_text(text: &str) -> String {
-    text.split_whitespace().collect::<Vec<_>>().join(" ").chars().take(MAX_TEXT).collect()
 }
 
 fn normalize_link(service: MusicService, link: Option<MusicLink>) -> Option<MusicLink> {
@@ -219,10 +214,6 @@ pub fn is_allowed_artwork(src: &str) -> bool {
 
 pub fn is_valid_music_id(id: &str) -> bool {
     !id.is_empty() && id.len() <= 128 && id.chars().all(|character| character.is_ascii_alphanumeric() || "-_".contains(character))
-}
-
-fn null_string<'de, D: Deserializer<'de>>(deserializer: D) -> Result<String, D::Error> {
-    Option::<String>::deserialize(deserializer).map(Option::unwrap_or_default)
 }
 
 fn lenient_kind<'de, D: Deserializer<'de>>(deserializer: D) -> Result<MusicKind, D::Error> {

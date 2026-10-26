@@ -39,6 +39,7 @@ pub fn create_router(state: AppState) -> Router {
         .route("/images/sign", get(images::sign_upload))
         .route("/music/resolve", post(music::resolve))
         .route("/music/color", post(music::color))
+        .route("/youtube/lookup", post(youtube::lookup))
         .nest("/{slug}", publication)
         .layer(middleware::from_fn_with_state(state.clone(), require_same_origin))
         .with_state(state)

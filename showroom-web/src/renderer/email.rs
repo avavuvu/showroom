@@ -2,21 +2,33 @@ use boutique::html;
 use maud::{Markup, PreEscaped};
 
 use crate::document::{
-    Block, Document, ImageAttrs, ImageWidth, Inline, InlinePiece, ListItem, Mark, MusicAttrs, MusicKind, alt_text, code_text,
+    Block, BoxoutAttrs, BoxoutStyle, BoxoutWidth, Document, ImageAttrs, ImageWidth, Inline, InlinePiece, ListItem, Mark, MusicAttrs, MusicKind,
+    YoutubeAttrs, alt_text, code_text,
     figure_parts, inline_tree, quote_parts, requires_name,
 };
-use crate::blocks::music::{listen_label, color::WHITE};
+use crate::blocks::card::color::WHITE;
+use crate::blocks::music::listen_label;
+use crate::blocks::youtube::WATCH_LABEL;
 use crate::renderer::personalize;
 use crate::state::Urls;
-use crate::theme::{Color, EmailTheme, Layout};
+use crate::theme::{Color, EmailTheme, Layout, Trim, WOOD_COLOR, WOOD_EMAIL_PATH};
 
 const MUSIC_ARTWORK_PX: u8 = 96;
 const MUSIC_ICON_PX: u8 = 22;
 const MUSIC_PADDING_PX: u8 = 12;
 const MUSIC_GAP_PX: u8 = 16;
+const CARD_PADDING_PX: u8 = 12;
+const BOXOUT_SIDE_PX: u16 = 254;
+const WRAP_INSET_PX: u8 = 24;
+const BOXOUT_GAP_PX: u16 = 16;
+const BOXOUT_SIDE_IMAGE_PX: u16 = BOXOUT_SIDE_PX - BOXOUT_GAP_PX - 2 * BOXOUT_PADDING_PX as u16 - 2;
+const BOXOUT_PADDING_PX: u8 = 16;
+const BOXOUT_TRIM_PX: u8 = 14;
+const CLEAR: &str = r#"<br clear="all">"#;
 
 pub enum EmailBlock {
     Content(String),
+    Wide(String),
     FullWidthImage { src: String, alt: String, caption: Option<String> },
 }
 
@@ -24,6 +36,7 @@ impl EmailBlock {
     pub fn map(self, f: impl Fn(&str) -> String) -> EmailBlock {
         match self {
             EmailBlock::Content(html) => EmailBlock::Content(f(&html)),
+            EmailBlock::Wide(html) => EmailBlock::Wide(f(&html)),
             EmailBlock::FullWidthImage { src, alt, caption } => {
                 EmailBlock::FullWidthImage { src: f(&src), alt: f(&alt), caption: caption.map(|caption| f(&caption)) }
             }
@@ -31,33 +44,69 @@ impl EmailBlock {
     }
 }
 
+fn close_wrap(blocks: &mut Vec<EmailBlock>, buffer: &mut String, wrap: &mut Option<String>) {
+    if let Some(float) = wrap.take() {
+        let flow = std::mem::take(buffer);
+        blocks.push(EmailBlock::Wide(format!(
+            r#"{float}<div class="email-wrap" style="padding: 0 {WRAP_INSET_PX}px;">{flow}</div>{CLEAR}"#
+        )));
+    }
+}
+
+fn flush(blocks: &mut Vec<EmailBlock>, buffer: &mut String, wrap: &mut Option<String>) {
+    close_wrap(blocks, buffer, wrap);
+    if !buffer.is_empty() {
+        blocks.push(EmailBlock::Content(std::mem::take(buffer)));
+    }
+}
+
 pub fn render_email(document: &Document, theme: EmailTheme, urls: &Urls) -> Vec<EmailBlock> {
-    let renderer = Renderer { theme };
+    let renderer = Renderer { theme, image_px: None, wood_src: urls.asset(WOOD_EMAIL_PATH) };
     let mut blocks = Vec::new();
     let mut buffer = String::new();
+    let mut wrap: Option<String> = None;
 
     for block in document.blocks() {
         match block {
             Block::Figure { attrs, content } if attrs.width == ImageWidth::Full => {
                 let Some((image, caption)) = figure_parts(content) else { continue };
-                if !buffer.is_empty() {
-                    blocks.push(EmailBlock::Content(std::mem::take(&mut buffer)));
-                }
+                flush(&mut blocks, &mut buffer, &mut wrap);
                 blocks.push(EmailBlock::FullWidthImage {
                     src: image.src.clone(),
                     alt: alt_text(caption),
                     caption: (!caption.is_empty()).then(|| only_with_name(caption, renderer.inlines(caption)).into_string()),
                 });
             }
-            Block::Music { attrs } => buffer.push_str(&renderer.music(attrs, urls).into_string()),
+            Block::Figure { .. } | Block::Music { .. } | Block::Youtube { .. } => {
+                flush(&mut blocks, &mut buffer, &mut wrap);
+                let html = match block {
+                    Block::Music { attrs } => renderer.music(attrs, urls),
+                    Block::Youtube { attrs } => renderer.youtube(attrs),
+                    _ => renderer.block(block, Context::Body),
+                };
+                blocks.push(EmailBlock::Wide(html.into_string()));
+            }
+            Block::Boxout { attrs, content } if attrs.width == BoxoutWidth::Wide => {
+                flush(&mut blocks, &mut buffer, &mut wrap);
+                blocks.push(EmailBlock::Wide(renderer.boxout(attrs, content).into_string()));
+            }
+            Block::Boxout { attrs, content } if attrs.width.is_side() => {
+                flush(&mut blocks, &mut buffer, &mut wrap);
+                wrap = Some(renderer.boxout(attrs, content).into_string());
+            }
+            Block::Boxout { attrs, content } => {
+                close_wrap(&mut blocks, &mut buffer, &mut wrap);
+                buffer.push_str(&renderer.boxout(attrs, content).into_string());
+            }
+            Block::Heading { .. } | Block::HorizontalRule {} if wrap.is_some() => {
+                close_wrap(&mut blocks, &mut buffer, &mut wrap);
+                buffer.push_str(&renderer.block(block, Context::Body).into_string());
+            }
             _ => buffer.push_str(&renderer.block(block, Context::Body).into_string()),
         }
     }
 
-    if !buffer.is_empty() {
-        blocks.push(EmailBlock::Content(buffer));
-    }
-
+    flush(&mut blocks, &mut buffer, &mut wrap);
     blocks
 }
 
@@ -86,6 +135,8 @@ enum Context {
 
 struct Renderer {
     theme: EmailTheme,
+    image_px: Option<u16>,
+    wood_src: String,
 }
 
 impl Renderer {
@@ -161,14 +212,14 @@ impl Renderer {
         format!("color: {}; text-decoration: underline;", self.theme.link)
     }
 
-    fn music_colors(&self, music: &MusicAttrs) -> (Color, Color) {
-        match music.surface() {
+    fn card_colors(&self, surface: Option<Color>) -> (Color, Color) {
+        match surface {
             Some(surface) => (surface, WHITE),
             None => (self.theme.surface_muted, self.theme.text),
         }
     }
 
-    fn music_card_style(&self, surface: Color) -> String {
+    fn card_style(&self, surface: Color) -> String {
         format!("margin: 0 0 16px 0; background-color: {surface}; border-collapse: separate;")
     }
 
@@ -179,7 +230,7 @@ impl Renderer {
         )
     }
 
-    fn music_title_paragraph_style(&self) -> String {
+    fn card_title_paragraph_style(&self) -> String {
         format!(
             "margin: 0 0 4px 0; font-family: {}; font-size: {}px; line-height: 1.25; font-weight: bold;",
             self.theme.font_title,
@@ -187,11 +238,11 @@ impl Renderer {
         )
     }
 
-    fn music_title_style(&self, ink: Color) -> String {
+    fn card_title_style(&self, ink: Color) -> String {
         format!("color: {ink}; text-decoration: none;")
     }
 
-    fn music_artist_style(&self, ink: Color) -> String {
+    fn card_byline_style(&self, ink: Color) -> String {
         format!("margin: 0 0 8px 0; color: {ink};")
     }
 
@@ -268,16 +319,109 @@ impl Renderer {
                 },
                 None => html! {},
             },
-            Block::Music { .. } => html! {},
+            Block::Boxout { attrs, content } => self.boxout(attrs, content),
+            Block::Music { .. } | Block::Youtube { .. } => html! {},
+        }
+    }
+
+    fn boxout(&self, attrs: &BoxoutAttrs, content: &[Block]) -> Markup {
+        let theme = self.theme;
+        let frame_px = if attrs.style == BoxoutStyle::Trim { BOXOUT_TRIM_PX } else { 0 };
+        let image_px = attrs.width.is_side().then_some(BOXOUT_SIDE_IMAGE_PX - 2 * frame_px as u16);
+        let inner_theme = match attrs.style {
+            BoxoutStyle::Bordered => theme,
+            BoxoutStyle::Brand | BoxoutStyle::Trim => EmailTheme {
+                text: theme.on_primary,
+                link: theme.on_primary,
+                primary: theme.on_primary,
+                muted: theme.on_primary,
+                border: theme.on_primary,
+                surface_muted: theme.on_primary.mix(theme.primary, 0.15),
+                ..theme
+            },
+        };
+        let inner = Renderer { theme: inner_theme, image_px, wood_src: self.wood_src.clone() };
+        let (background, frame) = match attrs.style {
+            BoxoutStyle::Bordered => (None, format!("border: 1px solid {};", theme.border)),
+            BoxoutStyle::Brand | BoxoutStyle::Trim => (Some(theme.primary), format!("border: 0; background-color: {};", theme.primary)),
+        };
+        let panel = html! {
+            table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor=[background]
+                style={ "border-collapse: separate; " (frame) } {
+                tr {
+                    td style={ "padding: " (BOXOUT_PADDING_PX) "px " (BOXOUT_PADDING_PX) "px 0 " (BOXOUT_PADDING_PX) "px; color: " (inner.theme.text) "; " (self.body_font()) } {
+                        (inner.blocks(content, Context::Body))
+                    }
+                }
+            }
+        };
+        let panel = if attrs.style == BoxoutStyle::Trim { self.trim_frame(panel) } else { panel };
+        let (align, gap) = match attrs.width {
+            BoxoutWidth::Left => ("left", format!("padding: 4px {BOXOUT_GAP_PX}px 16px 0;")),
+            BoxoutWidth::Right => ("right", format!("padding: 4px 0 16px {BOXOUT_GAP_PX}px;")),
+            BoxoutWidth::Wide | BoxoutWidth::Text => return html! { div style="margin: 0 0 16px 0; padding: 0;" { (panel) } },
+        };
+        html! {
+            table.email-boxout-side role="presentation" align=(align) width=(BOXOUT_SIDE_PX) cellpadding="0" cellspacing="0" border="0" {
+                tr {
+                    td.email-boxout-gap style=(gap) { (panel) }
+                }
+            }
+        }
+    }
+
+    fn trim_frame(&self, panel: Markup) -> Markup {
+        let theme = self.theme;
+        let (color, image) = match theme.trim {
+            Trim::Wood => (WOOD_COLOR, Some(self.wood_src.as_str())),
+            Trim::Plain => (theme.primary, None),
+            Trim::Color(color) => (color, None),
+        };
+        html! {
+            table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor=(color) background=[image]
+                style={
+                    "border-collapse: separate; background-color: " (color) ";"
+                    @if let Some(image) = image { " background-image: url('" (image) "'); background-repeat: repeat;" }
+                } {
+                tr {
+                    td style={ "padding: " (BOXOUT_TRIM_PX) "px;" } { (panel) }
+                }
+            }
+        }
+    }
+
+    fn youtube(&self, video: &YoutubeAttrs) -> Markup {
+        let href = video.watch_url();
+        let (surface, ink) = self.card_colors(video.surface());
+        let alt = if video.title.is_empty() { WATCH_LABEL } else { video.title.as_str() };
+        html! {
+            table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor=(surface) style=(self.card_style(surface)) {
+                tr {
+                    td style={ "padding: " (CARD_PADDING_PX) "px; " (self.body_font()) } {
+                        a href=(href) target="_blank" rel="noopener noreferrer" style="display: block; text-decoration: none;" {
+                            img src=(video.thumbnail_url()) alt=(alt) width="560"
+                                style="display: block; width: 100%; max-width: 100%; height: auto; margin: 0 0 10px 0; border: 0;";
+                        }
+                        @if !video.title.is_empty() {
+                            p style=(self.card_title_paragraph_style()) {
+                                a href=(href) target="_blank" rel="noopener noreferrer" style=(self.card_title_style(ink)) { (video.title) }
+                            }
+                        }
+                        @if !video.channel.is_empty() {
+                            p style=(self.card_byline_style(ink)) { (video.channel) }
+                        }
+                    }
+                }
+            }
         }
     }
 
     fn music(&self, music: &MusicAttrs, urls: &Urls) -> Markup {
         let href = music.primary().map(|(_, link)| link.url.as_str());
         let gap = if music.artwork.is_some() { MUSIC_GAP_PX } else { 0 };
-        let (surface, ink) = self.music_colors(music);
+        let (surface, ink) = self.card_colors(music.surface());
         html! {
-            table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor=(surface) style=(self.music_card_style(surface)) {
+            table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor=(surface) style=(self.card_style(surface)) {
                 tr {
                     td style={ "padding: " (MUSIC_PADDING_PX) "px;" } {
                         table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" {
@@ -307,12 +451,12 @@ impl Renderer {
                 p style=(self.music_kind_style(ink)) { "Album" }
             }
             @if !music.title.is_empty() {
-                p style=(self.music_title_paragraph_style()) {
-                    a href=[href] target="_blank" rel="noopener noreferrer" style=(self.music_title_style(ink)) { (music.title) }
+                p style=(self.card_title_paragraph_style()) {
+                    a href=[href] target="_blank" rel="noopener noreferrer" style=(self.card_title_style(ink)) { (music.title) }
                 }
             }
             @if !music.artist.is_empty() {
-                p style=(self.music_artist_style(ink)) { (music.artist) }
+                p style=(self.card_byline_style(ink)) { (music.artist) }
             }
             p style={ "margin: 0; font-size: 13px; line-height: " (MUSIC_ICON_PX) "px;" } {
                 span style={ "display: inline-block; vertical-align: middle; margin: 0 8px 0 0; color: " (ink) ";" } { "Listen on" }
@@ -328,7 +472,7 @@ impl Renderer {
 
     fn image(&self, attrs: &ImageAttrs, alt: &str) -> Markup {
         html! {
-            img src=(attrs.src) alt=(alt) title=[attrs.title.as_deref()] style="max-width: 100%; height: auto; display: block; margin: 0;";
+            img src=(attrs.src) alt=(alt) title=[attrs.title.as_deref()] width=[self.image_px] style="max-width: 100%; height: auto; display: block; margin: 0;";
         }
     }
 

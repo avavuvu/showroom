@@ -3,7 +3,7 @@ use super::{
     is_allowed_href,
     is_allowed_image_src,
 };
-use crate::blocks::music;
+use crate::blocks::{music, youtube};
 
 pub fn document(document: Document) -> Document {
     let content: Vec<Block> = document.content.into_iter().filter_map(top_level_block).collect();
@@ -16,8 +16,20 @@ pub fn document(document: Document) -> Document {
 fn top_level_block(block: Block) -> Option<Block> {
     match block {
         Block::Music { attrs } => music::normalize(attrs).map(|attrs| Block::Music { attrs }),
+        Block::Youtube { attrs } => youtube::normalize(attrs).map(|attrs| Block::Youtube { attrs }),
+        Block::Boxout { attrs, content } => Some(Block::Boxout { attrs, content: non_empty(boxout_blocks(content)) }),
         other => self::block(other),
     }
+}
+
+fn boxout_blocks(content: Vec<Block>) -> Vec<Block> {
+    content
+        .into_iter()
+        .flat_map(|child| match child {
+            Block::Boxout { content, .. } => boxout_blocks(content),
+            other => self::block(other).map(narrow_figure).into_iter().collect(),
+        })
+        .collect()
 }
 
 fn blocks(blocks: Vec<Block>) -> Vec<Block> {
@@ -26,7 +38,7 @@ fn blocks(blocks: Vec<Block>) -> Vec<Block> {
 
 fn block(block: Block) -> Option<Block> {
     Some(match block {
-        Block::Music { .. } => return None,
+        Block::Music { .. } | Block::Youtube { .. } | Block::Boxout { .. } => return None,
         Block::Paragraph { content } | Block::Caption { content } | Block::Attribution { content } => {
             Block::Paragraph { content: inlines(content) }
         }
@@ -135,6 +147,13 @@ fn list_items(items: Vec<ListItem>) -> Option<Vec<ListItem>> {
         })
         .collect();
     (!items.is_empty()).then_some(items)
+}
+
+fn narrow_figure(block: Block) -> Block {
+    match block {
+        Block::Figure { content, .. } => Block::Figure { attrs: FigureAttrs::default(), content },
+        other => other,
+    }
 }
 
 fn non_empty(content: Vec<Block>) -> Vec<Block> {

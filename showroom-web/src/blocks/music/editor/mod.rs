@@ -7,7 +7,7 @@ use super::MusicService;
 #[component(setup = "music-editor")]
 pub fn music_editor() -> Markup {
     html! {
-        figure.music-card.music-editor contenteditable="false" bq-setup {
+        figure.media-card.music-card.music-editor contenteditable="false" bq-setup {
             div.music-artwork {
                 img alt="" draggable="false" hidden bq-ref="artwork";
                 button.music-cover type="button" bq-on:click="pick-cover" {
@@ -15,7 +15,7 @@ pub fn music_editor() -> Markup {
                     span.when-set { "Replace cover" }
                 }
             }
-            div.music-details {
+            div.media-card-details.music-details {
                 p.music-kind hidden bq-ref="kind" { "Album" }
                 input.music-title-input
                     type="text"

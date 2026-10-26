@@ -1,6 +1,8 @@
 import { Schema } from "prosemirror-model"
 import { captionSpec, figureSpec, imageSpec, isQuoteFigure } from "../../../blocks/image/schema"
 import { musicSpec } from "../../../blocks/music/schema"
+import { youtubeSpec } from "../../../blocks/youtube/schema"
+import { boxoutSpec } from "../../../blocks/boxout/schema"
 import { isAllowedHref } from "./url"
 
 const getLanguage = (element: HTMLElement): string | null => {
@@ -13,7 +15,7 @@ export const NAME_TEXT = "{{name}}"
 
 export const schema = new Schema({
     nodes: {
-        doc: { content: "(block | music)+" },
+        doc: { content: "(block | music | youtube | boxout)+" },
         paragraph: {
             content: "inline*",
             group: "block quotable",
@@ -102,6 +104,8 @@ export const schema = new Schema({
         image: imageSpec,
         caption: captionSpec,
         music: musicSpec,
+        youtube: youtubeSpec,
+        boxout: boxoutSpec,
         text: { group: "inline" },
         name: {
             inline: true,

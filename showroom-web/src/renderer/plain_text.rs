@@ -1,4 +1,5 @@
-use crate::document::{Block, Document, Inline, InlinePiece, ListItem, Mark, MusicAttrs, MusicKind, code_text, figure_parts, inline_tree, quote_parts};
+use crate::blocks::youtube::WATCH_LABEL;
+use crate::document::{Block, Document, Inline, InlinePiece, ListItem, Mark, MusicAttrs, MusicKind, YoutubeAttrs, code_text, figure_parts, inline_tree, quote_parts};
 use crate::renderer::personalize::escape;
 
 pub fn render(document: &Document) -> String {
@@ -46,7 +47,13 @@ fn block_text(block: &Block) -> String {
             None => String::new(),
         },
         Block::Music { attrs } => music(attrs),
+        Block::Youtube { attrs } => youtube(attrs),
+        Block::Boxout { content, .. } => format!("---\n\n{}\n\n---", blocks(content)),
     }
+}
+
+fn youtube(attrs: &YoutubeAttrs) -> String {
+    format!("{WATCH_LABEL}: {}", escape(&attrs.watch_url()))
 }
 
 fn music(attrs: &MusicAttrs) -> String {

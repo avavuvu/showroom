@@ -1,5 +1,6 @@
 mod color_input;
 mod style_overrides;
+mod trim_input;
 
 use boutique::html;
 use bq_components::component;
@@ -9,6 +10,7 @@ use crate::components::{Button, DirtyForm};
 use crate::theme::{Color, Font, Layout, Theme};
 use color_input::ColorInput;
 use style_overrides::StyleOverrides;
+use trim_input::TrimInput;
 
 
 const DEFAULT_INK_COLORS: &[Color] = &[
@@ -55,6 +57,7 @@ pub fn theme_form(#[positional] action: &str, theme: &Theme) -> Markup {
             ColorInput("ink", label = "Ink", current_color = &theme.ink, presets = DEFAULT_INK_COLORS);
             ColorInput("paper", label = "Paper", current_color = &theme.paper, presets = DEFAULT_PAPER_COLORS);
             ColorInput("brand", label = "Brand", current_color = &theme.brand, presets = DEFAULT_BRAND_COLORS);
+            TrimInput(theme.trim, brand = &theme.brand);
             StyleOverrides(theme);
             fieldset.font-fields {
                 legend { "Fonts" }

@@ -6,7 +6,7 @@ use sea_orm::DatabaseConnection;
 use boutique::cloudinary::Cloudinary;
 use tokio::sync::Notify;
 
-use crate::{models::user, services::{music::MusicClient, rate_limit::RateLimiter}};
+use crate::{models::user, services::{music::MusicClient, rate_limit::RateLimiter, youtube::YoutubeClient}};
 
 #[derive(Clone)]
 pub struct Urls {
@@ -144,13 +144,14 @@ pub struct AppState {
     pub cloudinary: Cloudinary,
     pub sends: Arc<Notify>,
     pub music: MusicClient,
+    pub youtube: YoutubeClient,
     pub limits: RateLimiter,
 }
 
 impl AppState {
     pub fn new(db: DatabaseConnection, ses: SesClient, cloudinary: Cloudinary, urls: Urls, secret: String) -> Self {
         let auth = AuthState::new(SeaOrmStore::new(db.clone()), secret).with_config(urls.auth_config());
-        Self { db, urls, auth, ses, cloudinary, sends: Arc::new(Notify::new()), music: MusicClient::new(), limits: RateLimiter::default() }
+        Self { db, urls, auth, ses, cloudinary, sends: Arc::new(Notify::new()), music: MusicClient::new(), youtube: YoutubeClient::new(), limits: RateLimiter::default() }
     }
 }
 

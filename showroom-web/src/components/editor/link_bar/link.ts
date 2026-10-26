@@ -2,12 +2,13 @@ import type { Mark, ResolvedPos } from "prosemirror-model"
 import { type Command, type EditorState, Plugin, PluginKey, TextSelection } from "prosemirror-state"
 import { Decoration, DecorationSet, type EditorView } from "prosemirror-view"
 import { schema } from "../prosemirror/schema"
-import { displayHref, normalizeHref } from "../prosemirror/url"
+import { displayHref, findLinkHref, normalizeHref } from "../prosemirror/url"
 
 export interface Editing {
     from: number
     to: number
     href: string
+    appliedHref: string
 }
 
 interface LinkState {
@@ -87,9 +88,10 @@ export const openLink: Command = (state, dispatch) => {
     }
     if (dispatch && !getLinkEditing(state)) {
         const existing = getSelectedLink(state)
+        const { from, to } = state.selection
         const editing: Editing = existing
-            ? { from: existing.from, to: existing.to, href: existing.mark.attrs.href }
-            : { from: state.selection.from, to: state.selection.to, href: "" }
+            ? { from: existing.from, to: existing.to, href: existing.mark.attrs.href, appliedHref: existing.mark.attrs.href }
+            : { from, to, href: findLinkHref(state.doc.textBetween(from, to, " ")) ?? "", appliedHref: "" }
         dispatch(state.tr.setMeta(linkKey, { open: editing } satisfies LinkMeta))
     }
     return true
@@ -104,7 +106,15 @@ export const closeLink = (view: EditorView) => {
 export const getLinkText = (state: EditorState, range: { from: number, to: number }): string =>
     state.doc.textBetween(range.from, range.to, " ")
 
-export const applyLink = (view: EditorView, rawHref: string, rawText: string): string | null => {
+export const hasLinkChanges = (state: EditorState, rawHref: string, rawText: string): boolean => {
+    const editing = getLinkEditing(state)
+    if (!editing) {
+        return false
+    }
+    return rawHref.trim() !== editing.appliedHref || (!!rawText.trim() && rawText !== getLinkText(state, editing))
+}
+
+export const applyLink = (view: EditorView, rawHref: string, rawText: string, { shouldMoveCursor = true } = {}): string | null => {
     const { state } = view
     const editing = getLinkEditing(state)
     if (!editing) {
@@ -134,16 +144,18 @@ export const applyLink = (view: EditorView, rawHref: string, rawText: string): s
     if (href) {
         transaction.addMark(editing.from, end, link.create({ href }))
     }
-    transaction.setSelection(TextSelection.create(transaction.doc, end))
+    if (shouldMoveCursor) {
+        transaction.setSelection(TextSelection.create(transaction.doc, end)).scrollIntoView()
+    }
 
-    view.dispatch(transaction.setMeta(linkKey, { shouldClose: true } satisfies LinkMeta).scrollIntoView())
+    view.dispatch(transaction.setMeta(linkKey, { shouldClose: true } satisfies LinkMeta))
     return null
 }
 
 export const removeLink = (view: EditorView) => {
     const { state } = view
     const editing = getLinkEditing(state)
-    const range = editing?.href ? editing : getSelectedLink(state)
+    const range = editing?.appliedHref ? editing : getSelectedLink(state)
     if (!range) {
         return
     }
@@ -179,20 +191,19 @@ export const linkPlugin = () => new Plugin<LinkState>({
             return DecorationSet.create(state.doc, [Decoration.inline(editing.from, editing.to, { class: "link-target" })])
         },
         handlePaste: (view, event) => {
-            const { selection } = view.state
+            const { state } = view
+            const { selection } = state
             const text = event.clipboardData?.getData("text/plain")?.trim() ?? ""
-            if (selection.empty || !canLink(view.state)) {
+            const href = findLinkHref(text)
+            if (!href || !canLink(state)) {
                 return false
             }
-            if (!/^(https?:\/\/|mailto:)\S+$/i.test(text)) {
-                return false
+            if (selection.empty) {
+                const marks = link.create({ href }).addToSet(state.storedMarks ?? selection.$from.marks())
+                view.dispatch(state.tr.replaceSelectionWith(schema.text(text, marks), false).scrollIntoView())
+            } else {
+                view.dispatch(state.tr.addMark(selection.from, selection.to, link.create({ href })))
             }
-
-            const href = normalizeHref(text)
-            if (!href) {
-                return false
-            }
-            view.dispatch(view.state.tr.addMark(selection.from, selection.to, link.create({ href })))
             return true
         },
     },

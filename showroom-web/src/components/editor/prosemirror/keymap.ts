@@ -5,7 +5,8 @@ import { Fragment, type Node, NodeRange } from "prosemirror-model"
 import { liftListItem, sinkListItem, splitListItem } from "prosemirror-schema-list"
 import { type Command, NodeSelection, Selection, TextSelection } from "prosemirror-state"
 import { openLink } from "../link_bar/link"
-import { BLOCKS, canInsert, findAncestor, toggleBlockquote, toggleList } from "./commands"
+import { BLOCKS, canInsert, findAncestor, insertHorizontalRule, toggleBlockquote, toggleList } from "./commands"
+import { toggleBoxout } from "../../../blocks/boxout/commands"
 import { deleteNameBackward, deleteNameForward, editName } from "./name"
 import { schema } from "./schema"
 
@@ -222,6 +223,8 @@ export const buildKeymap = (): Record<string, Command> => {
         "Shift-Mod-7": toggleList(orderedList),
         "Shift-Mod-8": toggleList(bulletList),
         "Shift-Mod-9": toggleBlockquote,
+        "Shift-Mod-0": toggleBoxout,
+        "Mod-Alt--": insertHorizontalRule,
         Enter: chainCommands(enterCaption, exitCaption, enterSource, splitInPullquote, splitListItem(listItem)),
         Escape: selectFigure,
         "Mod-Enter": insertLine(1),

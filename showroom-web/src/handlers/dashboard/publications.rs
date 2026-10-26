@@ -17,7 +17,7 @@ use crate::{
         user,
     },
     state::AppState,
-    theme::{Color, Font, Fonts, Layout, Overrides, Theme},
+    theme::{Color, Font, Fonts, Layout, Overrides, Theme, Trim},
     components::NameCases,
     views::{self, PageContext},
 };
@@ -193,6 +193,7 @@ pub struct StyleForm {
     pub font_title: Option<String>,
     pub font_body: Option<String>,
     pub layout: Option<String>,
+    pub trim: Option<String>,
 }
 
 fn font(key: &Option<String>, default: Font) -> Option<Font> {
@@ -228,6 +229,10 @@ impl StyleForm {
                 Some(key) => Layout::from_key(key)?,
                 None => Layout::default(),
             },
+            trim: match &self.trim {
+                Some(key) => Trim::parse(key)?,
+                None => Trim::default(),
+            },
         })
     }
 }
@@ -238,7 +243,7 @@ pub async fn update_style(
     Form(form): Form<StyleForm>,
 ) -> AppResult {
     let Some(theme) = form.theme() else {
-        return Ok(views::dashboard::publications::settings(&owned.into_context(state.urls.clone()), Some("Colors must be in #rrggbb format, and fonts and layouts must be from the list")).into_response());
+        return Ok(views::dashboard::publications::settings(&owned.into_context(state.urls.clone()), Some("Colors must be in #rrggbb format, and fonts, layouts and trims must be from the list")).into_response());
     };
 
     let slug = owned.publication.slug.clone();

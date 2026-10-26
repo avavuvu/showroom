@@ -140,7 +140,7 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
                 ThemeForm(&format!("{dashboard_url}/settings/style"), theme = &theme);
 
                 figure.style-preview inert {
-                    article.prose.flow {
+                    article.prose.flow.prose-body {
                         ArticleHeader(
                             date = &today,
                             title = "Marley’s Ghost",
