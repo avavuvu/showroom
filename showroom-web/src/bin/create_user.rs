@@ -56,10 +56,7 @@ async fn main() -> ExitCode {
         }
     };
 
-    let domain = env::var("DOMAIN").unwrap_or_else(|_| "localtest.me".to_string());
-    let main_domain = env::var("MAIN_DOMAIN").unwrap_or_else(|_| "localtest.me".to_string());
-    let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string());
-    let urls = Urls::new(domain, port, main_domain);
+    let urls = Urls::from_env();
     let slug = new_account.handle.to_lowercase();
 
     println!();

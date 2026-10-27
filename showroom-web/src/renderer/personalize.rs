@@ -61,7 +61,7 @@ mod tests {
             ]
         });
         let document = Document::from_value(&content).unwrap();
-        let urls = Urls::new("room.lc", "3000", "show.room.lc");
+        let urls = Urls { site_domain: "showroom.you".to_string(), publication_domain: "room.lc".to_string(), ..Urls::default() };
         let blocks = render_email(&document, Theme::default().email(), &urls);
         let [EmailBlock::Content(html)] = blocks.as_slice() else { panic!("expected one content block") };
         let html = template(html);

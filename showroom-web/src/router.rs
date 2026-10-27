@@ -10,8 +10,7 @@ pub fn create_server(state: &AppState) -> (Server, SubdomainRouter) {
         lander::create_router(state.clone()),
         app::create_router(state.clone()),
         user::create_router(state.clone()),
-        state.urls.domain(),
-        state.urls.main_domain(),
+        state.urls.clone(),
     );
 
     let server = Server::new()

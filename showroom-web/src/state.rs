@@ -6,62 +6,94 @@ use sea_orm::DatabaseConnection;
 use boutique::cloudinary::Cloudinary;
 use tokio::sync::Notify;
 
-use crate::{models::user, services::{music::MusicClient, rate_limit::RateLimiter, youtube::YoutubeClient}};
+use crate::{images::{ImageSize, cloudinary_url}, models::user, services::{music::MusicClient, rate_limit::RateLimiter, youtube::YoutubeClient}};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Urls {
-    domain: String,
-    main_domain: String,
-    email_domain: String,
-    asset_url: Option<String>,
-    cloudinary_cloud: String,
-    port: String,
-    secure: bool,
+    pub site_domain: String,
+    pub publication_domain: String,
+    pub old_site_domains: Vec<String>,
+    pub publication_email_domain: Option<String>,
+    pub asset_url: Option<String>,
+    pub cloudinary_cloud: String,
+    pub https: bool,
+    pub public_port: Option<String>,
 }
 
-#[derive(Clone, Copy)]
-pub enum ImageSize {
-    Hero,
-    Card,
-    Og,
-    Banner,
-    EmailPicture,
-    Picture,
+impl Default for Urls {
+    fn default() -> Self {
+        Self {
+            site_domain: "localtest.me".to_string(),
+            publication_domain: "localtest.me".to_string(),
+            old_site_domains: Vec::new(),
+            publication_email_domain: None,
+            asset_url: None,
+            cloudinary_cloud: String::new(),
+            https: false,
+            public_port: Some("3000".to_string()),
+        }
+    }
 }
-
-// TODO: This needs to move out of here
-pub const EMAIL_PROFILE_PX: u32 = 48;
 
 impl Urls {
-    pub fn new(domain: impl Into<String>, port: impl Into<String>, main_domain: impl Into<String>) -> Self {
-            let secure = !cfg!(debug_assertions);
+    pub fn from_env() -> Self {
+        let var = |name: &str, old_name: Option<&str>| -> Option<String> {
+            let value = std::env::var(name).ok().or_else(|| {
+                let old_name = old_name?;
+                let value = std::env::var(old_name).ok()?;
+                tracing::warn!("{old_name} is deprecated, rename it to {name}");
+                Some(value)
+            });
+            value.map(|value| value.trim().to_string()).filter(|value| !value.is_empty())
+        };
 
-            let main_domain = main_domain.into();
+        let site_domain = var("SITE_DOMAIN", Some("MAIN_DOMAIN")).unwrap_or_else(|| "localtest.me".to_string());
+        let https = var("HTTPS", None).map_or(!cfg!(debug_assertions), |value| value == "true");
+        let public_port = var("PUBLIC_PORT", None).or_else(|| (!https).then(|| var("PORT", None).unwrap_or_else(|| "3000".to_string())));
 
-            Self {
-                domain: domain.into(),
-                email_domain: main_domain.clone(),
-                main_domain,
-                asset_url: None,
-                cloudinary_cloud: String::new(),
-                port: port.into(),
-                secure,
-            }
+        Self {
+            publication_domain: var("PUBLICATION_DOMAIN", Some("DOMAIN")).unwrap_or_else(|| site_domain.clone()),
+            site_domain,
+            old_site_domains: var("OLD_SITE_DOMAINS", Some("LEGACY_SITE_DOMAINS"))
+                .unwrap_or_default()
+                .split(',')
+                .map(|domain| domain.trim().to_string())
+                .filter(|domain| !domain.is_empty())
+                .collect(),
+            publication_email_domain: var("PUBLICATION_EMAIL_DOMAIN", Some("EMAIL_DOMAIN")),
+            asset_url: var("ASSET_URL", None).map(|url| url.trim_end_matches('/').to_string()),
+            cloudinary_cloud: String::new(),
+            https,
+            public_port,
+        }
     }
 
-    pub fn with_email_domain(mut self, email_domain: impl Into<String>) -> Self {
-        self.email_domain = email_domain.into();
-        self
+    fn origin(&self, host: &str) -> String {
+        let scheme = if self.https { "https" } else { "http" };
+        match &self.public_port {
+            Some(port) => format!("{scheme}://{host}:{port}"),
+            None => format!("{scheme}://{host}"),
+        }
     }
 
-    pub fn with_asset_url(mut self, asset_url: impl Into<String>) -> Self {
-        self.asset_url = Some(asset_url.into().trim_end_matches('/').to_string());
-        self
+    pub fn app_domain(&self) -> String {
+        format!("app.{}", self.site_domain)
     }
 
-    pub fn with_cloudinary(mut self, cloud_name: impl Into<String>) -> Self {
-        self.cloudinary_cloud = cloud_name.into();
-        self
+    pub fn base(&self) -> String {
+        self.origin(&self.site_domain)
+    }
+
+    pub fn app(&self) -> String {
+        self.origin(&self.app_domain())
+    }
+
+    pub fn publication(&self, slug: &str) -> String {
+        self.origin(&format!("{slug}.{}", self.publication_domain))
+    }
+
+    pub fn dashboard(&self, slug: &str) -> String {
+        format!("{}/{}", self.app(), slug)
     }
 
     pub fn asset(&self, path: &str) -> String {
@@ -71,67 +103,16 @@ impl Urls {
         }
     }
 
-    pub fn cloudinary(&self, public_id: &str, image_size: ImageSize) -> String {
-        let transform = match image_size {
-            ImageSize::Hero => "c_fill,g_auto,ar_16:9,w_1600",
-            ImageSize::Card => "c_fill,g_auto,ar_16:9,w_640",
-            ImageSize::Og => "c_fill,g_auto,w_1200,h_630",
-            ImageSize::Banner => "c_fill,g_auto,w_1200,h_300",
-            ImageSize::EmailPicture => {
-                let pixels = EMAIL_PROFILE_PX * 2;
-                &format!("c_fill,g_auto,w_{pixels},h_{pixels}")
-            },
-            ImageSize::Picture => "c_fill,g_auto,w_256,h_256,f_auto,q_auto"
-        };
-
-        format!("https://res.cloudinary.com/{}/image/upload/{transform}/{public_id}", self.cloudinary_cloud)
+    pub fn image(&self, public_id: &str, size: ImageSize) -> String {
+        cloudinary_url(&self.cloudinary_cloud, public_id, size)
     }
 
-    fn scheme(&self) -> &str {
-        if self.secure { "https" } else { "http" }
+    pub fn publication_email(&self, slug: &str) -> String {
+        format!("{slug}@{}", self.publication_email_domain.as_deref().unwrap_or(&self.publication_domain))
     }
 
-    fn port_suffix(&self) -> String {
-        if self.secure { String::new() } else { format!(":{}", self.port) }
-    }
-
-    pub fn domain(&self) -> &str {
-        &self.domain
-    }
-
-    pub fn main_domain(&self) -> &str {
-        &self.main_domain
-    }
-
-    pub fn base(&self) -> String {
-        format!("{}://{}{}", self.scheme(), self.main_domain, self.port_suffix())
-    }
-
-    pub fn app(&self) -> String {
-        format!("{}://app.{}{}", self.scheme(), self.domain, self.port_suffix())
-    }
-
-    pub fn publication(&self, slug: &str) -> String {
-        format!("{}://{}.{}{}", self.scheme(), slug, self.domain, self.port_suffix())
-    }
-
-    pub fn dashboard(&self, slug: &str) -> String {
-        format!("{}/{}", self.app(), slug)
-    }
-
-    pub fn cookie(&self) -> String {
-        format!(".{}", self.domain)
-    }
-
-    pub fn email(&self, slug: &str) -> String {
-        format!("{}@{}", slug, self.email_domain)
-    }
-
-    pub fn auth_config(&self) -> AuthConfig {
-        AuthConfig::default()
-            .login_url(format!("{}/login", self.base()))
-            .cookie_domain(self.cookie())
-            .secure_cookies(self.secure)
+    pub fn account_email(&self, name: &str) -> String {
+        format!("{name}@{}", self.site_domain)
     }
 }
 
@@ -150,7 +131,11 @@ pub struct AppState {
 
 impl AppState {
     pub fn new(db: DatabaseConnection, ses: SesClient, cloudinary: Cloudinary, urls: Urls, secret: String) -> Self {
-        let auth = AuthState::new(SeaOrmStore::new(db.clone()), secret).with_config(urls.auth_config());
+        let auth_config = AuthConfig::default()
+            .login_url(format!("{}/login", urls.base()))
+            .cookie_domain(format!(".{}", urls.site_domain))
+            .secure_cookies(urls.https);
+        let auth = AuthState::new(SeaOrmStore::new(db.clone()), secret).with_config(auth_config);
         Self { db, urls, auth, ses, cloudinary, sends: Arc::new(Notify::new()), music: MusicClient::new(), youtube: YoutubeClient::new(), limits: RateLimiter::default() }
     }
 }

@@ -1,5 +1,5 @@
 use boutique::prelude::*;
-use crate::{components::SubscribeForm, models::newsletter::Model as Newsletter, state::{ImageSize, Urls}, views::{PageContext, layouts::{Metadata, page, shell}, user::with_share_image}};
+use crate::{components::SubscribeForm, models::newsletter::Model as Newsletter, {images::ImageSize, state::Urls}, views::{PageContext, layouts::{Metadata, page, shell}, user::with_share_image}};
 
 pub fn index(ctx: &PageContext, newsletters: &[Newsletter]) -> Markup {
     let publication = ctx.publication();
@@ -93,7 +93,7 @@ fn lead_story(#[positional] newsletter: &Newsletter, #[positional] publication_u
         article.lead {
             @if let Some(public_id) = &newsletter.hero_image_id {
                 a.thumb href=(href) tabindex="-1" aria-hidden="true" {
-                    img src=(urls.cloudinary(public_id, ImageSize::Hero)) alt="";
+                    img src=(urls.image(public_id, ImageSize::Hero)) alt="";
                 }
             }
             hgroup {
@@ -117,7 +117,7 @@ fn secondary_stories(#[positional] newsletters: &[Newsletter], #[positional] pub
                     article {
                         @if let Some(public_id) = &newsletter.hero_image_id {
                             a.thumb href=(href) tabindex="-1" aria-hidden="true" {
-                                img src=(urls.cloudinary(public_id, ImageSize::Card)) alt="";
+                                img src=(urls.image(public_id, ImageSize::Card)) alt="";
                             }
                         }
                         h3 { a href=(href) { (newsletter.display_title()) } }
@@ -149,7 +149,7 @@ fn archive_list(#[positional] newsletters: &[Newsletter], #[positional] publicat
                         }
                         @if let Some(public_id) = &newsletter.hero_image_id {
                             a.thumb href=(href) tabindex="-1" aria-hidden="true" {
-                                img src=(urls.cloudinary(public_id, ImageSize::Card)) alt="";
+                                img src=(urls.image(public_id, ImageSize::Card)) alt="";
                             }
                         }
                     }

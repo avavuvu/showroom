@@ -2,7 +2,7 @@ use boutique::html;
 use bq_components::component;
 use maud::Markup;
 
-use crate::{theme::EmailTheme, state::EMAIL_PROFILE_PX};
+use crate::{theme::EmailTheme, images::EMAIL_PROFILE_PX};
 
 const GUTTER: &str = "32";
 const WIDE_GUTTER: &str = "8";

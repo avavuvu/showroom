@@ -5,7 +5,7 @@ use serde::Serialize;
 
 use crate::{
     components::email::{Align, Button, FullWidthImage, Section, WideSection, stylesheet},
-    state::EMAIL_PROFILE_PX,
+    images::EMAIL_PROFILE_PX,
     renderer::{email::EmailBlock, personalize},
     theme::{EmailTheme, Layout},
 };
@@ -106,6 +106,7 @@ pub fn newsletter_body(
     date: &str,
     read_online_url: &str,
     publication_url: &str,
+    home_url: &str,
     picture: &str,
     layout: Layout,
     content: &[EmailBlock],
@@ -163,7 +164,7 @@ pub fn newsletter_body(
             }
             div {
                 "This newsletter is powered by "
-                a href="https://show.room.lc" { "Showroom" }
+                a href=(home_url) { "Showroom" }
                 "."
             }
         }

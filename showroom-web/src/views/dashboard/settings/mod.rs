@@ -4,7 +4,7 @@ use crate::components::Button;
 use crate::views::{context::PageContext, layouts::{page, dashboard_shell}};
 
 pub fn index(ctx: &PageContext) -> Markup {
-    let domain = ctx.urls.domain();
+    let domain = &ctx.urls.publication_domain;
 
     dashboard_shell(
         page("Account").htmx().class("settings"),

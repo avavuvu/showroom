@@ -35,6 +35,7 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model, open_reviews: 
                 date = &date,
                 read_online_url = &publication_url,
                 publication_url = &publication_url,
+                home_url = &ctx.urls.base(),
                 picture = &publication.email_picture_url(&ctx.urls),
                 layout = theme.layout,
                 content = &content,
@@ -65,7 +66,7 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model, open_reviews: 
                         "FROM:"
                     }
                     span {
-                        (publication.name) " <" (ctx.urls.email(&publication.slug)) ">"
+                        (publication.name) " <" (ctx.urls.publication_email(&publication.slug)) ">"
                     }
                     span {
                         "TO:"

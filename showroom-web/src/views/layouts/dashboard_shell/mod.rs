@@ -6,7 +6,7 @@ use crate::views::{context::PageContext, layouts::{Head, base, installable}};
 pub fn dashboard_shell(view: Head, ctx: &PageContext, content: Markup) -> Markup {
     let view = installable(view);
     let user = ctx.user.as_ref().expect("user is defined");
-    let domain = ctx.urls.domain();
+    let domain = &ctx.urls.publication_domain;
 
     let subtitle = match &ctx.publication {
         Some(publication) => format!("{}.{}", publication.slug, domain),

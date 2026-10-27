@@ -7,7 +7,7 @@ use crate::models::publication_name::{NameCase, PublicationName};
 use crate::views::layouts::{page, dashboard_shell};
 
 pub fn new_form(ctx: &PageContext, slug: &str, name: &PublicationName, case: NameCase, error: Option<&str>) -> Markup {
-    let domain = format!(".{}", ctx.urls.domain());
+    let domain = format!(".{}", ctx.urls.publication_domain);
 
     dashboard_shell(
         page("New publication").htmx().class("settings"),
@@ -107,7 +107,7 @@ fn banner_section(ctx: &PageContext, publication: &publication::Model, dashboard
 pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
     let publication = ctx.publication();
     let dashboard_url = ctx.dashboard_url();
-    let address = format!("{}.{}", publication.slug, ctx.urls.domain());
+    let address = format!("{}.{}", publication.slug, ctx.urls.publication_domain);
     let theme = publication.theme();
     let today = chrono::Utc::now().format("%B %-d, %Y").to_string();
 

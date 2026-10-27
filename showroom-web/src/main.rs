@@ -3,6 +3,7 @@ use aws_config::{BehaviorVersion, Region};
 use sea_orm::{Database, DatabaseConnection};
 mod blocks;
 mod document;
+mod images;
 mod mailer;
 mod handlers;
 mod models;
@@ -24,10 +25,6 @@ struct AppEnv {
     ses: aws_sdk_sesv2::Client,
     cloudinary: Cloudinary,
     port: String,
-    domain: String,
-    main_domain: String,
-    email_domain: Option<String>,
-    asset_url: Option<String>,
     secret: String,
 }
 
@@ -58,10 +55,6 @@ async fn setup() -> AppEnv {
         .expect("Failed to connect to database");
 
     let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string());
-    let domain = env::var("DOMAIN").unwrap_or_else(|_| "localtest.me".to_string());
-    let main_domain = env::var("MAIN_DOMAIN").unwrap_or_else(|_| "localtest.me".to_string());
-    let email_domain = env::var("EMAIL_DOMAIN").ok().filter(|domain| !domain.is_empty());
-    let asset_url = env::var("ASSET_URL").ok().filter(|url| !url.is_empty());
     let secret = env::var("SECRET_KEY").expect("SECRET_KEY must be set");
 
     let aws_config = aws_config::defaults(BehaviorVersion::latest())
@@ -72,17 +65,11 @@ async fn setup() -> AppEnv {
 
     let cloudinary = Cloudinary::from_env().expect("CLOUDINARY_URL must be set");
 
-    AppEnv { db, ses, cloudinary, port, domain, main_domain, email_domain, asset_url, secret }
+    AppEnv { db, ses, cloudinary, port, secret }
 }
 
 async fn server(env: AppEnv) {
-    let mut urls = state::Urls::new(&env.domain, &env.port, &env.main_domain).with_cloudinary(env.cloudinary.cloud_name());
-    if let Some(email_domain) = &env.email_domain {
-        urls = urls.with_email_domain(email_domain);
-    }
-    if let Some(asset_url) = &env.asset_url {
-        urls = urls.with_asset_url(asset_url);
-    }
+    let urls = state::Urls { cloudinary_cloud: env.cloudinary.cloud_name().to_string(), ..state::Urls::from_env() };
 
     let state = state::AppState::new(env.db, env.ses, env.cloudinary, urls, env.secret);
     let _worker = AbortOnDrop(tokio::spawn(services::newsletter_send::supervise_worker(state.clone())));

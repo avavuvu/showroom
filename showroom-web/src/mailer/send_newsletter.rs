@@ -96,6 +96,7 @@ pub fn render(newsletter: &Newsletter, publication: &Publication, date: DateTime
                 date = &date,
                 read_online_url = &read_online_url,
                 publication_url = &publication_url,
+                home_url = &urls.base(),
                 picture = &publication.email_picture_url(urls),
                 layout = theme.layout,
                 content = &rendered_content,
@@ -138,7 +139,7 @@ impl<'a> NewsletterMailing<'a> {
         Ok(Self {
             client,
             template_name,
-            from: from_address(&publication.name, &urls.email(&publication.slug)),
+            from: from_address(&publication.name, &urls.publication_email(&publication.slug)),
             publication_url: urls.publication(&publication.slug),
         })
     }

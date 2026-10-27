@@ -27,7 +27,7 @@
     --button-weight: normal;
 
     --trim-size: 1em;
-    --trim-wood: url("/assets/wood.webp");
+    --trim-wood: url("../static/assets/wood.webp");
     --trim-material: var(--trim-wood);
     --trim-background: linear-gradient(var(--color-primary) 0 0) padding-box, var(--trim-material) border-box;
 

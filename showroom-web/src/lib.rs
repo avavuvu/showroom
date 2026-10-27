@@ -1,5 +1,6 @@
 pub mod blocks;
 pub mod document;
+pub mod images;
 pub mod renderer;
 pub mod models;
 pub mod services;

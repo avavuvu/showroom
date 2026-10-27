@@ -53,7 +53,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ]
     });
 
-    let urls = Urls::new("room.lc", "3000", "show.room.lc").with_asset_url("https://show.room.lc");
+    let urls = Urls {
+        site_domain: "showroom.you".to_string(),
+        publication_domain: "room.lc".to_string(),
+        asset_url: Some("https://showroom.you".to_string()),
+        ..Urls::default()
+    };
     let theme = Theme::default().email();
     let rendered_content: Vec<_> = render_email(&Document::from_value(&content)?, theme, &urls)
         .into_iter()
@@ -72,9 +77,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 subtitle = "Testing the mailer",
                 publication_name = "test",
                 date = &date,
-                read_online_url = "http://test.showroom.you:3000/my-test-newsletter",
-                publication_url = "http://test.showroom.you:3000",
-                picture = "https://show.room.lc/avatars/0.png",
+                read_online_url = "http://test.room.lc:3000/my-test-newsletter",
+                publication_url = "http://test.room.lc:3000",
+                home_url = &urls.base(),
+                picture = &urls.asset("/avatars/0.png"),
                 layout = theme.layout,
                 content = &rendered_content,
             );

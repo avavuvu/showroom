@@ -25,7 +25,7 @@ pub async fn send_password_reset(
 
     client
         .send_email()
-        .from_email_address(urls.email("noreply"))
+        .from_email_address(urls.account_email("noreply"))
         .destination(destination)
         .content(email_content)
         .send()

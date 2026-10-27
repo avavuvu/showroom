@@ -1,7 +1,7 @@
 use sea_orm::{FromJsonQueryResult, QueryOrder, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
-use crate::{models::publication_name::NameCase, state::{ImageSize, Urls}, theme::Theme};
+use crate::{models::publication_name::NameCase, {images::ImageSize, state::Urls}, theme::Theme};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
 #[sea_orm(table_name = "publications")]
@@ -72,18 +72,18 @@ impl Model {
     pub fn email_picture_url(&self, urls: &Urls) -> String {
         match self.picture() {
             Picture::Default(index) => urls.asset(&format!("/avatars/{index}.png")),
-            Picture::Upload(public_id) => urls.cloudinary(
+            Picture::Upload(public_id) => urls.image(
                 public_id,
-                crate::state::ImageSize::EmailPicture
+                crate::images::ImageSize::EmailPicture
             ),
         }
     }
 
     pub fn banner_url(&self, urls: &Urls) -> Option<String> {
         self.banner.as_deref().map(|public_id| {
-            urls.cloudinary(
+            urls.image(
                 public_id,
-                crate::state::ImageSize::Banner
+                crate::images::ImageSize::Banner
             )
         })
     }
@@ -99,7 +99,7 @@ impl<'a> Picture<'a> {
     pub fn url(self, urls: &Urls) -> String {
         match self {
             Picture::Default(index) => default_picture_path(index),
-            Picture::Upload(public_id) => urls.cloudinary(public_id, ImageSize::Picture),
+            Picture::Upload(public_id) => urls.image(public_id, ImageSize::Picture),
         }
     }
 

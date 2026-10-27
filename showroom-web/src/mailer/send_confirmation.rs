@@ -25,7 +25,7 @@ pub async fn send_confirmation(
 
     client
         .send_email()
-        .from_email_address(from_address(&publication.name, &urls.email(&publication.slug)))
+        .from_email_address(from_address(&publication.name, &urls.publication_email(&publication.slug)))
         .destination(destination)
         .content(email_content)
         .send()

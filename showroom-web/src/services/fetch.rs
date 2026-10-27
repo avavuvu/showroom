@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use crate::blocks::card::color;
 
-pub const USER_AGENT: &str = "Showroom/1.0 (+https://show.room.lc)";
+pub const USER_AGENT: &str = "Showroom/1.0 (+https://showroom.you)";
 const IMAGE_TIMEOUT: Duration = Duration::from_secs(3);
 const MAX_IMAGE_BYTES: usize = 256 * 1024;
 

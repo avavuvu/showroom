@@ -11,13 +11,11 @@ use showroom_web::{
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     dotenv().ok();
 
-    let domain = "showroom.you".to_string();
-    let port = std::env::var("PORT").unwrap_or_else(|_| "3000".to_string());
     let to_email = "avadinhvu@gmail.com".to_string();
 
     let aws_config = aws_config::load_from_env().await;
     let client = aws_sdk_sesv2::Client::new(&aws_config);
-    let urls = Urls::new(domain, port, "");
+    let urls = Urls::from_env();
 
     let publication = Publication {
         id: "test-publication".to_string(),

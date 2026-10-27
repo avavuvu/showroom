@@ -12,7 +12,7 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 use tower::Service;
 
-use crate::{models::publication::{self, Entity as Publication}, state::AppState};
+use crate::{models::publication::{self, Entity as Publication}, state::{AppState, Urls}};
 
 #[derive(Clone, Debug)]
 pub struct PublicationSlug(pub String);
@@ -51,50 +51,44 @@ pub struct SubdomainRouter {
     base: axum::Router,
     app: axum::Router,
     publication: axum::Router,
-    domain: String,
-    main_domain: String,
+    urls: Urls,
 }
 
 enum SubdomainKind {
     Base,
     App,
     Publication(String),
-    Redirect,
+    Redirect(String),
 }
 
 impl SubdomainRouter {
-    pub fn new(
-        base: axum::Router,
-        app: axum::Router,
-        publication: axum::Router,
-        domain: impl Into<String>,
-        main_domain: impl Into<String>,
-    ) -> Self {
-        Self { base, app, publication, domain: domain.into(), main_domain: main_domain.into() }
+    pub fn new(base: axum::Router, app: axum::Router, publication: axum::Router, urls: Urls) -> Self {
+        Self { base, app, publication, urls }
     }
 
     fn classify(&self, host: &str) -> SubdomainKind {
         let host = host.split(':').next().unwrap_or(host);
-        let suffix = format!(".{}", self.domain);
+        let site = self.urls.site_domain.as_str();
+        let publications = self.urls.publication_domain.as_str();
+        let is_split = site != publications;
 
-        if host == self.main_domain {
+        if host == site {
             SubdomainKind::Base
-        } else if host == self.domain {
-            if self.domain != self.main_domain && cfg!(not(debug_assertions)) {
-                SubdomainKind::Redirect
-            } else {
-                SubdomainKind::Base
-            }
-        } else if host == format!("app.{}", self.domain) {
+        } else if host == self.urls.app_domain() {
             SubdomainKind::App
-        } else if let Some(sub) = host.strip_suffix(&suffix) {
-            if sub.is_empty() || sub.contains('.') {
-                SubdomainKind::Base
-            } else {
-                SubdomainKind::Publication(sub.to_string())
-            }
+        } else if host == format!("www.{site}") || host == format!("www.{publications}") {
+            SubdomainKind::Redirect(self.urls.base())
+        } else if self.urls.old_site_domains.iter().any(|old| old == host) {
+            SubdomainKind::Redirect(self.urls.base())
+        } else if is_split && host == format!("app.{publications}") {
+            SubdomainKind::Redirect(self.urls.app())
+        } else if is_split && host == publications {
+            SubdomainKind::Redirect(self.urls.base())
         } else {
-            SubdomainKind::Base
+            match host.strip_suffix(&format!(".{publications}")) {
+                Some(slug) if !slug.is_empty() && !slug.contains('.') => SubdomainKind::Publication(slug.to_string()),
+                _ => SubdomainKind::Base,
+            }
         }
     }
 }
@@ -130,9 +124,9 @@ impl Service<Request<Body>> for SubdomainRouter {
                 let mut router = self.publication.clone();
                 Box::pin(async move { router.call(req).await })
             }
-            SubdomainKind::Redirect => {
+            SubdomainKind::Redirect(target) => {
                 let path = req.uri().path_and_query().map(|p| p.as_str()).unwrap_or("/");
-                let location = format!("https://{}{}", self.main_domain, path);
+                let location = format!("{target}{path}");
                 Box::pin(async move {
                     Ok(Response::builder()
                         .status(StatusCode::MOVED_PERMANENTLY)
