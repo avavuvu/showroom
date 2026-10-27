@@ -1,15 +1,26 @@
 use boutique::prelude::*;
-use crate::{components::SubscribeForm, models::newsletter::Model as Newsletter, {images::ImageSize, state::Urls}, views::{PageContext, layouts::{Metadata, page, shell}, user::with_share_image}};
+use crate::{components::SubscribeForm, models::newsletter::Model as Newsletter, {images::ImageSize, state::Urls}, views::{PageContext, layouts::{Metadata, page, shell}, user::{json_ld, publication_description, publication_entity, publication_head, publication_image}}};
 
 pub fn index(ctx: &PageContext, newsletters: &[Newsletter]) -> Markup {
     let publication = ctx.publication();
     let publication_url = ctx.publication_url();
 
-    let metadata = with_share_image(
-        Metadata::article(publication.description.as_deref().unwrap_or(&publication.name), &publication.name, &publication_url),
-        publication,
-        &ctx.urls,
-    );
+    let description = publication_description(publication);
+    let metadata = Metadata::article(&description, &publication.name, &publication_url).image(publication_image(publication, &ctx.urls));
+    let mut entity = publication_entity(publication, &ctx.urls);
+    entity["description"] = description.into();
+    let head = html! {
+        (publication_head(publication, &ctx.urls))
+        @if newsletters.is_empty() {
+            meta name="robots" content="noindex";
+        }
+        (json_ld(serde_json::json!({
+            "@context": "https://schema.org",
+            "@type": "ProfilePage",
+            "url": format!("{publication_url}/"),
+            "mainEntity": entity,
+        })))
+    };
 
     let content = html! {
         @if let Some((lead, secondary, archive)) = front_page(newsletters) {
@@ -48,7 +59,7 @@ pub fn index(ctx: &PageContext, newsletters: &[Newsletter]) -> Markup {
     };
 
     shell(
-        page(&publication.name).htmx().seo(metadata),
+        page(&publication.name).favicon(publication.icon_url(&ctx.urls, 64)).htmx().seo(metadata).head(head),
         ctx,
         html! {
             main.profile-view {
@@ -93,7 +104,7 @@ fn lead_story(#[positional] newsletter: &Newsletter, #[positional] publication_u
         article.lead {
             @if let Some(public_id) = &newsletter.hero_image_id {
                 a.thumb href=(href) tabindex="-1" aria-hidden="true" {
-                    img src=(urls.image(public_id, ImageSize::Hero)) alt="";
+                    img src=(urls.image(public_id, ImageSize::Hero)) width="1600" height="900" alt="";
                 }
             }
             hgroup {
@@ -117,7 +128,7 @@ fn secondary_stories(#[positional] newsletters: &[Newsletter], #[positional] pub
                     article {
                         @if let Some(public_id) = &newsletter.hero_image_id {
                             a.thumb href=(href) tabindex="-1" aria-hidden="true" {
-                                img src=(urls.image(public_id, ImageSize::Card)) alt="";
+                                img src=(urls.image(public_id, ImageSize::Card)) width="640" height="360" loading="lazy" decoding="async" alt="";
                             }
                         }
                         h3 { a href=(href) { (newsletter.display_title()) } }
@@ -149,7 +160,7 @@ fn archive_list(#[positional] newsletters: &[Newsletter], #[positional] publicat
                         }
                         @if let Some(public_id) = &newsletter.hero_image_id {
                             a.thumb href=(href) tabindex="-1" aria-hidden="true" {
-                                img src=(urls.image(public_id, ImageSize::Card)) alt="";
+                                img src=(urls.image(public_id, ImageSize::Card)) width="640" height="360" loading="lazy" decoding="async" alt="";
                             }
                         }
                     }

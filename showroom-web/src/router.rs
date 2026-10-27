@@ -16,6 +16,7 @@ pub fn create_server(state: &AppState) -> (Server, SubdomainRouter) {
     let server = Server::new()
         .file("/favicon.ico", "resources/static/favicon.ico")
         .file("/manifest.webmanifest", "resources/static/manifest.webmanifest")
+        .file("/apple-touch-icon.png", "resources/static/icons/apple-touch-icon.png")
         .static_dir("/assets", "resources/static/assets")
         .static_dir_with_cache("/icons", "resources/static/icons", Cache::MaxAge(Duration::from_secs(7 * DAY)))
         .static_dir_with_cache("/avatars", "resources/static/avatars", Cache::MaxAge(Duration::from_secs(30 * DAY)))

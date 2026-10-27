@@ -3,8 +3,6 @@ use crate::{handlers, state::AppState};
 
 pub fn create_router() -> Router<AppState> {
     Router::new()
-        .route("/sitemap.xml", get(handlers::sitemap::index))
-        .route("/sitemap-pages.xml", get(handlers::sitemap::pages))
-        .route("/sitemap-publications.xml", get(handlers::sitemap::publications))
-        .route("/sitemap-newsletters.xml", get(handlers::sitemap::newsletters))
+        .route("/robots.txt", get(handlers::feeds::site_robots))
+        .route("/sitemap.xml", get(handlers::sitemap::site))
 }

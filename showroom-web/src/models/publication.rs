@@ -79,6 +79,13 @@ impl Model {
         }
     }
 
+    pub fn icon_url(&self, urls: &Urls, pixels: u32) -> String {
+        match self.picture() {
+            Picture::Default(index) => urls.asset(&format!("/avatars/{index}.png")),
+            Picture::Upload(public_id) => urls.image(public_id, ImageSize::Icon(pixels)),
+        }
+    }
+
     pub fn banner_url(&self, urls: &Urls) -> Option<String> {
         self.banner.as_deref().map(|public_id| {
             urls.image(

@@ -1,5 +1,5 @@
 use crate::document::{
-    Block, Document, ImageAttrs, Inline, InlinePiece, ListItem, Mark, MusicAttrs, MusicKind, YoutubeAttrs, code_text, figure_parts, inline_text, inline_tree, quote_parts, NAME_TOKEN,
+    Block, Document, ImageAttrs, Inline, InlinePiece, ListItem, Mark, MusicAttrs, MusicKind, YoutubeAttrs, code_text, figure_parts, alt_text, inline_tree, quote_parts,
 };
 use crate::blocks::youtube::WATCH_LABEL;
 
@@ -91,7 +91,7 @@ fn music(attrs: &MusicAttrs) -> String {
 }
 
 fn image(attrs: &ImageAttrs, caption: &[Inline]) -> String {
-    format!("![{}]({})", escape_text(&inline_text(caption)), destination(&attrs.src))
+    format!("![{}]({})", escape_text(&alt_text(caption)), destination(&attrs.src))
 }
 
 fn quote(text: &str) -> String {
@@ -126,7 +126,7 @@ fn pieces(pieces: &[InlinePiece]) -> String {
         .map(|piece| match piece {
             InlinePiece::Text(text) => escape_text(text),
             InlinePiece::Break => "\\\n".to_string(),
-            InlinePiece::Name(_) => NAME_TOKEN.to_string(),
+            InlinePiece::Name(fallback) => escape_text(fallback),
             InlinePiece::Marked(mark, children) => marked(mark, children),
         })
         .collect()
@@ -159,7 +159,7 @@ fn raw_text(pieces: &[InlinePiece]) -> String {
         .map(|piece| match piece {
             InlinePiece::Text(text) => text.to_string(),
             InlinePiece::Break => " ".to_string(),
-            InlinePiece::Name(_) => NAME_TOKEN.to_string(),
+            InlinePiece::Name(fallback) => fallback.to_string(),
             InlinePiece::Marked(_, children) => raw_text(children),
         })
         .collect()

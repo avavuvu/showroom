@@ -42,6 +42,8 @@ impl Related<super::publication::Entity> for Entity {
 
 impl ActiveModelBehavior for ActiveModel {}
 
+pub const RESERVED_SLUGS: [&str; 8] = ["api", "feed", "subscribe", "confirm", "unsubscribe", "about", "contact", "archive"];
+
 impl Entity {
     pub fn find_summaries() -> Select<Entity> {
         Entity::find()

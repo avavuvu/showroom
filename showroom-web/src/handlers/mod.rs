@@ -1,4 +1,5 @@
 pub mod api;
+pub mod feeds;
 pub mod sitemap;
 pub mod auth;
 pub mod dashboard;

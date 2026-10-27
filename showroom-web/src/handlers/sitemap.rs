@@ -1,49 +1,36 @@
 use axum::extract::State;
 use boutique::AppResult;
-use sea_orm::{ColumnTrait, EntityTrait, JoinType, QueryFilter, QuerySelect, RelationTrait};
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, QueryOrder, QuerySelect};
 
 use crate::{
-    models::{
-        newsletter::{self, Entity as Newsletter},
-        publication::{self, Entity as Publication},
-    },
+    models::newsletter::{self, Entity as Newsletter},
+    services::subdomain::CurrentPublication,
     state::AppState,
-    views::sitemap::{self, NewsletterEntry, Xml},
+    views::sitemap::{self, Entry, Xml},
 };
 
-pub async fn index(State(state): State<AppState>) -> Xml {
-    sitemap::index(&state.urls.base())
+pub async fn site(State(state): State<AppState>) -> Xml {
+    let base = state.urls.base();
+    sitemap::urlset(&[Entry { loc: format!("{base}/"), lastmod: None }, Entry { loc: format!("{base}/about"), lastmod: None }])
 }
 
-pub async fn pages(State(state): State<AppState>) -> Xml {
-    sitemap::pages(&state.urls.base())
-}
-
-pub async fn publications(State(state): State<AppState>) -> AppResult<Xml> {
-    let slugs: Vec<String> = Publication::find()
+pub async fn publication(State(state): State<AppState>, CurrentPublication(publication): CurrentPublication) -> AppResult<Xml> {
+    let newsletters: Vec<(String, chrono::DateTime<chrono::FixedOffset>)> = Newsletter::find()
         .select_only()
-        .column(publication::Column::Slug)
+        .column(newsletter::Column::Slug)
+        .column(newsletter::Column::UpdatedAt)
+        .filter(newsletter::Column::PublicationId.eq(&publication.id))
+        .filter(newsletter::Column::PublishedAt.is_not_null())
+        .order_by_desc(newsletter::Column::PublishedAt)
         .into_tuple()
         .all(&state.db)
         .await?;
 
-    Ok(sitemap::publications(&slugs, &state.urls))
-}
-
-pub async fn newsletters(State(state): State<AppState>) -> AppResult<Xml> {
-    let entries = Newsletter::find()
-        .select_only()
-        .column(publication::Column::Slug)
-        .column(newsletter::Column::Slug)
-        .column(newsletter::Column::UpdatedAt)
-        .join(JoinType::InnerJoin, newsletter::Relation::Publication.def())
-        .filter(newsletter::Column::PublishedAt.is_not_null())
-        .into_tuple()
-        .all(&state.db)
-        .await?
-        .into_iter()
-        .map(|(publication_slug, slug, updated_at)| NewsletterEntry { publication_slug, slug, updated_at })
-        .collect::<Vec<_>>();
-
-    Ok(sitemap::newsletters(&entries, &state.urls))
+    let url = state.urls.publication(&publication.slug);
+    let mut entries = Vec::new();
+    if let Some(latest) = newsletters.iter().map(|(_, updated_at)| *updated_at).max() {
+        entries.push(Entry { loc: format!("{url}/"), lastmod: Some(latest) });
+    }
+    entries.extend(newsletters.into_iter().map(|(slug, updated_at)| Entry { loc: format!("{url}/{slug}"), lastmod: Some(updated_at) }));
+    Ok(sitemap::urlset(&entries))
 }

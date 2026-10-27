@@ -333,6 +333,42 @@ impl Document {
             .map_or(0, |index| index + 1);
         &self.content[..end]
     }
+
+    pub fn excerpt(&self, max: usize) -> String {
+        let mut text = String::new();
+        for block in self.blocks() {
+            if text.len() >= max {
+                break;
+            }
+            if let Block::Paragraph { content } = block {
+                let paragraph = alt_text(content);
+                if !paragraph.is_empty() {
+                    if !text.is_empty() {
+                        text.push(' ');
+                    }
+                    text.push_str(&paragraph);
+                }
+            }
+        }
+        if text.chars().count() <= max {
+            return text;
+        }
+        let cut: String = text.chars().take(max).collect();
+        let cut = cut.rfind(' ').map_or(cut.as_str(), |index| &cut[..index]);
+        format!("{}\u{2026}", cut.trim_end_matches(|character: char| character.is_ascii_punctuation()))
+    }
+
+    pub fn first_image_id(&self) -> Option<&str> {
+        fn find(blocks: &[Block]) -> Option<&str> {
+            blocks.iter().find_map(|block| match block {
+                Block::Image { attrs } => attrs.public_id.as_deref(),
+                Block::Blockquote { content, .. } | Block::Pullquote { content } | Block::Boxout { content, .. } | Block::Figure { content, .. } => find(content),
+                Block::BulletList { content } | Block::OrderedList { content, .. } => content.iter().find_map(|item| find(&item.content)),
+                _ => None,
+            })
+        }
+        find(self.blocks())
+    }
 }
 
 impl Block {

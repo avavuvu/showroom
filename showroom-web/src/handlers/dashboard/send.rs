@@ -97,6 +97,9 @@ async fn unique_slug(newsletter: &newsletter::Model, db: &DatabaseConnection) ->
 
     for attempt in 1..=20 {
         let candidate = if attempt == 1 { base.clone() } else { format!("{base}-{attempt}") };
+        if newsletter::RESERVED_SLUGS.contains(&candidate.as_str()) {
+            continue;
+        }
         let taken = Newsletter::find()
             .filter(newsletter::Column::PublicationId.eq(&newsletter.publication_id))
             .filter(newsletter::Column::Slug.eq(&candidate))

@@ -39,6 +39,7 @@ pub fn create_router(state: AppState) -> Router {
     Router::new()
         .fallback(app_404)
         .route("/", get(publications::index))
+        .route("/robots.txt", get(crate::handlers::feeds::app_robots))
         .route("/new", get(publications::new_form).post(publications::create))
         .route("/name/preview", post(publications::preview_name))
         .route("/settings", get(settings::get_settings))
