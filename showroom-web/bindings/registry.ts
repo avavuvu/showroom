@@ -22,6 +22,11 @@ export const registry: Registry = {
         many: [],
         load: () => import("../src/components/theme_form/style_overrides/index").then((module) => module.colorOverride satisfies setups.ColorOverride),
     },
+    "copy-field": {
+        tags: ["div"],
+        many: [],
+        load: () => import("../src/components/copy_field/index").then((module) => module.copyField satisfies setups.CopyField),
+    },
     "dirty-form": {
         tags: ["form"],
         many: [],
@@ -37,6 +42,11 @@ export const registry: Registry = {
         many: [],
         load: () => import("../src/components/editor/link_bar/index").then((module) => module.editorLinkBar satisfies setups.EditorLinkBar),
     },
+    "editor-section-menu": {
+        tags: ["div"],
+        many: ["option"],
+        load: () => import("../src/components/editor/section_menu/index").then((module) => module.editorSectionMenu satisfies setups.EditorSectionMenu),
+    },
     "editor-toolbar": {
         tags: ["div"],
         many: ["blockLabel", "blockOption", "command"],
@@ -51,6 +61,11 @@ export const registry: Registry = {
         tags: ["div"],
         many: [],
         load: () => import("../src/blocks/image/editor/index").then((module) => module.imageEditor satisfies setups.ImageEditor),
+    },
+    "local-time": {
+        tags: ["time"],
+        many: [],
+        load: () => import("../src/components/local_time/index").then((module) => module.localTime satisfies setups.LocalTime),
     },
     "menu": {
         tags: ["div"],
@@ -71,6 +86,16 @@ export const registry: Registry = {
         tags: ["div"],
         many: [],
         load: () => import("./boutique/input/index").then((module) => module.passwordToggle satisfies setups.PasswordToggle),
+    },
+    "review-editor": {
+        tags: ["div"],
+        many: [],
+        load: () => import("../src/components/editor/index").then((module) => module.reviewEditor satisfies setups.ReviewEditor),
+    },
+    "review-request": {
+        tags: ["form"],
+        many: [],
+        load: () => import("../src/components/review_request/index").then((module) => module.reviewRequest satisfies setups.ReviewRequest),
     },
     "theme-preview": {
         tags: ["form"],

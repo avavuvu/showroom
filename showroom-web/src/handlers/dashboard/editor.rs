@@ -31,7 +31,8 @@ pub async fn get_edit(
     Path((_, id)): Path<(String, String)>,
 ) -> AppResult<Response> {
     let newsletter = find_newsletter(&state.db, &owned.publication.id, &id).await?;
-    let page = views::dashboard::edit(&owned.into_context(state.urls.clone()), &newsletter);
+    let reviews = super::reviews::review_summaries(&state, &newsletter.id).await?;
+    let page = views::dashboard::edit(&owned.into_context(state.urls.clone()), &newsletter, reviews);
 
     Ok(([(header::CACHE_CONTROL, "no-store")], page).into_response())
 }

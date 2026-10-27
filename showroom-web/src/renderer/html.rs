@@ -90,7 +90,7 @@ fn list_items(items: &[ListItem]) -> Markup {
     }
 }
 
-fn inlines(content: &[Inline]) -> Markup {
+pub(crate) fn inlines(content: &[Inline]) -> Markup {
     pieces(&inline_tree(content))
 }
 

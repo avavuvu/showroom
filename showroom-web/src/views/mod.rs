@@ -6,6 +6,7 @@ pub mod layouts;
 pub mod subscriber;
 pub mod user;
 pub mod pages;
+pub mod review;
 pub mod sitemap;
 
 pub use context::{PageContext, Viewer};

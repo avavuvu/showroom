@@ -23,5 +23,6 @@ export const musicSpec: NodeSpec = {
     selectable: true,
     draggable: true,
     parseDOM: [{ tag: "figure.music-card[data-music]", priority: 70, getAttrs: parseMusicAttrs }],
+    diffLabel: "Music card",
     toDOM: (node) => ["figure", { class: "music-card", "data-music": JSON.stringify(node.attrs) }],
 }

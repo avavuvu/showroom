@@ -1,26 +1,4 @@
 .preview-view {
-    header {
-        z-index: 10;
-        top: 0;
-        position: sticky;
-        background-color: var(--color-surface);
-        height: 4em;
-
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.5em 2em;
-
-        & .right {
-            display: flex;
-            align-items: center;
-            gap: 1em;
-        }
-
-        & .send-warning {
-            color: var(--color-error);
-        }
-    }
     & .emails {
         display: grid;
         grid-template-rows: 1fr 1fr;
@@ -38,24 +16,6 @@
     }
 
     @media (max-width: 48rem) {
-        & header {
-            height: auto;
-            min-height: 3.5em;
-            flex-wrap: wrap;
-            gap: 0.5em;
-            padding: 0.5em 0.75em;
-
-            & .right {
-                flex-wrap: wrap;
-                justify-content: flex-end;
-                gap: 0.5em;
-            }
-
-            & .send-warning {
-                font-size: 0.875em;
-            }
-        }
-
         & .emails {
             overflow-wrap: anywhere;
         }

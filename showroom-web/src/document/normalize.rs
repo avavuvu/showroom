@@ -1,6 +1,6 @@
 use super::{
     Block, CodeBlockAttrs, Document, FigureAttrs, HeadingAttrs, ImageAttrs, Inline, ListItem, MAX_FALLBACK, Mark, NameAttrs, QuoteVariant, code_text,
-    is_allowed_href,
+    is_allowed_href, is_valid_section_id,
     is_allowed_image_src,
 };
 use crate::blocks::{music, youtube};
@@ -43,7 +43,7 @@ fn block(block: Block) -> Option<Block> {
             Block::Paragraph { content: inlines(content) }
         }
         Block::Heading { attrs, content } => Block::Heading {
-            attrs: HeadingAttrs { level: attrs.level.clamp(2, 4) },
+            attrs: HeadingAttrs { level: attrs.level.clamp(2, 4), id: attrs.id.filter(|id| is_valid_section_id(id)) },
             content: inlines(content),
         },
         Block::Blockquote { attrs, content } => match attrs.variant {

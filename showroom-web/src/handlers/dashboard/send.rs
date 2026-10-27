@@ -24,7 +24,8 @@ pub async fn get_send(
         return Ok(views::dashboard::sending::page(&ctx, &newsletter, &progress));
     }
 
-    Ok(views::dashboard::preview(&ctx, &newsletter))
+    let open_reviews = super::reviews::review_summaries(&state, &newsletter.id).await?.len();
+    Ok(views::dashboard::preview(&ctx, &newsletter, open_reviews))
 }
 
 pub async fn get_progress(

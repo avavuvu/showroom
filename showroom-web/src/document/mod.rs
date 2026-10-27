@@ -1,10 +1,11 @@
 mod inline;
+pub mod merge;
 mod normalize;
 
 pub use crate::blocks::music::{MusicAttrs, MusicKind};
 pub use crate::blocks::youtube::YoutubeAttrs;
 pub use crate::blocks::boxout::{BoxoutAttrs, BoxoutStyle, BoxoutWidth};
-pub use inline::{InlinePiece, inline_tree};
+pub use inline::{InlinePiece, inline_tree, join_words, words};
 
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
@@ -160,16 +161,22 @@ pub struct LinkAttrs {
     pub href: String,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct HeadingAttrs {
     #[serde(default = "default_heading_level", deserialize_with = "lenient_level")]
     pub level: u8,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
 }
 
 impl Default for HeadingAttrs {
     fn default() -> Self {
-        Self { level: default_heading_level() }
+        Self { level: default_heading_level(), id: None }
     }
+}
+
+pub fn is_valid_section_id(id: &str) -> bool {
+    (1..=32).contains(&id.len()) && id.bytes().all(|byte| byte.is_ascii_alphanumeric() || byte == b'_' || byte == b'-')
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
@@ -272,6 +279,52 @@ impl Document {
         serde_json::to_value(self).unwrap_or(Value::Null)
     }
 
+    pub fn section_span(&self, id: &str) -> Option<std::ops::Range<usize>> {
+        let blocks = self.blocks();
+        let (start, level) = blocks.iter().enumerate().find_map(|(index, block)| match block {
+            Block::Heading { attrs, .. } if attrs.id.as_deref() == Some(id) => Some((index, attrs.level)),
+            _ => None,
+        })?;
+        let end = blocks[start + 1..]
+            .iter()
+            .position(|block| matches!(block, Block::Heading { attrs, .. } if attrs.level <= level))
+            .map_or(blocks.len(), |offset| start + 1 + offset);
+        Some(start..end)
+    }
+
+    pub fn scope(&self, section_id: Option<&str>) -> Option<std::ops::Range<usize>> {
+        match section_id {
+            Some(id) => self.section_span(id),
+            None => Some(0..self.blocks().len()),
+        }
+    }
+
+    pub fn heading_before(&self, index: usize) -> Option<String> {
+        self.blocks()[..index].iter().rev().find_map(|block| match block {
+            Block::Heading { attrs, .. } => attrs.id.clone(),
+            _ => None,
+        })
+    }
+
+    pub fn restore_index(&self, after_section_id: Option<&str>) -> usize {
+        let blocks = self.blocks();
+        let start = match after_section_id {
+            Some(id) => match blocks.iter().position(|block| matches!(block, Block::Heading { attrs, .. } if attrs.id.as_deref() == Some(id))) {
+                Some(index) => index + 1,
+                None => return blocks.len(),
+            },
+            None => 0,
+        };
+        blocks[start..]
+            .iter()
+            .position(|block| matches!(block, Block::Heading { .. }))
+            .map_or(blocks.len(), |offset| start + offset)
+    }
+
+    pub fn trimmed(&self) -> Self {
+        Self { content: self.blocks().to_vec() }
+    }
+
     pub fn blocks(&self) -> &[Block] {
         let end = self
             .content
@@ -283,6 +336,60 @@ impl Document {
 }
 
 impl Block {
+    pub fn inline_content(&self) -> Option<&[Inline]> {
+        match self {
+            Block::Paragraph { content } | Block::Heading { content, .. } | Block::Caption { content } | Block::Attribution { content } => Some(content),
+            _ => None,
+        }
+    }
+
+    pub fn same_text_kind(&self, other: &Block) -> bool {
+        match (self, other) {
+            (Block::Heading { attrs, .. }, Block::Heading { attrs: other, .. }) => attrs.level == other.level,
+            _ => std::mem::discriminant(self) == std::mem::discriminant(other) && self.inline_content().is_some(),
+        }
+    }
+
+    pub fn with_inline_content(&self, content: Vec<Inline>) -> Block {
+        match self {
+            Block::Paragraph { .. } => Block::Paragraph { content },
+            Block::Heading { attrs, .. } => Block::Heading { attrs: attrs.clone(), content },
+            Block::Caption { .. } => Block::Caption { content },
+            Block::Attribution { .. } => Block::Attribution { content },
+            _ => self.clone(),
+        }
+    }
+
+    pub fn is_card(&self) -> bool {
+        match self {
+            Block::Music { .. } | Block::Youtube { .. } | Block::Figure { .. } | Block::Image { .. } | Block::HorizontalRule {} | Block::Boxout { .. } => true,
+            Block::Paragraph { .. }
+            | Block::Heading { .. }
+            | Block::Blockquote { .. }
+            | Block::Pullquote { .. }
+            | Block::Attribution { .. }
+            | Block::BulletList { .. }
+            | Block::OrderedList { .. }
+            | Block::CodeBlock { .. }
+            | Block::Caption { .. } => false,
+        }
+    }
+
+    pub fn media_keys(&self) -> Vec<String> {
+        match self {
+            Block::Image { attrs } => vec![format!("image:{}", attrs.src)],
+            Block::Music { attrs } => vec![format!("music:{}", attrs.artwork.as_deref().unwrap_or_default())],
+            Block::Youtube { attrs } => vec![format!("youtube:{}", attrs.id)],
+            Block::Figure { content, .. } | Block::Blockquote { content, .. } | Block::Pullquote { content } | Block::Boxout { content, .. } => {
+                content.iter().flat_map(Block::media_keys).collect()
+            }
+            Block::BulletList { content } | Block::OrderedList { content, .. } => {
+                content.iter().flat_map(|item| item.content.iter().flat_map(Block::media_keys)).collect()
+            }
+            _ => Vec::new(),
+        }
+    }
+
     pub fn requires_name(&self) -> bool {
         match self {
             Block::Paragraph { content } | Block::Heading { content, .. } | Block::Caption { content } | Block::Attribution { content } => {

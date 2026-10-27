@@ -61,7 +61,7 @@ fn flush(blocks: &mut Vec<EmailBlock>, buffer: &mut String, wrap: &mut Option<St
 }
 
 pub fn render_email(document: &Document, theme: EmailTheme, urls: &Urls) -> Vec<EmailBlock> {
-    let renderer = Renderer { theme, image_px: None, wood_src: urls.asset(WOOD_EMAIL_PATH) };
+    let renderer = Renderer { theme, image_px: None, wood_src: urls.asset(WOOD_EMAIL_PATH), is_flush_top: false };
     let mut blocks = Vec::new();
     let mut buffer = String::new();
     let mut wrap: Option<String> = None;
@@ -133,10 +133,12 @@ enum Context {
     Quote,
 }
 
+#[derive(Clone)]
 struct Renderer {
     theme: EmailTheme,
     image_px: Option<u16>,
     wood_src: String,
+    is_flush_top: bool,
 }
 
 impl Renderer {
@@ -146,17 +148,18 @@ impl Renderer {
 
     fn paragraph_style(&self, context: Context) -> String {
         match context {
-            Context::Body => format!("margin: 0 0 16px 0; {}", self.body_font()),
-            Context::Quote => "margin: 0 0 12px 0; font-family: inherit; font-size: inherit; line-height: inherit;".to_string(),
+            Context::Body => format!("margin: 0 0 16px 0; color: {}; {}", self.theme.text, self.body_font()),
+            Context::Quote => "margin: 0 0 12px 0; color: inherit; font-family: inherit; font-size: inherit; line-height: inherit;".to_string(),
         }
     }
 
     fn heading_style(&self, level: u8) -> String {
         let align = if self.theme.layout == Layout::Centred { "center" } else { "left" };
         format!(
-            "font-family: {}; font-size: {}px; font-weight: bold; text-align: {align}; margin: 28px 0 8px 0; line-height: 1.3;",
+            "font-family: {}; font-size: {}px; font-weight: bold; text-align: {align}; margin: {}px 0 8px 0; line-height: 1.3;",
             self.theme.font_title,
             self.theme.heading_px(level.into()),
+            self.top_margin(28),
         )
     }
 
@@ -174,8 +177,8 @@ impl Renderer {
 
     fn pullquote_style(&self) -> String {
         format!(
-            "border-left: 4px solid {}; background-color: {}; padding: 20px 28px; margin: 24px 0;",
-            self.theme.primary, self.theme.surface_muted,
+            "border-left: 4px solid {}; background-color: {}; padding: 20px 28px; margin: {}px 0 24px 0;",
+            self.theme.primary, self.theme.surface_muted, self.top_margin(24),
         )
     }
 
@@ -205,7 +208,7 @@ impl Renderer {
     }
 
     fn hr_style(&self) -> String {
-        format!("border: 0; border-top: 1px solid {}; margin: 32px 0;", self.theme.border)
+        format!("border: 0; border-top: 1px solid {}; margin: {}px 0 32px 0;", self.theme.border, self.top_margin(32))
     }
 
     fn link_style(&self) -> String {
@@ -248,6 +251,19 @@ impl Renderer {
 
     fn code_mark_style(&self) -> String {
         format!("font-family: monospace, monospace; font-size: 14px; background-color: {}; padding: 2px 4px;", self.theme.surface_muted)
+    }
+
+    fn flush_blocks(&self, blocks: &[Block]) -> Markup {
+        let Some((first, rest)) = blocks.split_first() else { return html! {} };
+        let flush = Renderer { is_flush_top: true, ..self.clone() };
+        html! {
+            (flush.block(first, Context::Body))
+            (self.blocks(rest, Context::Body))
+        }
+    }
+
+    fn top_margin(&self, px: u8) -> u8 {
+        if self.is_flush_top { 0 } else { px }
     }
 
     fn blocks(&self, blocks: &[Block], context: Context) -> Markup {
@@ -340,7 +356,7 @@ impl Renderer {
                 ..theme
             },
         };
-        let inner = Renderer { theme: inner_theme, image_px, wood_src: self.wood_src.clone() };
+        let inner = Renderer { theme: inner_theme, image_px, wood_src: self.wood_src.clone(), is_flush_top: false };
         let (background, frame) = match attrs.style {
             BoxoutStyle::Bordered => (None, format!("border: 1px solid {};", theme.border)),
             BoxoutStyle::Brand | BoxoutStyle::Trim => (Some(theme.primary), format!("border: 0; background-color: {};", theme.primary)),
@@ -350,7 +366,7 @@ impl Renderer {
                 style={ "border-collapse: separate; " (frame) } {
                 tr {
                     td style={ "padding: " (BOXOUT_PADDING_PX) "px " (BOXOUT_PADDING_PX) "px 0 " (BOXOUT_PADDING_PX) "px; color: " (inner.theme.text) "; " (self.body_font()) } {
-                        (inner.blocks(content, Context::Body))
+                        (inner.flush_blocks(content))
                     }
                 }
             }

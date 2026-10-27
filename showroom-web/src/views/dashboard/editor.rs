@@ -3,14 +3,17 @@ use maud::{Markup, PreEscaped};
 
 use crate::components::{EditorPage, EditorProps};
 use crate::document::Document;
+use crate::models::review::ReviewSummary;
 use crate::models::newsletter;
 use crate::views::context::PageContext;
 use crate::views::layouts::{base, installable, page};
 
-pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
+pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model, reviews: Vec<ReviewSummary>) -> Markup {
     let sent = newsletter.published_at.is_some();
     let props = EditorProps {
         id: &newsletter.id,
+        slug: &ctx.publication().slug,
+        reviews,
         revision: newsletter.revision,
         content: Document::from_stored(&newsletter.content),
     };

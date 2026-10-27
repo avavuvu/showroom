@@ -193,6 +193,8 @@ html:has(.newsletter-editor) {
     }
 
     & .editor-surface {
+        --editor-gutter: 0.5em;
+
         display: grid;
         grid-template-columns: 1fr min(70ch, 100%) 1fr;
     }
@@ -202,7 +204,8 @@ html:has(.newsletter-editor) {
 
         grid-column: 2;
         min-height: 60vh;
-        padding: 1rem 0.5em 4rem;
+        grid-row: 1;
+        padding: 1rem var(--editor-gutter) 4rem;
         outline: none;
 
         & hr {
@@ -387,83 +390,98 @@ html:has(.newsletter-editor) {
     }
 }
 
-.edit-view {
-    & .marquee {
-        background-color: var(--color-primary);
-        color: var(--color-on-primary);
-        text-align: center;
+.newsletter-editor .editor-body {
+    isolation: isolate;
+}
+
+.newsletter-editor .section-menu {
+    position: relative;
+    grid-row: 1;
+    grid-column: 2;
+    margin-inline: var(--editor-gutter);
+    pointer-events: none;
+
+    & .section-outline {
+        position: absolute;
+        inset-inline: calc(-1 * var(--prose-wide-bleed));
+        top: calc(var(--heading-top) - 0.5rem);
+        z-index: -1;
+        display: none;
+        height: calc(var(--section-bottom) - var(--heading-top) + 1rem);
+        border: 1px solid var(--editor-accent);
+        background-color: var(--color-surface-muted);
+
+        &.is-visible {
+            display: block;
+        }
     }
 
-    & header {
-        z-index: 10;
-        top: 0;
-        position: sticky;
+    & .section-drop {
+        position: absolute;
+        inset-inline: calc(-1 * var(--prose-wide-bleed));
+        top: calc(var(--drop-top) - 1px);
+        z-index: 3;
+        display: none;
+        height: 2px;
+        background-color: var(--editor-accent);
+
+        &.is-visible {
+            display: block;
+        }
+    }
+
+    & .section-handle {
+        position: absolute;
+        top: calc(var(--heading-top) - 0.5rem);
+        right: calc(100% + var(--prose-wide-bleed) - 1px);
+        z-index: 2;
+        display: none;
+        pointer-events: auto;
+
+        &.is-visible {
+            display: block;
+        }
+
+        &.is-dragging .section-button {
+            cursor: grabbing;
+        }
+
+        & .menu-panel {
+            margin-top: -1px;
+        }
+    }
+
+    & .section-icon {
+        display: none;
+    }
+
+    & .section-handle:is([data-level="2"], :not([data-level])) .section-icon[data-level="2"],
+    & .section-handle[data-level="3"] .section-icon[data-level="3"],
+    & .section-handle[data-level="4"] .section-icon[data-level="4"] {
+        display: contents;
+    }
+
+    & .section-button {
+        display: grid;
+        place-items: center;
+        width: 2.5rem;
+        height: calc(var(--heading-height) + 1rem);
+        padding: 0;
+        border: 1px solid var(--color-border);
         background-color: var(--color-surface);
-        height: 4em;
+        color: var(--color-text);
+        cursor: grab;
+        touch-action: none;
 
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.5em 2em;
-
-        & .left {
-            display: flex;
-            align-items: center;
-            gap: 0.5em;
-
-            & .save-status-group {
-                display: flex;
-                align-items: center;
-                gap: 0.5em;
-            }
-
-            & .save-status {
-                max-width: 40ch;
-                color: var(--color-muted);
-                font-size: 0.875em;
-                line-height: 1.2;
-
-                &:is([data-state="error"], [data-state="conflict"], [data-state="expired"], [data-state="invalid"], [data-state="problem"]) {
-                    color: var(--color-error);
-                }
-            }
-
-            & .save-actions {
-                display: flex;
-                gap: 0.5em;
-
-                &[hidden] {
-                    display: none;
-                }
-            }
-        }
-    }
-
-    @media (max-width: 48rem) {
-        & .marquee {
-            padding: 0.25em 0.75em;
-            font-size: 0.875em;
+        & svg {
+            width: 1.125rem;
+            height: 1.125rem;
         }
 
-        & header {
-            height: auto;
-            min-height: 3.5em;
-            gap: 0.5em;
-            padding: 0.5em 0.75em;
-
-            & .left {
-                min-width: 0;
-
-                & .save-status-group {
-                    flex-wrap: wrap;
-                    min-width: 0;
-                }
-
-                & .save-status {
-                    max-width: none;
-                    font-size: 0.8125em;
-                }
-            }
+        &:hover,
+        &:focus-visible,
+        &[aria-expanded="true"] {
+            border-color: var(--editor-accent);
         }
     }
 }

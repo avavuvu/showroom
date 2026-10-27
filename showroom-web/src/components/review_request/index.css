@@ -1,0 +1,50 @@
+.review-request {
+    display: grid;
+    gap: 0.5rem;
+    justify-items: start;
+    padding-block: 2rem;
+
+    & .reviewer-rows {
+        display: grid;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    & .reviewer-row {
+        display: flex;
+        gap: 0.25rem;
+
+        & input {
+            flex: 1;
+            min-width: 0;
+        }
+    }
+
+    & .reviewer-remove {
+        width: 2.25rem;
+        border: 1px solid var(--color-border);
+        background: transparent;
+        color: var(--color-muted);
+        cursor: pointer;
+    }
+
+    & input[type="text"],
+    & textarea {
+        padding: 0.5rem 0.625rem;
+        border: 1px solid var(--color-border);
+        background-color: var(--color-surface);
+        color: inherit;
+        font: inherit;
+    }
+
+    & textarea {
+        width: 100%;
+        margin-top: 0.5rem;
+        resize: vertical;
+    }
+
+    & .error {
+        margin: 0;
+        color: var(--color-error);
+    }
+}

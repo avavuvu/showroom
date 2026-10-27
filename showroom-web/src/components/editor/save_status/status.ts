@@ -22,10 +22,12 @@ interface Regions {
 }
 
 export class SaveStatus {
-    private messages = createMessages(formatShortcut("Mod-s"))
+    private messages: Record<SaveState, string>
     private timer: ReturnType<typeof setTimeout> | undefined
 
-    constructor(private regions: Regions) {}
+    constructor(private regions: Regions, overrides: Partial<Record<SaveState, string>> = {}) {
+        this.messages = { ...createMessages(formatShortcut("Mod-s")), ...overrides }
+    }
 
     render(state: SaveState) {
         clearTimeout(this.timer)

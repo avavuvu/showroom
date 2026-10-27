@@ -54,8 +54,28 @@ export const newsletterEditor: NewsletterEditor = (root, refs, { signal }) => {
         onUpdate: () => listeners.forEach((listener) => listener(view)),
     })
 
+    const go = async (href: string) => {
+        if (uploads.isActive) {
+            report("Wait until the image upload is complete.")
+            return
+        }
+        const isSaved = await saver.flush()
+        if (isSaved || window.confirm("Your latest changes are not saved. Leave this page?")) {
+            saver.discard()
+            window.location.assign(href)
+        }
+    }
+
+    const base = `/${encodeURIComponent(props.slug)}/edit/${encodeURIComponent(props.id)}`
+
     provide(root, editorContext, {
         view,
+        reviews: {
+            summaries: props.reviews,
+            sendUrl: (sectionId) => `${base}/review?section=${encodeURIComponent(sectionId)}`,
+            listUrl: `${base}/reviews`,
+            navigate: (href) => void go(href),
+        },
         insertImage: insertImage(uploads, filePicker.pick),
         onUpdate: (listener, signal) => {
             listeners.add(listener)
@@ -64,7 +84,7 @@ export const newsletterEditor: NewsletterEditor = (root, refs, { signal }) => {
         },
     })
 
-    const stopViewport = trackViewport(root, refs.header, refs.toolbar, view, signal)
+    const stopViewport = trackViewport(root, root.querySelector<HTMLElement>(":scope > .workspace-header"), refs.toolbar, view, signal)
 
     return {
         filesPicked: () => filePicker.handlePicked(),
@@ -87,16 +107,7 @@ export const newsletterEditor: NewsletterEditor = (root, refs, { signal }) => {
                 return
             }
             event.preventDefault()
-
-            if (uploads.isActive) {
-                report("Wait until the image upload is complete.")
-                return
-            }
-            const isSaved = await saver.flush()
-            if (isSaved || window.confirm("Your latest changes are not saved. Leave this page?")) {
-                saver.discard()
-                window.location.assign(link.href)
-            }
+            await go(link.href)
         },
 
         restore: (event) => {
@@ -120,3 +131,4 @@ export const newsletterEditor: NewsletterEditor = (root, refs, { signal }) => {
         },
     }
 }
+export { reviewEditor } from "./review"

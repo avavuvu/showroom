@@ -52,3 +52,41 @@ fn group<'a>(items: &[(Vec<&'a Mark>, &'a Inline)], depth: usize) -> Vec<InlineP
 
     pieces
 }
+
+pub fn words(content: &[Inline]) -> Vec<Inline> {
+    let mut words = Vec::new();
+    for inline in content {
+        let Inline::Text { text, marks } = inline else {
+            words.push(inline.clone());
+            continue;
+        };
+        let mut word = String::new();
+        let mut previous = None;
+        for character in text.chars() {
+            let class = if character.is_whitespace() { 0 } else if character.is_alphanumeric() { 1 } else { 2 };
+            if previous.is_some_and(|previous| previous != class || class == 2) {
+                words.push(Inline::Text { text: std::mem::take(&mut word), marks: marks.clone() });
+            }
+            previous = Some(class);
+            word.push(character);
+        }
+        if !word.is_empty() {
+            words.push(Inline::Text { text: word, marks: marks.clone() });
+        }
+    }
+    words
+}
+
+pub fn join_words(words: Vec<Inline>) -> Vec<Inline> {
+    let mut joined: Vec<Inline> = Vec::with_capacity(words.len());
+    for word in words {
+        if let (Some(Inline::Text { text, marks }), Inline::Text { text: next, marks: next_marks }) = (joined.last_mut(), &word) {
+            if marks == next_marks {
+                text.push_str(next);
+                continue;
+            }
+        }
+        joined.push(word);
+    }
+    joined
+}

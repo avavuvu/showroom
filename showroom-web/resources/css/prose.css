@@ -12,9 +12,12 @@
     font-size: var(--prose-font-size, 1em);
 }
 
-.prose-body {
+.prose-body,
+.prose-overlay {
     --prose-wide-bleed: clamp(0px, (100vw - 100%) / 2 - 0.5rem, 1.5rem);
+}
 
+.prose-body {
     display: flow-root;
 }
 

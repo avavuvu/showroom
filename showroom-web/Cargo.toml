@@ -36,6 +36,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 html-escape = "0.3.0"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
 image = { version = "0.25.10", default-features = false, features = ["jpeg", "png"] }
+similar = "2"
 
 [build-dependencies]
 bq_setups = { git = "https://github.com/avavuvu/boutique.git", rev = "430115b4593f9afea4103843e07880d724fc507a" }

@@ -1,0 +1,132 @@
+.edit-view .reviews-count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    margin-left: 0.375rem;
+    padding-inline: 0.25rem;
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    font-size: 0.75rem;
+    line-height: 1;
+}
+
+.review-view {
+    & .workspace-warning:empty {
+        display: none;
+    }
+
+    & .newsletter-editor.is-review {
+        & .editor-meta {
+            gap: 1rem;
+        }
+
+        & .review-title {
+            margin: 0;
+            font-family: var(--font-title);
+            font-size: 1.75rem;
+        }
+
+        & .review-note {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+
+        & .editor-surface .ProseMirror {
+            min-height: 0;
+            padding-bottom: 2rem;
+        }
+
+        & :is(.image-replace, .music-cover) {
+            display: none;
+        }
+    }
+
+    & .ProseMirror > .diff-block {
+        position: relative;
+
+        &.is-media {
+            outline: 2px solid var(--color-changed);
+            outline-offset: 0.25rem;
+
+            &.is-added {
+                outline-color: var(--color-added);
+            }
+        }
+    }
+
+    & .diff-toggle {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: -1.75rem;
+        width: 1.25rem;
+        margin: 0;
+        padding: 0;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+
+        &::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 0.375rem;
+            transform: translateX(-50%);
+            background-color: var(--color-changed);
+        }
+
+        &.is-added::before {
+            background-color: var(--color-added);
+        }
+
+        &.is-removed::before {
+            background-color: var(--color-removed);
+        }
+
+        &:hover::before,
+        &[aria-expanded="true"]::before {
+            width: 100%;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--editor-accent);
+            outline-offset: 2px;
+        }
+    }
+
+    & .diff-removed {
+        position: relative;
+        min-height: 0.75rem;
+        user-select: none;
+
+        & > .diff-toggle {
+            bottom: auto;
+            height: 0.75rem;
+        }
+    }
+
+    & .review-reply-box {
+        max-width: min(70ch, 100%);
+        margin: 0 auto 30vh;
+        padding-inline: 0.5em;
+    }
+
+    & .review-reply {
+        width: 100%;
+        padding: 0.5rem 0.625rem;
+        border: 1px solid var(--color-border);
+        background-color: var(--color-surface);
+        color: inherit;
+        font: inherit;
+        resize: vertical;
+    }
+
+    @media (max-width: 48rem) {
+        & .newsletter-editor.is-review .editor-surface .ProseMirror {
+            padding-left: 2rem;
+        }
+    }
+}

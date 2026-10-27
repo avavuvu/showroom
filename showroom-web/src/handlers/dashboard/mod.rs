@@ -6,6 +6,7 @@ pub mod images;
 pub mod music;
 pub mod youtube;
 pub mod publications;
+pub mod reviews;
 pub mod settings;
 pub mod subscribers;
 

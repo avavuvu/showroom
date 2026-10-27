@@ -38,5 +38,6 @@ export const youtubeSpec: NodeSpec = {
     selectable: true,
     draggable: true,
     parseDOM: [{ tag: "figure.youtube-card[data-youtube]", priority: 70, getAttrs: parseYoutubeAttrs }],
+    diffLabel: "YouTube video",
     toDOM: (node) => ["figure", { class: "youtube-card", "data-youtube": JSON.stringify(node.attrs) }],
 }

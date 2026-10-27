@@ -3,11 +3,11 @@ use maud::{Markup, PreEscaped};
 use crate::document::Document;
 use crate::models::newsletter;
 use crate::renderer::{email::render_email, personalize};
-use crate::components::Button;
+use crate::components::{Button, Workspace};
 use crate::views::context::PageContext;
 use crate::views::layouts::{page, base, base_email_layout, NewsletterBody};
 
-pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
+pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model, open_reviews: usize) -> Markup {
     let publication = ctx.publication();
     let send_url = format!("{}/send/{}", ctx.dashboard_url(), newsletter.id);
     let back_url = format!("{}/edit/{}", ctx.dashboard_url(), newsletter.id);
@@ -46,20 +46,19 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model) -> Markup {
         &page(newsletter.display_title()),
         html! {
         style { (PreEscaped(publication.theme().css())) }
-        div.preview-view {
-            header {
-                div.left {
-                    Button(href = &back_url) .secondary { "Back" }
-                }
-
-                div.right {
-                    @if !has_title {
-                        p.send-warning { "Add a title before you send." }
+        Workspace(
+            left = html! { Button(href = &back_url) .secondary { "Back" } },
+            right = html! {
+                @if !has_title {
+                    p.workspace-warning { "Add a title before you send." }
+                } @else if open_reviews > 0 {
+                    p.workspace-warning {
+                        "Suggestion links are still open"
                     }
-                    Button(post = &send_url, disabled = !has_title) .primary { "Send" }
                 }
-            }
-
+                Button(post = &send_url, disabled = !has_title) .primary { "Send" }
+            },
+        ) .preview-view {
             article.flow {
                 div.emails {
                     span {

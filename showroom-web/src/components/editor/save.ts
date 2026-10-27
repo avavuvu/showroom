@@ -5,10 +5,10 @@ export type SaveState = "saved" | "dirty" | "saving" | "error" | "conflict" | "e
 
 export type SavePayload = Omit<SaveRequest, "revision">
 
-interface SaveOptions {
+interface SaveOptions<Payload extends object> {
     url: string
     revision: number
-    read: () => SavePayload
+    read: () => Payload
     onChange: (state: SaveState) => void
     signal: AbortSignal
 }
@@ -24,7 +24,7 @@ const DEBOUNCE_MS = 1_500
 const MAX_WAIT_MS = 10_000
 const RETRY_MS = [2_000, 5_000, 15_000, 30_000]
 
-export class SaveController {
+export class SaveController<Payload extends object = SavePayload> {
     state: SaveState = "saved"
 
     private revision: number
@@ -38,7 +38,7 @@ export class SaveController {
     private maxWaitTimer: ReturnType<typeof setTimeout> | undefined
     private retryTimer: ReturnType<typeof setTimeout> | undefined
 
-    constructor(private options: SaveOptions) {
+    constructor(private options: SaveOptions<Payload>) {
         this.revision = options.revision
         window.addEventListener("online", () => this.state === "error" && void this.save(false), { signal: options.signal })
         options.signal.addEventListener("abort", () => this.clearTimers(), { once: true })
@@ -46,6 +46,16 @@ export class SaveController {
 
     stop() {
         this.clearTimers()
+    }
+
+    get currentRevision(): number {
+        return this.revision
+    }
+
+    acceptRevision(revision: number) {
+        this.revision = revision
+        this.savedEdits = this.edits
+        this.setState("saved")
     }
 
     get hasUnsavedChanges(): boolean {
@@ -166,14 +176,14 @@ export class SaveController {
         }
     }
 
-    private async send(payload: SavePayload): Promise<Outcome> {
+    private async send(payload: Payload): Promise<Outcome> {
         try {
             const response = await fetch(this.options.url, {
                 method: "PUT",
                 redirect: "manual",
                 signal: this.options.signal,
                 headers: { "Content-Type": "application/json", Accept: "application/json" },
-                body: JSON.stringify({ ...payload, revision: this.revision } satisfies SaveRequest),
+                body: JSON.stringify({ ...payload, revision: this.revision }),
             })
 
             if (response.type === "opaqueredirect" || response.status === 401 || response.status === 403) {

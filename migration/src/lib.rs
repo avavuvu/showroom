@@ -17,6 +17,8 @@ mod m20261009_000013_publication_picture_history;
 mod m20261017_000014_email_snapshots;
 mod m20261017_000015_publication_names;
 mod m20261024_035555_hero_image;
+mod m20261027_000016_reviews;
+mod m20261027_000017_review_links;
 
 pub struct Migrator;
 
@@ -41,6 +43,8 @@ impl MigratorTrait for Migrator {
             Box::new(m20261017_000014_email_snapshots::Migration),
             Box::new(m20261017_000015_publication_names::Migration),
             Box::new(m20261024_035555_hero_image::Migration),
+            Box::new(m20261027_000016_reviews::Migration),
+            Box::new(m20261027_000017_review_links::Migration),
         ]
     }
 }

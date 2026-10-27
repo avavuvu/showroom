@@ -5,7 +5,7 @@ import { gapCursor } from "prosemirror-gapcursor"
 import { history } from "prosemirror-history"
 import { keymap } from "prosemirror-keymap"
 import type { Node } from "prosemirror-model"
-import { EditorState, NodeSelection } from "prosemirror-state"
+import { EditorState, NodeSelection, type Plugin } from "prosemirror-state"
 import { EditorView } from "prosemirror-view"
 import { ensureTrailingParagraph, placeholders, trailingParagraph } from "./prosemirror/basics"
 
@@ -23,21 +23,25 @@ import { boxoutPlugin } from "../../blocks/boxout/commands"
 import { boxoutView } from "../../blocks/boxout/editor/view"
 import type { PickFiles } from "./file-picker"
 import { linkPlugin } from "./link_bar/link"
+import { sectionIdPlugin, withSectionIds } from "./prosemirror/sections"
 
-type Refs = Parameters<NewsletterEditor>[1]
+type Refs = Pick<Parameters<NewsletterEditor>[1], "surface" | "musicLookup" | "imageFrame" | "musicFrame" | "youtubeFrame" | "boxoutFrame">
 
 interface ViewOptions {
     doc: Node
+    hasMedia?: boolean
+    editable?: () => boolean
+    plugins?: Array<Plugin>
     uploads: Uploads
     pickFiles: PickFiles
     onChange: () => void
     onUpdate: () => void
 }
 
-export const createView = (refs: Refs, { doc, uploads, pickFiles, onChange, onUpdate }: ViewOptions): EditorView => {
+export const createView = (refs: Refs, { doc, hasMedia = true, editable, plugins = [], uploads, pickFiles, onChange, onUpdate }: ViewOptions): EditorView => {
     const view: EditorView = new EditorView(refs.surface, {
         state: EditorState.create({
-            doc: ensureTrailingParagraph(doc),
+            doc: ensureTrailingParagraph(withSectionIds(doc)),
             plugins: [
                 buildInputRules(),
                 keymap(buildKeymap()),
@@ -48,13 +52,15 @@ export const createView = (refs: Refs, { doc, uploads, pickFiles, onChange, onUp
                 placeholders({ body: "Write your newsletter…", caption: "Add a caption", attribution: "Author or source" }),
                 trailingParagraph(),
                 namePlugin(),
-                musicPlugin(refs.musicLookup),
-                youtubePlugin(),
+                sectionIdPlugin(),
+                ...(hasMedia ? [musicPlugin(refs.musicLookup), youtubePlugin()] : []),
                 boxoutPlugin(),
                 linkPlugin(),
                 uploads.plugin(),
+                ...plugins,
             ],
         }),
+        editable,
         attributes: {
             class: "flow prose-body",
             role: "textbox",
@@ -80,6 +86,9 @@ export const createView = (refs: Refs, { doc, uploads, pickFiles, onChange, onUp
             return true
         },
         handlePaste: (editor, event) => {
+            if (!hasMedia) {
+                return false
+            }
             const files = filterImageFiles(event.clipboardData?.files)
             if (files.length === 0) {
                 return false
@@ -88,7 +97,7 @@ export const createView = (refs: Refs, { doc, uploads, pickFiles, onChange, onUp
             return true
         },
         handleDrop: (editor, event, _slice, wasMoved) => {
-            if (wasMoved) {
+            if (wasMoved || !hasMedia) {
                 return false
             }
             const files = filterImageFiles(event.dataTransfer?.files)

@@ -19,6 +19,11 @@
     --color-muted: color-mix(in srgb, var(--ink) 33%, var(--paper));
     --color-surface-muted: color-mix(in srgb, var(--ink) 7%, var(--paper));
     --color-placeholder: var(--color-muted);
+    --color-added: #2da44e;
+    --color-added-surface: rgb(45 164 78 / 0.18);
+    --color-changed: #d4a72c;
+    --color-removed: var(--color-error);
+    --color-removed-surface: rgb(175 29 39 / 0.14);
     --button-weight: normal;
 
     --trim-size: 1em;

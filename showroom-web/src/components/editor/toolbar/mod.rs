@@ -59,7 +59,8 @@ const BLOCKS: &[(&str, &str, &str, Glyph)] = &[
 const OTHER_BLOCKS: &[(&str, &str)] = &[("caption", "Caption"), ("attribution", "Source"), ("mixed", "Mixed")];
 
 #[component(setup = "editor-toolbar")]
-pub fn toolbar() -> Markup {
+pub fn toolbar(media: bool) -> Markup {
+    let allowed = |tool: &&Tool| media || tool.command != "image";
     let secondary = || std::iter::once(HISTORY).chain(GROUPS.iter().copied()).flatten().filter(|tool| tool.secondary);
     html! {
         div.toolbar
@@ -78,7 +79,7 @@ pub fn toolbar() -> Markup {
             }
             @for group in GROUPS {
                 div.toolbar-group {
-                    @for tool in *group { (toolbar_button(tool)) }
+                    @for tool in group.iter().filter(allowed) { (toolbar_button(tool)) }
                 }
             }
             div.toolbar-group.more-group {
@@ -86,7 +87,7 @@ pub fn toolbar() -> Markup {
                     .toolbar-button.more-button
                     tabindex="-1"
                 {
-                    @for tool in secondary() { (more_option(tool)) }
+                    @for tool in secondary().filter(allowed) { (more_option(tool)) }
                 }
             }
         }
