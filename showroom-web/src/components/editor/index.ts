@@ -6,6 +6,7 @@ import type { EditorView } from "prosemirror-view"
 import { editorContext } from "./context"
 import { getBodyStart } from "./prosemirror/name"
 import { schema } from "./prosemirror/schema"
+import { withSectionIds } from "./prosemirror/sections"
 import { insertImage, Uploads } from "../../blocks/image/upload"
 import { holdUnload } from "../dirty_form/unload"
 import { createFilePicker } from "./file-picker"
@@ -53,6 +54,9 @@ export const newsletterEditor: NewsletterEditor = (root, refs, { signal }) => {
         onChange: () => saver.markDirty(),
         onUpdate: () => listeners.forEach((listener) => listener(view)),
     })
+    if (!withSectionIds(doc).eq(doc)) {
+        saver.markDirty()
+    }
 
     const go = async (href: string) => {
         if (uploads.isActive) {
