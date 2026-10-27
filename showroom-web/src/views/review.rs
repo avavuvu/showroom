@@ -4,9 +4,11 @@ use maud::{Markup, PreEscaped};
 use crate::components::{ReviewPage, ReviewProps, Workspace};
 use crate::document::Document;
 use crate::models::{newsletter, publication, review, review_link};
-use crate::views::layouts::{base, page};
+use crate::images::centred_card;
+use crate::state::Urls;
+use crate::views::layouts::{Metadata, base, page};
 
-pub fn review(publication: &publication::Model, newsletter: &newsletter::Model, review: &review::Model, link: &review_link::Model, url: &str) -> Markup {
+pub fn review(publication: &publication::Model, newsletter: &newsletter::Model, review: &review::Model, link: &review_link::Model, url: &str, urls: &Urls) -> Markup {
     let base_document = Document::from_stored(&review.base);
     let props = ReviewProps {
         url,
@@ -17,9 +19,19 @@ pub fn review(publication: &publication::Model, newsletter: &newsletter::Model, 
         sent: link.sent_at.is_some(),
     };
     let title = newsletter.display_title();
+    let invitation = format!("{} has invited you to edit their newsletter", publication.name);
+    let description = review
+        .note
+        .as_deref()
+        .map(str::trim)
+        .filter(|note| !note.is_empty())
+        .map_or_else(|| format!("Suggest edits to \u{201c}{title}\u{201d}."), str::to_string);
+    let metadata = Metadata::website(description).image(centred_card(&urls.cloudinary_cloud, &invitation, publication.theme()));
 
     base(
-        &page(title).entry_css("editor").viewport("width=device-width, initial-scale=1, interactive-widget=resizes-content"),
+        &page(&invitation)
+            .seo(metadata)
+            .entry_css("editor").viewport("width=device-width, initial-scale=1, interactive-widget=resizes-content"),
         html! {
             style { (PreEscaped(publication.theme().css())) }
             ReviewPage(

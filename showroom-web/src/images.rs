@@ -74,18 +74,50 @@ fn hex(color: impl std::fmt::Display) -> String {
     color.to_string().trim_start_matches('#').to_string()
 }
 
-pub fn share_card(cloud_name: &str, title: &str, byline: &str, theme: Theme) -> String {
+const SHARE_TRIM_PX: u32 = 40;
+const SHARE_PICTURE_PX: u32 = 300;
+
+fn card(cloud_name: &str, background: &str, layers: &str) -> String {
     let (width, height) = ImageSize::Og.dimensions();
+    format!("https://res.cloudinary.com/{cloud_name}/image/upload/c_scale,w_{width},h_{height}/e_colorize:100,co_rgb:{background}{layers}/f_jpg,q_auto/{SHARE_CARD_BASE}")
+}
+
+pub fn share_card(cloud_name: &str, title: &str, byline: &str, theme: Theme) -> String {
+    let (width, _) = ImageSize::Og.dimensions();
     let title_font = overlay_font(theme.fonts.title);
     let body_font = overlay_font(theme.fonts.body);
     let ink = hex(theme.ink);
     let muted = hex(theme.muted());
-    let title: String = title.chars().take(120).collect();
-    let byline: String = byline.chars().take(80).collect();
-    format!(
-        "https://res.cloudinary.com/{cloud_name}/image/upload/c_scale,w_{width},h_{height}/e_colorize:100,co_rgb:{paper}/l_text:{title_font}_72_bold_line_spacing_-8:{title},co_rgb:{ink},w_1040,c_fit/fl_layer_apply,g_north_west,x_80,y_80/l_text:{body_font}_36:{byline},co_rgb:{muted},w_1040,c_fit/fl_layer_apply,g_south_west,x_80,y_80/f_jpg,q_auto/{SHARE_CARD_BASE}",
-        paper = hex(theme.paper),
-        title = overlay_text(&title),
-        byline = overlay_text(&byline),
+    let layer = |text: &str, limit: usize, style: String, color: &str, gravity: &str, y: u32| {
+        let text: String = text.trim().chars().take(limit).collect();
+        (!text.is_empty()).then(|| format!("/l_text:{style}:{},co_rgb:{color},w_1040,c_fit/fl_layer_apply,g_{gravity},x_80,y_{y}", overlay_text(&text)))
+    };
+    let trim = format!("/l_{SHARE_CARD_BASE}/c_scale,w_{width},h_{SHARE_TRIM_PX}/e_colorize:100,co_rgb:{}/fl_layer_apply,g_south", hex(theme.brand));
+    let title = layer(title, 120, format!("{title_font}_72_bold_line_spacing_-8"), &ink, "north_west", 80).unwrap_or_default();
+    let byline = layer(byline, 80, format!("{body_font}_36"), &muted, "south_west", 80 + SHARE_TRIM_PX / 2).unwrap_or_default();
+    card(cloud_name, &hex(theme.paper), &format!("{trim}{title}{byline}"))
+}
+
+pub fn centred_card(cloud_name: &str, text: &str, theme: Theme) -> String {
+    let text: String = text.trim().chars().take(140).collect();
+    let layer = if text.is_empty() {
+        String::new()
+    } else {
+        format!(
+            "/l_text:{}_72_bold_center_line_spacing_-8:{},co_rgb:{},w_1040,c_fit/fl_layer_apply,g_center",
+            overlay_font(theme.fonts.title),
+            overlay_text(&text),
+            hex(theme.on_brand()),
+        )
+    };
+    card(cloud_name, &hex(theme.brand), &layer)
+}
+
+pub fn picture_card(cloud_name: &str, picture_public_id: &str, theme: Theme) -> String {
+    let picture = picture_public_id.replace('/', ":");
+    card(
+        cloud_name,
+        &hex(theme.brand),
+        &format!("/l_{picture}/c_fill,g_auto,w_{SHARE_PICTURE_PX},h_{SHARE_PICTURE_PX}/fl_layer_apply,g_center"),
     )
 }

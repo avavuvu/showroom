@@ -464,7 +464,7 @@ pub async fn get_review_page(
             .exec(&state.db)
             .await?;
     }
-    let page = views::review::review(&found.publication, &found.newsletter, &found.review, &found.link, &format!("/{slug}/review/{token}"));
+    let page = views::review::review(&found.publication, &found.newsletter, &found.review, &found.link, &format!("/{slug}/review/{token}"), &state.urls);
     Ok((private_headers(), page).into_response())
 }
 

@@ -1,5 +1,5 @@
 use boutique::prelude::*;
-use crate::{components::{ArticleHeader, SubscribeForm}, document::Document, images::{ImageSize, share_card}, models::{newsletter::Model as Newsletter, publication}, renderer::html::render, state::Urls, views::{context::PageContext, layouts::{Metadata, page, shell}}};
+use crate::{components::{ArticleHeader, SubscribeForm}, document::Document, images::{ImageSize, centred_card, picture_card, share_card}, models::{newsletter::Model as Newsletter, publication::{self, Picture}}, renderer::html::render, state::Urls, views::{context::PageContext, layouts::{Metadata, page, shell}}};
 pub mod profile;
 
 pub const DESCRIPTION_LENGTH: usize = 155;
@@ -39,9 +39,9 @@ fn newsletter_image(document: &Document, newsletter: &Newsletter, publication: &
 }
 
 pub fn publication_image(publication: &publication::Model, urls: &Urls) -> String {
-    match &publication.banner {
-        Some(public_id) => urls.image(public_id, ImageSize::Og),
-        None => share_card(&urls.cloudinary_cloud, &publication.name, publication.description.as_deref().unwrap_or_default(), publication.theme()),
+    match publication.picture() {
+        Picture::Upload(public_id) => picture_card(&urls.cloudinary_cloud, public_id, publication.theme()),
+        Picture::Default(_) => centred_card(&urls.cloudinary_cloud, &publication.name, publication.theme()),
     }
 }
 
