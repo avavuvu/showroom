@@ -7,6 +7,7 @@ import type { PickFiles } from "../../components/editor/file-picker"
 import { canInsert } from "../../components/editor/prosemirror/commands"
 import { schema } from "../../components/editor/prosemirror/schema"
 import { TrackedDecorations, cloneTemplate, createWidget } from "../decorations"
+import { webSrc } from "../view"
 
 export interface UploadedImage {
     src: string
@@ -90,7 +91,7 @@ const uploadImage = async (file: File): Promise<UploadedImage> => {
     }
 
     const loaded = new Image()
-    loaded.src = body.secure_url
+    loaded.src = webSrc(body.secure_url)
     await loaded.decode().catch(() => undefined)
 
     return { src: body.secure_url, publicId: body.public_id }

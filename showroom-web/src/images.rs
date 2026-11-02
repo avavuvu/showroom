@@ -1,6 +1,9 @@
+use std::borrow::Cow;
+
 use crate::theme::{Font, Theme};
 
 pub const EMAIL_PROFILE_PX: u32 = 48;
+pub const EMAIL_WIDTH_PX: u32 = 600;
 pub const SHARE_CARD_BASE: &str = "og-base";
 
 #[derive(Clone, Copy)]
@@ -32,7 +35,7 @@ impl ImageSize {
         match self {
             ImageSize::Hero | ImageSize::Card | ImageSize::Banner | ImageSize::Picture => format!("c_fill,g_auto,w_{width},h_{height},f_auto,q_auto"),
             ImageSize::Og => format!("c_fill,g_auto,w_{width},h_{height},f_jpg,q_auto"),
-            ImageSize::EmailPicture => format!("c_fill,g_auto,w_{width},h_{height}"),
+            ImageSize::EmailPicture => format!("c_fill,g_auto,w_{width},h_{height},f_png,q_auto"),
             ImageSize::Icon(_) => format!("c_fill,g_auto,w_{width},h_{height},f_png"),
         }
     }
@@ -40,6 +43,32 @@ impl ImageSize {
 
 pub fn cloudinary_url(cloud_name: &str, public_id: &str, size: ImageSize) -> String {
     format!("https://res.cloudinary.com/{cloud_name}/image/upload/{}/{public_id}", size.transform())
+}
+
+fn transform_upload<'a>(src: &'a str, transform: &str, extension: Option<&str>) -> Cow<'a, str> {
+    const MARKER: &str = "/image/upload/";
+    let Some(rest) = src.strip_prefix("https://res.cloudinary.com/") else { return Cow::Borrowed(src) };
+    let Some((cloud, path)) = rest.split_once(MARKER) else { return Cow::Borrowed(src) };
+    let is_version = path.split_once('/').is_some_and(|(segment, _)| {
+        segment.strip_prefix('v').is_some_and(|digits| !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit()))
+    });
+    if !is_version {
+        return Cow::Borrowed(src);
+    }
+    let path = match (extension, path.rsplit_once('.')) {
+        (Some(extension), Some((base, _))) => format!("{base}.{extension}"),
+        _ => path.to_string(),
+    };
+    Cow::Owned(format!("https://res.cloudinary.com/{cloud}{MARKER}{transform}/{path}"))
+}
+
+pub fn web_src(src: &str) -> Cow<'_, str> {
+    transform_upload(src, "f_auto,q_auto", None)
+}
+
+pub fn email_src(src: &str, display_px: u32) -> Cow<'_, str> {
+    let extension = src.to_ascii_lowercase().ends_with(".webp").then_some("jpg");
+    transform_upload(src, &format!("c_limit,w_{},q_auto", display_px * 2), extension)
 }
 
 fn overlay_font(font: Font) -> &'static str {

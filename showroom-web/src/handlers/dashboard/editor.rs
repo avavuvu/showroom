@@ -83,6 +83,7 @@ pub async fn put_edit_json(
         .col_expr(newsletter::Column::Title, Expr::value(body.title.trim().to_string()))
         .col_expr(newsletter::Column::Subtitle, Expr::value(subtitle))
         .col_expr(newsletter::Column::Content, Expr::value(document.to_value()))
+        .col_expr(newsletter::Column::HeroImageId, Expr::value(document.first_image_id().map(str::to_string)))
         .col_expr(newsletter::Column::UpdatedAt, Expr::value(Utc::now().fixed_offset()))
         .col_expr(newsletter::Column::Revision, Expr::col(newsletter::Column::Revision).add(1))
         .filter(newsletter::Column::Id.eq(&newsletter.id))

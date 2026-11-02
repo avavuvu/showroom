@@ -339,6 +339,7 @@ async fn save_applied(state: &AppState, newsletter: &newsletter::Model, link: &r
     let transaction = state.db.begin().await?;
     let result = Newsletter::update_many()
         .col_expr(newsletter::Column::Content, Expr::value(document.to_value()))
+        .col_expr(newsletter::Column::HeroImageId, Expr::value(document.first_image_id().map(str::to_string)))
         .col_expr(newsletter::Column::UpdatedAt, Expr::value(now))
         .col_expr(newsletter::Column::Revision, Expr::col(newsletter::Column::Revision).add(1))
         .filter(newsletter::Column::Id.eq(&newsletter.id))

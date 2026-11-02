@@ -4,6 +4,7 @@ use maud::Markup;
 
 use super::{MusicAttrs, MusicKind, listen_label};
 use crate::blocks::card::surface_style;
+use crate::images::web_src;
 
 #[component]
 pub fn music_card(#[positional] music: &MusicAttrs, attrs: Attrs) -> Markup {
@@ -14,7 +15,7 @@ pub fn music_card(#[positional] music: &MusicAttrs, attrs: Attrs) -> Markup {
         figure.media-card.music-card.has-color[surface.is_some()] data-kind=(music.kind.as_str()) style=[style] (..attrs) {
             @if let Some(artwork) = &music.artwork {
                 a.music-artwork href=[href] target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true" {
-                    img src=(artwork) alt="" loading="lazy";
+                    img src=(web_src(artwork)) alt="" loading="lazy";
                 }
             }
             div.media-card-details.music-details {

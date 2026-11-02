@@ -46,7 +46,11 @@ export const setCardSurface = (card: HTMLElement, color: string | null | undefin
     }
 }
 
-export const setImageSource = (image: HTMLImageElement, src: string | null | undefined) => {
+export const webSrc = (src: string) =>
+    src.replace(/^(https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/)(v\d+\/)/, "$1f_auto,q_auto/$2")
+
+export const setImageSource = (image: HTMLImageElement, raw: string | null | undefined) => {
+    const src = raw && webSrc(raw)
     if (src) {
         if (image.getAttribute("src") !== src) {
             image.src = src

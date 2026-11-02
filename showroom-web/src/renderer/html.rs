@@ -2,6 +2,7 @@ use boutique::html;
 use maud::Markup;
 
 use crate::blocks::{music::MusicCard, youtube::YoutubeEmbed};
+use crate::images::web_src;
 use crate::document::{
     Block, Document, ImageAttrs, Inline, InlinePiece, ListItem, Mark, alt_text, code_text, figure_parts, inline_tree, quote_parts, requires_name,
 };
@@ -79,7 +80,7 @@ fn render_block(block: &Block) -> Markup {
 }
 
 fn image(attrs: &ImageAttrs, alt: &str) -> Markup {
-    html! { img src=(attrs.src) alt=(alt) title=[attrs.title.as_deref()]; }
+    html! { img src=(web_src(&attrs.src)) alt=(alt) title=[attrs.title.as_deref()]; }
 }
 
 fn list_items(items: &[ListItem]) -> Markup {

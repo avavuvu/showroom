@@ -2,7 +2,7 @@ use boutique::html;
 use bq_components::component;
 use maud::Markup;
 
-use crate::{theme::EmailTheme, images::EMAIL_PROFILE_PX};
+use crate::{theme::EmailTheme, images::{EMAIL_PROFILE_PX, EMAIL_WIDTH_PX}};
 
 const GUTTER: &str = "32";
 const WIDE_GUTTER: &str = "8";
@@ -103,8 +103,8 @@ pub fn button(#[positional] href: &str, children: Markup) -> Markup {
 pub fn full_width_image(#[positional] src: &str, alt: &str, caption: Option<&str>) -> Markup {
     html! {
         tr {
-            td.email-full-width colspan="3" width="600" {
-                img.email-full-width-image src=(src) alt=(alt) width="600";
+            td.email-full-width colspan="3" width=(EMAIL_WIDTH_PX) {
+                img.email-full-width-image src=(src) alt=(alt) width=(EMAIL_WIDTH_PX);
             }
         }
         @if let Some(caption) = caption {

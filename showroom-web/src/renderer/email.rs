@@ -9,6 +9,7 @@ use crate::document::{
 use crate::blocks::card::color::WHITE;
 use crate::blocks::music::listen_label;
 use crate::blocks::youtube::WATCH_LABEL;
+use crate::images::{EMAIL_WIDTH_PX, email_src};
 use crate::renderer::personalize;
 use crate::state::Urls;
 use crate::theme::{Color, EmailTheme, Layout, Trim, WOOD_COLOR, WOOD_EMAIL_PATH};
@@ -72,7 +73,7 @@ pub fn render_email(document: &Document, theme: EmailTheme, urls: &Urls) -> Vec<
                 let Some((image, caption)) = figure_parts(content) else { continue };
                 flush(&mut blocks, &mut buffer, &mut wrap);
                 blocks.push(EmailBlock::FullWidthImage {
-                    src: image.src.clone(),
+                    src: email_src(&image.src, EMAIL_WIDTH_PX).into_owned(),
                     alt: alt_text(caption),
                     caption: (!caption.is_empty()).then(|| only_with_name(caption, renderer.inlines(caption)).into_string()),
                 });
@@ -445,7 +446,7 @@ impl Renderer {
                                 @if let Some(artwork) = &music.artwork {
                                     td width=(MUSIC_ARTWORK_PX) style={ "width: " (MUSIC_ARTWORK_PX) "px; padding: 0; vertical-align: top;" } {
                                         a href=[href] target="_blank" rel="noopener noreferrer" style="text-decoration: none;" {
-                                            img src=(artwork) alt="" width=(MUSIC_ARTWORK_PX) height=(MUSIC_ARTWORK_PX)
+                                            img src=(email_src(artwork, MUSIC_ARTWORK_PX.into())) alt="" width=(MUSIC_ARTWORK_PX) height=(MUSIC_ARTWORK_PX)
                                                 style={ "display: block; width: " (MUSIC_ARTWORK_PX) "px; height: " (MUSIC_ARTWORK_PX) "px; max-width: none; border: 0;" };
                                         }
                                     }
@@ -488,7 +489,7 @@ impl Renderer {
 
     fn image(&self, attrs: &ImageAttrs, alt: &str) -> Markup {
         html! {
-            img src=(attrs.src) alt=(alt) title=[attrs.title.as_deref()] width=[self.image_px] style="max-width: 100%; height: auto; display: block; margin: 0;";
+            img src=(email_src(&attrs.src, self.image_px.map_or(EMAIL_WIDTH_PX, u32::from))) alt=(alt) title=[attrs.title.as_deref()] width=[self.image_px] style="max-width: 100%; height: auto; display: block; margin: 0;";
         }
     }
 
