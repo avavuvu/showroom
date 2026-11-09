@@ -3,7 +3,21 @@ import { captionSpec, figureSpec, imageSpec, isQuoteFigure } from "../../../bloc
 import { musicSpec } from "../../../blocks/music/schema"
 import { youtubeSpec } from "../../../blocks/youtube/schema"
 import { boxoutSpec } from "../../../blocks/boxout/schema"
-import { isAllowedHref } from "./url"
+import {
+    blockquoteSpec,
+    boldSpec,
+    bulletListSpec,
+    codeSpec,
+    hardBreakSpec,
+    italicSpec,
+    linkSpec,
+    listItemSpec,
+    orderedListSpec,
+    paragraphSpec,
+    strikeSpec,
+    textSpec,
+    underlineSpec,
+} from "./specs"
 
 const getLanguage = (element: HTMLElement): string | null => {
     const className = element.querySelector("code")?.className ?? element.className
@@ -16,12 +30,7 @@ export const NAME_TEXT = "{{name}}"
 export const schema = new Schema({
     nodes: {
         doc: { content: "(block | music | youtube | boxout)+" },
-        paragraph: {
-            content: "inline*",
-            group: "block quotable",
-            parseDOM: [{ tag: "p" }],
-            toDOM: () => ["p", 0],
-        },
+        paragraph: paragraphSpec,
         heading: {
             attrs: { level: { default: 2, validate: "number" }, id: { default: null, validate: "string|null" } },
             content: "inline*",
@@ -41,13 +50,7 @@ export const schema = new Schema({
                 0,
             ],
         },
-        blockquote: {
-            content: "block+",
-            group: "block",
-            defining: true,
-            parseDOM: [{ tag: "blockquote", context: "pullquote/", skip: true, priority: 60 }, { tag: "blockquote" }],
-            toDOM: () => ["blockquote", 0],
-        },
+        blockquote: blockquoteSpec,
         pullquote: {
             content: "quotable+ attribution",
             group: "block",
@@ -65,30 +68,9 @@ export const schema = new Schema({
             parseDOM: [{ tag: "figcaption", context: "pullquote/" }],
             toDOM: () => ["figcaption", 0],
         },
-        bulletList: {
-            content: "listItem+",
-            group: "block quotable",
-            parseDOM: [{ tag: "ul" }],
-            toDOM: () => ["ul", 0],
-        },
-        orderedList: {
-            attrs: { start: { default: 1, validate: "number" } },
-            content: "listItem+",
-            group: "block quotable",
-            parseDOM: [
-                {
-                    tag: "ol",
-                    getAttrs: (element) => ({ start: Math.max(0, Number(element.getAttribute("start") ?? 1) || 1) }),
-                },
-            ],
-            toDOM: (node) => ["ol", node.attrs.start === 1 ? {} : { start: node.attrs.start }, 0],
-        },
-        listItem: {
-            content: "paragraph block*",
-            defining: true,
-            parseDOM: [{ tag: "li" }],
-            toDOM: () => ["li", 0],
-        },
+        bulletList: bulletListSpec,
+        orderedList: orderedListSpec,
+        listItem: listItemSpec,
         codeBlock: {
             attrs: { language: { default: null } },
             content: "text*",
@@ -110,7 +92,7 @@ export const schema = new Schema({
         music: musicSpec,
         youtube: youtubeSpec,
         boxout: boxoutSpec,
-        text: { group: "inline" },
+        text: textSpec,
         name: {
             inline: true,
             group: "inline",
@@ -129,58 +111,14 @@ export const schema = new Schema({
                 return ["span", { ...attrs, "data-fallback": fallback }, "name", ["span", { class: "name-token-fallback" }, fallback]]
             },
         },
-        hardBreak: {
-            inline: true,
-            group: "inline",
-            selectable: false,
-            parseDOM: [{ tag: "br" }],
-            toDOM: () => ["br"],
-        },
+        hardBreak: hardBreakSpec,
     },
     marks: {
-        link: {
-            attrs: { href: { validate: "string" } },
-            inclusive: false,
-            parseDOM: [
-                {
-                    tag: "a[href]",
-                    getAttrs: (element) => {
-                        const href = element.getAttribute("href")?.trim() ?? ""
-                        return isAllowedHref(href) ? { href } : false
-                    },
-                },
-            ],
-            toDOM: (mark) => ["a", { href: mark.attrs.href, rel: "noopener noreferrer nofollow" }, 0],
-        },
-        bold: {
-            parseDOM: [
-                { tag: "strong" },
-                { tag: "b", getAttrs: (element) => element.style.fontWeight !== "normal" && null },
-                { style: "font-weight=400", clearMark: (mark) => mark.type.name === "bold" },
-                { style: "font-weight", getAttrs: (value) => /^(bold(er)?|[5-9]\d{2,})$/.test(value) && null },
-            ],
-            toDOM: () => ["strong", 0],
-        },
-        italic: {
-            parseDOM: [
-                { tag: "i" },
-                { tag: "em" },
-                { style: "font-style=italic" },
-                { style: "font-style=normal", clearMark: (mark) => mark.type.name === "italic" },
-            ],
-            toDOM: () => ["em", 0],
-        },
-        underline: {
-            parseDOM: [{ tag: "u" }, { style: "text-decoration=underline", consuming: false }],
-            toDOM: () => ["u", 0],
-        },
-        strike: {
-            parseDOM: [{ tag: "s" }, { tag: "del" }, { tag: "strike" }, { style: "text-decoration=line-through", consuming: false }],
-            toDOM: () => ["s", 0],
-        },
-        code: {
-            parseDOM: [{ tag: "code" }],
-            toDOM: () => ["code", 0],
-        },
+        link: linkSpec,
+        bold: boldSpec,
+        italic: italicSpec,
+        underline: underlineSpec,
+        strike: strikeSpec,
+        code: codeSpec,
     },
 })

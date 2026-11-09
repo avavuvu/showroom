@@ -1,5 +1,5 @@
 use boutique::prelude::*;
-use crate::{components::{ArticleHeader, SubscribeForm}, document::Document, images::{ImageSize, centred_card, picture_card, share_card}, models::{newsletter::Model as Newsletter, publication::{self, Picture}}, renderer::html::render, state::Urls, views::{context::PageContext, layouts::{Metadata, page, shell}}};
+use crate::{components::{ArticleHeader, Comments, SubscribeForm, comments::{Discussion, Outcome}}, document::Document, images::{ImageSize, centred_card, picture_card, share_card}, models::{newsletter::Model as Newsletter, publication::{self, Picture}}, renderer::html::render, state::Urls, views::{context::PageContext, layouts::{Metadata, page, shell}}};
 pub mod profile;
 
 pub const DESCRIPTION_LENGTH: usize = 155;
@@ -69,7 +69,7 @@ pub fn publication_head(publication: &publication::Model, urls: &Urls) -> Markup
     }
 }
 
-pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
+pub fn newsletter(newsletter: Newsletter, ctx: &PageContext, discussion: Option<&Discussion>) -> Markup {
     let publication = ctx.publication();
     let publication_url = ctx.publication_url();
     let url = newsletter_url(&publication_url, &newsletter);
@@ -130,6 +130,9 @@ pub fn newsletter(newsletter: Newsletter, ctx: &PageContext) -> Markup {
                     " posts, consider subscribing."
                 }
                 SubscribeForm(&publication_url, &publication.name);
+            }
+            @if let Some(discussion) = discussion {
+                Comments(discussion, &Outcome::Blank);
             }
         }
     })

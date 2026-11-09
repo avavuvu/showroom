@@ -5,7 +5,7 @@ use maud::Markup;
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, ModelTrait, QueryFilter, QueryOrder};
 use crate::{
     document::Document,
-    services::publication::{OwnedPublication, find_newsletter},
+    services::{comments, publication::{OwnedPublication, find_newsletter}},
     models::newsletter::{self, Entity as Newsletter},
     state::AppState,
     views,
@@ -21,7 +21,11 @@ pub async fn index(
         .all(&state.db)
         .await?;
 
-    Ok(views::dashboard::index(&owned.into_context(state.urls.clone()), newsletters))
+    let (recent, newsletters_for): (Vec<_>, Vec<_>) = comments::recent(&state.db, &owned.publication.id).await?.into_iter().unzip();
+    let recent = comments::shown(&state.db, &state.urls, &owned.publication, recent).await?;
+    let recent: Vec<_> = recent.into_iter().zip(newsletters_for).collect();
+
+    Ok(views::dashboard::index(&owned.into_context(state.urls.clone()), newsletters, &recent))
 }
 
 pub async fn post_newsletters(

@@ -10,7 +10,7 @@ use serde::Deserialize;
 
 use crate::{
     mailer, models::{publication, subscriber::{self, Entity as Subscriber}},
-    services::{rate_limit::{Limit, client_ip}, subdomain::CurrentPublication}, state::AppState, views,
+    services::{rate_limit::{Limit, client_ip}, subdomain::CurrentPublication}, state::AppState, views::{self, PageContext, Viewer},
 };
 
 const PER_ADDRESS: Limit = Limit::per_hour(3);
@@ -51,12 +51,12 @@ pub async fn subscribe(
     Ok(insert_or_resend(&state, &publication, &form).await)
 }
 
-pub async fn confirm_page(CurrentPublication(publication): CurrentPublication) -> Markup {
-    views::subscriber::confirm_subscription(&publication.name)
+pub async fn confirm_page(State(state): State<AppState>, CurrentPublication(publication): CurrentPublication, viewer: Viewer) -> Markup {
+    views::subscriber::confirm_subscription(&PageContext::public(viewer, state.urls.clone()).with_publication(publication))
 }
 
-pub async fn unsubscribe_page(CurrentPublication(publication): CurrentPublication) -> Markup {
-    views::subscriber::confirm_unsubscribe(&publication.name)
+pub async fn unsubscribe_page(State(state): State<AppState>, CurrentPublication(publication): CurrentPublication, viewer: Viewer) -> Markup {
+    views::subscriber::confirm_unsubscribe(&PageContext::public(viewer, state.urls.clone()).with_publication(publication))
 }
 
 pub async fn confirm(
@@ -83,6 +83,7 @@ pub async fn confirm(
 pub async fn unsubscribe(
     State(state): State<AppState>,
     CurrentPublication(publication): CurrentPublication,
+    viewer: Viewer,
     Query(params): Query<TokenQuery>,
 ) -> AppResult<Markup> {
     Subscriber::delete_many()
@@ -91,7 +92,7 @@ pub async fn unsubscribe(
         .exec(&state.db)
         .await?;
 
-    Ok(views::subscriber::unsubscribed(&publication.name))
+    Ok(views::subscriber::unsubscribed(&PageContext::public(viewer, state.urls.clone()).with_publication(publication)))
 }
 
 async fn insert_or_resend(state: &AppState, publication: &publication::Model, form: &SubscribeForm) -> Response {

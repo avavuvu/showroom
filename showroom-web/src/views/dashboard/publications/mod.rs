@@ -132,6 +132,18 @@ pub fn settings(ctx: &PageContext, error: Option<&str>) -> Markup {
                 }
             }
 
+            section.settings-section.comments-section {
+                h2 { "Comments" }
+                p.hint { "Let readers comment on your newsletters. Turning comments off hides them from your pages and removes the comment link from future emails." }
+                form.settings-form method="POST" action={ (dashboard_url) "/settings/comments" } {
+                    label.checkbox {
+                        input type="checkbox" name="enabled" value="on" checked[publication.comments_enabled];
+                        " Allow comments"
+                    }
+                    Button(submit = true) .primary { "Save" }
+                }
+            }
+
             (picture_section(ctx, publication, &dashboard_url))
             (banner_section(ctx, publication, &dashboard_url))
 

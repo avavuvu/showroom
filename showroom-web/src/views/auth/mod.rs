@@ -3,7 +3,7 @@ use maud::Markup;
 use crate::components::{Button, Input, Kind};
 use crate::views::{PageContext, layouts::{page, shell}};
 
-pub fn login(ctx: &PageContext) -> Markup {
+pub fn login(ctx: &PageContext, next: Option<&str>) -> Markup {
     shell(
         page("Login").htmx(),
         ctx, html! {
@@ -18,6 +18,9 @@ pub fn login(ctx: &PageContext) -> Markup {
                     hx-target="#login-error"
                     hx-swap="innerHTML"
                 {
+                    @if let Some(next) = next {
+                        input type="hidden" name="next" value=(next);
+                    }
                     Input("email", kind = Kind::Email) placeholder="you@example.com" required;
                     Input("password", kind = Kind::Password, label = "Password") required;
                     Button(submit = true) .primary { "Sign in" }

@@ -89,6 +89,24 @@ a {
     color: var(--muted);
 }
 
+.email-quote {
+    margin: 0 0 16px;
+    padding: 0 0 0 16px;
+    border-left: 2px solid var(--muted);
+    font-family: var(--font-body);
+    font-size: var(--text-size);
+    line-height: 1.5;
+    color: var(--text);
+}
+
+.email-quote p {
+    margin: 0;
+}
+
+.email-quote p + p {
+    margin-top: 12px;
+}
+
 .small {
     font-size: 14px;
 }

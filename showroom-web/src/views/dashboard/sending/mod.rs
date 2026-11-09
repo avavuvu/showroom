@@ -9,7 +9,7 @@ use crate::views::context::PageContext;
 use crate::views::layouts::{page as head};
 
 pub fn page(ctx: &PageContext, newsletter: &newsletter::Model, progress: &Progress) -> Markup {
-    let view_url = format!("{}/{}", ctx.publication_url(), newsletter.slug);
+    let view_url = ctx.urls.visit(&format!("{}/{}", ctx.publication_url(), newsletter.slug));
     let back_url = format!("{}/edit/{}", ctx.dashboard_url(), newsletter.id);
     let title = format!("Sending – {}", newsletter.display_title());
 

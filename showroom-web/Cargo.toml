@@ -16,6 +16,10 @@ sea-orm = { version = "1", features = ["sqlx-postgres", "runtime-tokio-rustls", 
 strum = { version = "0.26", features = ["derive"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1"
+hmac = "0.12"
+sha2 = "0.10"
+axum-extra = { version = "0.10", features = ["cookie"] }
+time = "0.3"
 uuid = { version = "1", features = ["v4"] }
 chrono = "0.4"
 validator = { version = "0.20", features = ["derive"] }

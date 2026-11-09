@@ -18,7 +18,7 @@ pub fn edit(ctx: &PageContext, newsletter: &newsletter::Model, reviews: Vec<Revi
         content: Document::from_stored(&newsletter.content),
     };
     let next = if sent {
-        format!("{}/{}", ctx.publication_url(), newsletter.slug)
+        ctx.urls.visit(&format!("{}/{}", ctx.publication_url(), newsletter.slug))
     } else {
         format!("{}/send/{}", ctx.dashboard_url(), newsletter.id)
     };

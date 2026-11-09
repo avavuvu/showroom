@@ -280,7 +280,7 @@ async fn process(state: &AppState, newsletter_id: &str, rate: f64) -> Result<(),
         }
     };
 
-    let mailing = match NewsletterMailing::prepare(&state.ses, newsletter_id, &email, &publication, &state.urls).await {
+    let mailing = match NewsletterMailing::prepare(&state.ses, &newsletter, &email, &publication, &state.urls, &state.signer).await {
         Ok(mailing) => mailing,
         Err(error) => return defer_newsletter(&state.db, newsletter_id, &error).await,
     };

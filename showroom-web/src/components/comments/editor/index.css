@@ -1,0 +1,19 @@
+.comment-editor {
+    & .comment-editor-body {
+        min-block-size: 4lh;
+        padding: 1em;
+        white-space: pre-wrap;
+
+        &:focus-visible {
+            outline: none;
+        }
+    }
+
+    & .is-empty::before {
+        content: attr(data-placeholder);
+        float: left;
+        height: 0;
+        color: var(--color-placeholder);
+        pointer-events: none;
+    }
+}

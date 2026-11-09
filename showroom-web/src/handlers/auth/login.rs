@@ -1,9 +1,10 @@
-use axum::{Form, extract::State, http::HeaderMap, response::{IntoResponse, Redirect, Response}};
+use axum::{Form, extract::{Query, State}, http::HeaderMap, response::{IntoResponse, Redirect, Response}};
 use boutique::{AppError, AppResult, htmx, session};
 use serde::Deserialize;
 use validator::Validate;
 
 use crate::{
+    handlers,
     services::rate_limit::{Limit, client_ip},
     state::AppState,
     views::{self, PageContext, Viewer},
@@ -18,17 +19,30 @@ pub struct LoginForm {
     pub email: String,
     #[validate(length(min = 1, message = "Password is required"))]
     pub password: String,
+    pub next: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct NextQuery {
+    pub next: Option<String>,
+}
+
+fn safe_next<'a>(state: &AppState, next: Option<&'a str>) -> Option<&'a str> {
+    let allowed = format!("{}/visit?", state.urls.app());
+    next.filter(|next| next.starts_with(&allowed) && handlers::is_safe_location(next))
 }
 
 pub async fn login_page(
     State(state): State<AppState>,
+    Query(query): Query<NextQuery>,
     viewer: Viewer,
 ) -> Response {
+    let next = safe_next(&state, query.next.as_deref());
     if viewer.is_some() {
-        return Redirect::to(&state.urls.app()).into_response();
+        return Redirect::to(next.unwrap_or(&state.urls.app())).into_response();
     }
 
-    views::auth::login(&PageContext::public(viewer, state.urls.clone())).into_response()
+    views::auth::login(&PageContext::public(viewer, state.urls.clone()), next).into_response()
 }
 
 pub async fn login(
@@ -48,5 +62,6 @@ pub async fn login(
     }
 
     let (_, session) = session::login(&state.auth, &form.email, &form.password).await?;
-    Ok((session, htmx::redirect(&state.urls.app())).into_response())
+    let next = safe_next(&state, form.next.as_deref()).map_or_else(|| state.urls.app(), str::to_string);
+    Ok((session, htmx::redirect(&next)).into_response())
 }

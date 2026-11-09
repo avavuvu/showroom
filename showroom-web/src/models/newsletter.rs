@@ -42,9 +42,16 @@ impl Related<super::publication::Entity> for Entity {
 
 impl ActiveModelBehavior for ActiveModel {}
 
-pub const RESERVED_SLUGS: [&str; 8] = ["api", "feed", "subscribe", "confirm", "unsubscribe", "about", "contact", "archive"];
+pub const RESERVED_SLUGS: [&str; 9] = ["api", "feed", "subscribe", "confirm", "unsubscribe", "about", "contact", "archive", "comments"];
 
 impl Entity {
+    pub fn find_published(publication_id: &str, slug: &str) -> Select<Entity> {
+        Entity::find()
+            .filter(Column::PublicationId.eq(publication_id))
+            .filter(Column::Slug.eq(slug))
+            .filter(Column::PublishedAt.is_not_null())
+    }
+
     pub fn find_summaries() -> Select<Entity> {
         Entity::find()
             .select_only()

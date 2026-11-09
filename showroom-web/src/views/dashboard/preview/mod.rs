@@ -39,6 +39,7 @@ pub fn preview(ctx: &PageContext, newsletter: &newsletter::Model, open_reviews: 
                 picture = &publication.email_picture_url(&ctx.urls),
                 layout = theme.layout,
                 content = &content,
+                comment_url = [publication.comments_enabled.then_some("#")],
             );
         },
     );

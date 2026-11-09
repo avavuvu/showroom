@@ -13,8 +13,9 @@ use crate::{
     mailer::util::{from_address, is_retryable, ses_error},
     models::{newsletter::Model as Newsletter, publication::Model as Publication, subscriber::Model as Subscriber},
     renderer::{email::render_email, personalize, plain_text},
+    services::{comments::credential, signing::Signer},
     state::Urls,
-    views::layouts::{NewsletterBody, NewsletterTemplateData, base_email_layout, generate_subscriber_data},
+    views::{user::newsletter_url, layouts::{NewsletterBody, NewsletterTemplateData, base_email_layout, generate_subscriber_data}},
 };
 use boutique::html;
 use chrono::{DateTime, FixedOffset};
@@ -65,6 +66,9 @@ pub struct NewsletterMailing<'a> {
     template_name: String,
     from: String,
     publication_url: String,
+    newsletter_id: String,
+    newsletter_url: String,
+    signer: Signer,
 }
 
 pub struct RenderedEmail {
@@ -80,7 +84,7 @@ pub fn render(newsletter: &Newsletter, publication: &Publication, date: DateTime
         .map_err(|e| MailError::permanent(format!("Newsletter content is not valid: {e}")))?;
     let rendered_content: Vec<_> = render_email(&document, theme, urls).into_iter().map(|block| block.map(personalize::template)).collect();
     let date = date.format("%B %-d, %Y").to_string();
-    let read_online_url = format!("{}/{}", publication_url, newsletter.slug);
+    let read_online_url = newsletter_url(&publication_url, newsletter);
     let title = personalize::escape(newsletter.display_title());
     let subtitle = newsletter.subtitle.as_deref().map(personalize::escape);
     let publication_name = personalize::escape(&publication.name);
@@ -100,11 +104,13 @@ pub fn render(newsletter: &Newsletter, publication: &Publication, date: DateTime
                 picture = &publication.email_picture_url(urls),
                 layout = theme.layout,
                 content = &rendered_content,
+                comment_url = [publication.comments_enabled.then_some("{{comment_url}}")],
             );
         },
     );
+    let comment_line = if publication.comments_enabled { "\nLeave a comment: {{{comment_url}}}" } else { "" };
     let text = format!(
-        "{}\n\n---\nRead online: {}\nUnsubscribe: {{{{{{unsubscribe_url}}}}}}",
+        "{}\n\n---\nRead online: {}{comment_line}\nUnsubscribe: {{{{{{unsubscribe_url}}}}}}",
         plain_text::render(&document),
         personalize::escape(&read_online_url),
     );
@@ -115,12 +121,13 @@ pub fn render(newsletter: &Newsletter, publication: &Publication, date: DateTime
 impl<'a> NewsletterMailing<'a> {
     pub async fn prepare(
         client: &'a Client,
-        newsletter_id: &str,
+        newsletter: &Newsletter,
         email: &RenderedEmail,
         publication: &Publication,
         urls: &Urls,
+        signer: &Signer,
     ) -> Result<Self, MailError> {
-        let template_name = format!("newsletter-{}-{}", newsletter_id, uuid::Uuid::new_v4().simple());
+        let template_name = format!("newsletter-{}-{}", newsletter.id, uuid::Uuid::new_v4().simple());
 
         client
             .create_email_template()
@@ -141,6 +148,9 @@ impl<'a> NewsletterMailing<'a> {
             template_name,
             from: from_address(&publication.name, &urls.publication_email(&publication.slug)),
             publication_url: urls.publication(&publication.slug),
+            newsletter_id: newsletter.id.clone(),
+            newsletter_url: newsletter_url(&urls.publication(&publication.slug), newsletter),
+            signer: signer.clone(),
         })
     }
 
@@ -219,7 +229,8 @@ impl<'a> NewsletterMailing<'a> {
 
     fn entry(&self, subscriber: &Subscriber) -> Result<BulkEmailEntry, MailError> {
         let unsubscribe_url = format!("{}/unsubscribe?token={}", self.publication_url, subscriber.token);
-        let data = serde_json::to_string(&generate_subscriber_data(subscriber.name.as_deref(), &unsubscribe_url))
+        let comment_url = credential::comment_url(&self.signer, &self.newsletter_url, &self.newsletter_id, &subscriber.token);
+        let data = serde_json::to_string(&generate_subscriber_data(subscriber.name.as_deref(), &unsubscribe_url, &comment_url))
             .map_err(|e| MailError::permanent(e.to_string()))?;
 
         let list_unsubscribe = MessageHeader::builder()

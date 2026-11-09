@@ -81,19 +81,21 @@ pub fn confirmation_html(name: Option<&str>, confirm_url: &str, publication_name
 pub struct NewsletterTemplateData {
     pub name: String,
     pub unsubscribe_url: String,
+    pub comment_url: String,
     pub brace: &'static str,
 }
 
 impl Default for NewsletterTemplateData {
     fn default() -> Self {
-        Self { name: String::new(), unsubscribe_url: String::new(), brace: personalize::BRACE_VALUE }
+        Self { name: String::new(), unsubscribe_url: String::new(), comment_url: String::new(), brace: personalize::BRACE_VALUE }
     }
 }
 
-pub fn generate_subscriber_data(name: Option<&str>, unsubscribe_url: &str) -> NewsletterTemplateData {
+pub fn generate_subscriber_data(name: Option<&str>, unsubscribe_url: &str, comment_url: &str) -> NewsletterTemplateData {
     NewsletterTemplateData {
         name: name.map(str::trim).unwrap_or_default().to_string(),
         unsubscribe_url: unsubscribe_url.to_string(),
+        comment_url: comment_url.to_string(),
         brace: personalize::BRACE_VALUE,
     }
 }
@@ -110,6 +112,7 @@ pub fn newsletter_body(
     picture: &str,
     layout: Layout,
     content: &[EmailBlock],
+    comment_url: Option<&str>,
 ) -> Markup {
     let letter = layout == Layout::Letter;
     let centred = layout == Layout::Centred;
@@ -155,6 +158,13 @@ pub fn newsletter_body(
                 }
                 EmailBlock::FullWidthImage { src, alt, caption } => {
                     FullWidthImage(src, alt = alt, caption = [caption.as_deref()]);
+                }
+            }
+        }
+        @if let Some(comment_url) = comment_url {
+            Section(bottom = "8px") {
+                p {
+                    a href=(comment_url) { "Leave a comment on the web" }
                 }
             }
         }

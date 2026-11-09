@@ -1,0 +1,14 @@
+.notice-page {
+    --flow-space: 1.5em;
+
+    & h1 {
+        font-family: var(--font-title);
+        font-size: xx-large;
+        font-weight: bold;
+        line-height: 1.1;
+    }
+
+    & .hint {
+        color: var(--color-muted);
+    }
+}

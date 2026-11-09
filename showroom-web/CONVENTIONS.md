@@ -4,6 +4,9 @@ These apply to all TS in `src/**`, `resources/**` and `vite.config.ts`. Run `bun
 
 Formatting: 4-space indent, double quotes, trailing commas in multiline literals, `1tbs` braces. All of it is enforced by `@stylistic` in `eslint.config.js`.
 
+do not write comments.
+do not write tests.
+
 ## 1. Always use braces (lint: `curly`)
 
 Avoid:

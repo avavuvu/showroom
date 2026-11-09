@@ -6,7 +6,7 @@ use sea_orm::DatabaseConnection;
 use boutique::cloudinary::Cloudinary;
 use tokio::sync::Notify;
 
-use crate::{images::{ImageSize, cloudinary_url}, models::user, services::{music::MusicClient, rate_limit::RateLimiter, youtube::YoutubeClient}};
+use crate::{images::{ImageSize, cloudinary_url}, models::user, services::{music::MusicClient, rate_limit::RateLimiter, signing::Signer, youtube::YoutubeClient}};
 
 #[derive(Clone, Debug)]
 pub struct Urls {
@@ -92,6 +92,29 @@ impl Urls {
         self.origin(&format!("{slug}.{}", self.publication_domain))
     }
 
+    fn shares_session(&self) -> bool {
+        self.publication_domain == self.site_domain || self.publication_domain.ends_with(&format!(".{}", self.site_domain))
+    }
+
+    pub fn is_publication(&self, target: &url::Url) -> bool {
+        let is_publication_host = target
+            .host_str()
+            .and_then(|host| host.strip_suffix(&format!(".{}", self.publication_domain)))
+            .is_some_and(|slug| !slug.is_empty() && !slug.contains('.'));
+        is_publication_host && matches!(target.scheme(), "http" | "https")
+    }
+
+    pub fn needs_visit(&self) -> bool {
+        !self.shares_session()
+    }
+
+    pub fn visit(&self, target: &str) -> String {
+        if self.shares_session() {
+            return target.to_string();
+        }
+        format!("{}/visit?to={}", self.app(), encode(target))
+    }
+
     pub fn dashboard(&self, slug: &str) -> String {
         format!("{}/{}", self.app(), slug)
     }
@@ -127,6 +150,7 @@ pub struct AppState {
     pub music: MusicClient,
     pub youtube: YoutubeClient,
     pub limits: RateLimiter,
+    pub signer: Signer,
 }
 
 impl AppState {
@@ -135,8 +159,9 @@ impl AppState {
             .login_url(format!("{}/login", urls.base()))
             .cookie_domain(format!(".{}", urls.site_domain))
             .secure_cookies(urls.https);
+        let signer = Signer::new(&secret);
         let auth = AuthState::new(SeaOrmStore::new(db.clone()), secret).with_config(auth_config);
-        Self { db, urls, auth, ses, cloudinary, sends: Arc::new(Notify::new()), music: MusicClient::new(), youtube: YoutubeClient::new(), limits: RateLimiter::default() }
+        Self { db, urls, auth, ses, cloudinary, sends: Arc::new(Notify::new()), music: MusicClient::new(), youtube: YoutubeClient::new(), limits: RateLimiter::default(), signer }
     }
 }
 
@@ -146,4 +171,8 @@ impl HasAuth for AppState {
     fn auth(&self) -> &AuthState<user::Store> {
         &self.auth
     }
+}
+
+fn encode(value: &str) -> String {
+    url::form_urlencoded::byte_serialize(value.as_bytes()).collect()
 }

@@ -22,6 +22,11 @@ export const registry: Registry = {
         many: [],
         load: () => import("../src/components/theme_form/style_overrides/index").then((module) => module.colorOverride satisfies setups.ColorOverride),
     },
+    "comment-editor": {
+        tags: ["div"],
+        many: [],
+        load: () => import("../src/components/comments/editor/index").then((module) => module.commentEditor satisfies setups.CommentEditor),
+    },
     "copy-field": {
         tags: ["div"],
         many: [],

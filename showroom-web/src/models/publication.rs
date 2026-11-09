@@ -18,6 +18,7 @@ pub struct Model {
     pub banner: Option<String>,
     pub pictures: Pictures,
     pub is_default: bool,
+    pub comments_enabled: bool,
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,
 }
@@ -156,8 +157,8 @@ pub async fn for_owner(owner_id: &str, db: &DatabaseConnection) -> Result<Vec<Mo
 }
 
 pub const RESERVED_SLUGS: &[&str] = &[
-    "about", "admin", "api", "app", "assets", "css", "icons", "images", "json", "login",
-    "logout", "mail", "new", "settings", "show", "signup", "sitemap", "static", "www",
+    "about", "admin", "api", "app", "assets", "comments", "css", "icons", "images", "json", "login",
+    "logout", "mail", "new", "settings", "show", "signup", "sitemap", "static", "visit", "www",
 ];
 
 pub fn validate_slug(slug: &str) -> Result<(), &'static str> {

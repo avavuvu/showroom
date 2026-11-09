@@ -74,6 +74,7 @@ async fn server(env: AppEnv) {
     let state = state::AppState::new(env.db, env.ses, env.cloudinary, urls, env.secret);
     let _worker = AbortOnDrop(tokio::spawn(services::newsletter_send::supervise_worker(state.clone())));
     let _session_cleanup = AbortOnDrop(boutique::session::spawn_cleanup(state.auth.clone(), Duration::from_secs(60 * 60)));
+    let _comment_cleanup = AbortOnDrop(services::comments::lifecycle::spawn_sweeper(state.db.clone()));
 
     let (server, routes) = router::create_server(&state);
 

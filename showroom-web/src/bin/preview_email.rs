@@ -83,6 +83,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 picture = &urls.asset("/avatars/0.png"),
                 layout = theme.layout,
                 content = &rendered_content,
+                comment_url = "#",
             );
         },
     );

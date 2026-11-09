@@ -1,3 +1,4 @@
+pub mod comment;
 pub mod delivery;
 pub mod newsletter;
 pub mod publication;

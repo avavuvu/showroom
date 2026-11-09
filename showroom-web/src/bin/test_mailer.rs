@@ -4,6 +4,7 @@ use serde_json::json;
 use showroom_web::{
     mailer,
     models::{newsletter::Model as Newsletter, publication::Model as Publication, subscriber::Model as Subscriber},
+    services::signing::Signer,
     state::Urls,
 };
 
@@ -29,6 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         banner: None,
         pictures: Default::default(),
         is_default: true,
+        comments_enabled: true,
         created_at: Utc::now().fixed_offset(),
         updated_at: Utc::now().fixed_offset(),
     };
@@ -72,7 +74,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("Creating SES template...");
 
     let email = mailer::send_newsletter::render(&newsletter, &publication, Utc::now().fixed_offset(), &urls)?;
-    let mailing = mailer::NewsletterMailing::prepare(&client, &newsletter.id, &email, &publication, &urls).await?;
+    let mailing = mailer::NewsletterMailing::prepare(&client, &newsletter, &email, &publication, &urls, &Signer::new(&std::env::var("SECRET_KEY").unwrap_or_default())).await?;
     let deliveries = mailing.send(&subscribers).await;
     mailing.finish().await?;
 

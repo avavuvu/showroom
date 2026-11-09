@@ -4,3 +4,10 @@ pub mod html;
 pub mod diff;
 pub mod markdown;
 pub mod plain_text;
+
+#[derive(Clone, Copy)]
+pub enum Links {
+    Trusted,
+    UserGenerated,
+    Inert,
+}

@@ -111,6 +111,7 @@ pub async fn create(db: &DatabaseConnection, account: &NewAccount) -> Result<use
         banner: Set(None),
         pictures: Set(Default::default()),
         is_default: Set(true),
+        comments_enabled: Set(true),
         created_at: Set(now),
         updated_at: Set(now),
     };

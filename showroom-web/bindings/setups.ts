@@ -4,6 +4,7 @@ export type AsciiBackground = Setup<"div", { canvas: "canvas"; video: "video" }>
 export type BoxoutEditor = Setup<"aside", { content: "div"; handle: ("span")[]; style: ("button")[] }, { drag: { event: "pointerdown"; tag: "span" }; remove: { event: "click"; tag: "button" }; setStyle: { event: "click"; tag: "button" }; unwrap: { event: "click"; tag: "button" } }>;
 export type ColorInput = Setup<"details", { customColor: "input"; hex: "span"; preset: ("button")[] }, { change: { event: "input"; tag: "input" }; pick: { event: "click"; tag: "button" } }>;
 export type ColorOverride = Setup<"div", { hex: "span"; picker: "input"; reset: "button"; toggle: "input" }, { change: { event: "input"; tag: "input" }; clear: { event: "click"; tag: "button" } }>;
+export type CommentEditor = Setup<"div", { content: "input"; fallback: "textarea"; surface: "div" }>;
 export type CopyField = Setup<"div", { button?: "a" | "button"; input: "input" }, { copy: { event: "click"; tag: "a" } | { event: "click"; tag: "button" }; select: { event: "focus"; tag: "input" } }>;
 export type DirtyForm = Setup<"form", {}, { leave: { event: "beforeunload"; tag: "form"; target: "window" }; reset: { event: "reset"; tag: "form" }; restore: { event: "pageshow"; tag: "form"; target: "window" }; submit: { event: "submit"; tag: "form" }; update: { event: "change"; tag: "form" } | { event: "input"; tag: "form" } }>;
 export type Dropdown = Setup<"details", {}, { close: { event: "keydown"; tag: "details" }; outside: { event: "pointerdown"; tag: "details"; target: "document" } }>;

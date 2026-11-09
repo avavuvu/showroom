@@ -1,8 +1,6 @@
 use boutique::html;
 use maud::Markup;
-use crate::{components::Button, views::layouts::page};
-
-use super::layouts::base;
+use crate::{components::Button, views::{PageContext, layouts::notice_page}};
 
 pub fn subscribe_success() -> Markup {
     html! {
@@ -30,37 +28,27 @@ pub fn subscribe_error(message: &str) -> Markup {
     }
 }
 
-pub fn confirm_subscription(publication_name: &str) -> Markup {
-    base(
-        &page("Confirm your subscription"),
-        html! {
+pub fn confirm_subscription(ctx: &PageContext) -> Markup {
+    notice_page(ctx, "Confirm your subscription", html! {
+        p { "Subscribe to " strong { (ctx.publication().name) } "?" }
         form method="post" {
-            h1 { "Confirm your subscription" }
-            p { "Subscribe to " (publication_name) "?" }
             Button(submit = true) .primary { "Confirm" }
         }
     })
 }
 
-pub fn confirm_unsubscribe(publication_name: &str) -> Markup {
-    base(
-        &page("Unsubscribe"),
-        html! {
+pub fn confirm_unsubscribe(ctx: &PageContext) -> Markup {
+    notice_page(ctx, "Unsubscribe", html! {
+        p { "Stop receiving emails from " strong { (ctx.publication().name) } "?" }
         form method="post" {
-            h1 { "Unsubscribe" }
-            p { "Stop receiving emails from " (publication_name) "?" }
             Button(submit = true) .primary { "Unsubscribe" }
         }
     })
 }
 
-pub fn unsubscribed(publication_name: &str) -> Markup {
-    base(
-        &page("Confirmed"),
-        html! {
-        div {
-            h1 { "Sorry to see you go" }
-            p { "You've been unsubscribed from " (publication_name) "." }
-        }
+pub fn unsubscribed(ctx: &PageContext) -> Markup {
+    notice_page(ctx, "Sorry to see you go", html! {
+        p { "You've been unsubscribed from " (ctx.publication().name) "." }
+        a.link href=(ctx.publication_url()) { "Back to " (ctx.publication().name) }
     })
 }

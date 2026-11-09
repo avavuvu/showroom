@@ -124,6 +124,7 @@ pub async fn create(
         banner: Set(None),
         pictures: Set(Default::default()),
         is_default: Set(false),
+        comments_enabled: Set(true),
         created_at: Set(now),
         updated_at: Set(now),
     };
@@ -173,6 +174,26 @@ pub async fn update_settings(
     active.update(&state.db).await?;
 
     Ok(Redirect::to(&format!("{}/settings", state.urls.dashboard(&slug))).into_response())
+}
+
+#[derive(Deserialize)]
+pub struct CommentsForm {
+    pub enabled: Option<String>,
+}
+
+pub async fn update_comments(
+    State(state): State<AppState>,
+    owned: OwnedPublication,
+    Form(form): Form<CommentsForm>,
+) -> AppResult<Redirect> {
+    let slug = owned.publication.slug.clone();
+    let mut active: publication::ActiveModel = owned.publication.into();
+    active.comments_enabled = Set(form.enabled.is_some());
+    active.updated_at = Set(chrono::Utc::now().fixed_offset());
+
+    active.update(&state.db).await?;
+
+    Ok(Redirect::to(&format!("{}/settings", state.urls.dashboard(&slug))))
 }
 
 #[derive(Deserialize)]

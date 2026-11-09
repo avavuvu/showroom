@@ -25,6 +25,8 @@ pub fn create_router(state: AppState) -> Router {
         .route("/reviews/{review}/links/{link}/delete", post(reviews::delete_link))
         .route("/review/{token}", get(reviews::get_review_page).put(reviews::put_review_json))
         .route("/review/{token}/send", post(reviews::post_review_send))
+        .route("/comments/{id}", delete(crate::handlers::comments::dashboard_delete))
+        .route("/settings/comments", post(publications::update_comments))
         .route("/subscribers", get(subscribers::get_subscribers))
         .route("/subscribers/import", post(subscribers::import_subscribers))
 
@@ -49,6 +51,7 @@ pub fn create_router(state: AppState) -> Router {
         .route("/music/resolve", post(music::resolve))
         .route("/music/color", post(music::color))
         .route("/youtube/lookup", post(youtube::lookup))
+        .route("/visit", get(crate::handlers::comments::visit))
         .nest("/{slug}", publication)
         .layer(middleware::from_fn_with_state(state.clone(), require_same_origin))
         .with_state(state)
@@ -67,7 +70,7 @@ async fn require_same_origin(State(state): State<AppState>, request: Request, ne
     }
 }
 
-fn is_same_origin(headers: &header::HeaderMap, app: &str) -> bool {
+pub(crate) fn is_same_origin(headers: &header::HeaderMap, app: &str) -> bool {
     let value = |name| headers.get(name).and_then(|value: &header::HeaderValue| value.to_str().ok());
     match value(header::ORIGIN) {
         Some(origin) => origin == app,

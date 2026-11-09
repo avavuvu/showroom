@@ -19,6 +19,7 @@ mod m20261017_000015_publication_names;
 mod m20261024_035555_hero_image;
 mod m20261027_000016_reviews;
 mod m20261027_000017_review_links;
+mod m20261109_000018_comments;
 
 pub struct Migrator;
 
@@ -45,6 +46,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20261024_035555_hero_image::Migration),
             Box::new(m20261027_000016_reviews::Migration),
             Box::new(m20261027_000017_review_links::Migration),
+            Box::new(m20261109_000018_comments::Migration),
         ]
     }
 }
